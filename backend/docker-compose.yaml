@@ -1,0 +1,16 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./db:/app/db  
+      - ./staticfiles:/app/staticfiles
+      - .:/app 
+    env_file:
+      - .env  # Load environment variables from .env file
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py createsuperuser_if_not_exists &&
+             python manage.py seed &&
+             gunicorn --bind 0.0.0.0:8000 amarkapi.wsgi:application"

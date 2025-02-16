@@ -1,0 +1,78 @@
+.env
+.venv
+.vscode
+uploads/
+static/
+staticfiles/
+db/
+__pycache__
+./
+# General
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# Environment Variables
+.env
+*.env
+
+# Django & Python
+db.sqlite3
+*.sqlite3
+media/
+static/
+logs/
+venv/
+.envrc
+.mypy_cache/
+.pytest_cache/
+celerybeat-schedule
+instance/
+*.log
+
+# Virtual Environment
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Node.js (if using React or other frontend with Django)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Docker
+docker-compose.override.yml
+*.tar
+
+# Coverage reports
+.coverage
+htmlcov/
+*.cover
+*.coverage
+*.lcov
+nosetests.xml
+coverage.xml
+
+# Build files
+build/
+dist/
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Secrets and Credentials
+secrets.json
