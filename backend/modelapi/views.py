@@ -30,9 +30,10 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
         Example: GET /api/review-assignments/?rater=Rater1
         """
         rater_id = request.GET.get('rater_id')
+
         queryset = self.queryset
         if rater_id:
-            queryset = queryset.filter(rater_id=rater_id)
+            queryset = queryset.filter(rater_id=int(rater_id))
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

@@ -8,6 +8,7 @@ class RatersSerializer(serializers.ModelSerializer):
 
 class ReviewAssignmentSerializer(serializers.ModelSerializer):
     itemId = serializers.CharField(source='writing_task.itemId', read_only=True)
+    raterName = serializers.CharField(source='rater.name', read_only=True)
     class Meta:
         model = ReviewAssignment
-        fields = ['itemId', 'testId', 'rater', 'day', 'rate1', 'rate2', 'rate3', 'rate4']
+        fields = ['itemId', 'testId', 'rater', 'raterName', 'day', 'rate1', 'rate2', 'rate3', 'rate4']

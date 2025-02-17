@@ -15,12 +15,10 @@ export function UserDashboard() {
 
   ])
 
-
-
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0)
 useEffect(()=>{
   const fetchTask = async ()=>{
-    const response = await fetch("http://127.0.0.1:8000/api/raters-assignment/?rater=1")
+    const response = await fetch("http://127.0.0.1:8000/api/raters-assignment/?rater_id=7")
     const data = await response.json()
     // console.log(data)
     const tasks = data.map((task:ApiData)=>({
@@ -41,12 +39,10 @@ useEffect(()=>{
   const totalTasks = tasks.length
   const completedTasks = tasks.filter((task) => task.completed).length
 
-  // const handleDownloadPDF = () => {
-  //   // Handle PDF download logic here
-  //   console.log(`Downloading PDF: ${currentTask.pdfUrl}`)
-  // }
+
 
   const handleMarkChange = (mark: string) => {
+    console.log("mark", mark)
     setTasks(tasks.map((task, index) => (index === currentTaskIndex ? { ...task, mark } : task)))
   }
 
@@ -86,26 +82,54 @@ useEffect(()=>{
       <div className="w-[30vw] h-[80vh] p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4">
       
       <div className="flex flex-col justify-center items-center gap-4 border-spacing-4">
-        <h3 className="text-xl">{currentTask.title}</h3>
-        <p>
+        {/* <h3 className="text-xl">{currentTask.title}</h3> */}
+        {/* <p>
           Task {currentTaskIndex + 1} of {totalTasks}
-        </p>
+        </p> */}
        
         <div className="flex flex-col justify-center gap-3">
-          <label htmlFor="mark" className="">Assessment Mark:</label>
-          <input
-          className="border w-40"
-            id="mark"
-            type="number"
-            min="0"
-            max="100"
-            value={currentTask.mark}
-            onChange={(e) => handleMarkChange(e.target.value)}
-            placeholder="Enter mark (0-100)"
-            />
+        <span>TA Mark</span> 
+          {/* TODO: component */}
+          <div className="flex">
+            <div className="flex items-center me-4">
+                <input onChange={(e)=>handleMarkChange(e.target.value)} id="ta-1" type="radio" value="1" name="inline-radio-group" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                <label htmlFor="#ta-1" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">1</label>
+            </div>
+            <div className="flex items-center me-4">
+                <input onChange={(e)=>handleMarkChange(e.target.value)} id="ta-2" type="radio" value="2" name="inline-radio-group" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                <label htmlFor="#ta-2" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">2</label>
+            </div>
+            <div className="flex items-center me-4">
+                <input onChange={(e)=>handleMarkChange(e.target.value)} checked id="ta-3" type="radio" value="3" name="inline-radio-group" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                <label htmlFor="#ta-3" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">3</label>
+            </div>
+            <div className="flex items-center">
+                <input onChange={(e)=>handleMarkChange(e.target.value)} id="ta-4" type="radio" value="4" name="inline-radio-group" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                <label htmlFor="#ta-4" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">4</label>
+            </div>
+            <div className="flex items-center">
+                <input onChange={(e)=>handleMarkChange(e.target.value)} id="ta-5" type="radio" value="5" name="inline-radio-group" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"/>
+                <label htmlFor="#ta-4" className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">5</label>
+            </div>
+         </div>
+      <hr />
+             <span>GR&A Mark:</span>
+                   {/* TODO: component */}
+                   <div className="flex">
+           (Same style as above)
+         </div>
+         <hr />
+             <span>Voc Mark:</span>
+             (Same style as above)
+             <hr />
+             <span>Co&co Mark:</span>
+             (Same style as above)
+             <hr />
         </div>
+        
         <div className="flex flex-col justify-center items-center gap-3">
-          <label htmlFor="comment">Assessment Notes:</label>
+      
+          <label htmlFor="comment">Notes:</label>
           
           <textarea
             className="border"
@@ -113,7 +137,7 @@ useEffect(()=>{
             value={currentTask.comment}
             onChange={(e) => handleCommentChange(e.target.value)}
             placeholder="Enter your Notes here"
-            rows={4}
+            rows={2}
             />
         </div>
         <div>
@@ -163,7 +187,10 @@ Notes
     <div className="w-[70vw] h-[80vh] p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4">
 
 {/* <button onClick={handleDownloadPDF}>Download PDF for Review</button> */}
-<div className=" w-100">...Rendering PDF here</div>
+<div className=" w-100">
+  ...Rendering PDF here
+  <iframe src="179.pdf" width="100%" height="500px"></iframe>
+  </div>
 </div>
           </div>
     </div>

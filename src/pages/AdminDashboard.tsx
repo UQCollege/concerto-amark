@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import {  useState } from "react"
 
 type taskData = {
   testNumber:string
@@ -14,7 +14,7 @@ type taskData = {
 export type ApiData = {
   testId: string
   itemId: string
-  rater: string
+  raterName: string
   day: number
   rate1: number
   rate2: number
@@ -56,7 +56,6 @@ export function AdminDashboard() {
       setFile(uploadedFile)
       // Here you would typically process the file and update userData
       // The File including Students item IDs and assessors IDs
-      console.log(`File uploaded: ${uploadedFile.name}`)
     }
   }
 
@@ -64,11 +63,10 @@ export function AdminDashboard() {
     // Here you would implement the logic to generate an Excel file
     setIsProcess(true)
     const result = await fetchAssignmentData()
-    console.log(result)
     const newTaskData= result.map((item: ApiData) => ({
       testNumber: item.testId,
       itemid: item.itemId,
-      raterName: item.rater,
+      raterName: item.raterName,
       dayNumber: item.day,
       rate1: item.rate1,
       rate2: item.rate2,
@@ -121,10 +119,10 @@ export function AdminDashboard() {
             <th>ItemID</th>
             <th>Rater</th>
          <th>Date</th>
-            <th>(Rate Area 1)</th>
-            <th>(Rate Area 2)</th>
-            <th>(Rate Area 3)</th>
-            <th>(Rate Area 4)</th>
+            <th>(Task Completion)</th>
+            <th>(Grammar)</th>
+            <th>(Vocabulary)</th>
+            <th>(Cohesion & coherence)</th>
           </tr>
         </thead>
         <tbody>
