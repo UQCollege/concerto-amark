@@ -18,7 +18,7 @@ export function UserDashboard() {
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0)
 useEffect(()=>{
   const fetchTask = async ()=>{
-    const response = await fetch("http://127.0.0.1:8000/api/raters-assignment/?rater_id=7")
+    const response = await fetch("http://127.0.0.1:8000/api/raters-assignment/?rater_id=25")
     const data = await response.json()
     // console.log(data)
     const tasks = data.map((task:ApiData)=>({
@@ -187,9 +187,8 @@ Notes
     <div className="w-[70vw] h-[80vh] p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4">
 
 {/* <button onClick={handleDownloadPDF}>Download PDF for Review</button> */}
-<div className=" w-100">
-  ...Rendering PDF here
-  <iframe src="179.pdf" width="100%" height="500px"></iframe>
+<div className="w-100">
+  <iframe src="/179.pdf"  className="border w-[35vw] h-[70vh]"></iframe>
   </div>
 </div>
           </div>

@@ -10,12 +10,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Database seeded successfully'))
 
     def seed_raters(self):
-        raters_data = [
-            {'name': 'Rater1', 'password': 'password1'},
-            {'name': 'Rater2', 'password': 'password2'},
-            {'name': 'Rater3', 'password': 'password3'},
-            {'name': 'Rater4', 'password': 'password4'},
-        ]
+        raters_data = [{'name':f'Rater{i}', 'password':f'password{i}'} for i in range(40)]
 
         for rater_data in raters_data:
             Raters.objects.get_or_create(**rater_data)
@@ -23,11 +18,7 @@ class Command(BaseCommand):
 
     def seed_writing_tasks(self):
         writing_tasks_data = [
-            {'itemId': 111, 'testId': '54', 'content': 'Content for writing task by User 111'},
-            {'itemId': 222, 'testId': '54', 'content': 'Content for writing task by User 222'},
-            {'itemId': 333, 'testId': '54', 'content': 'Content for writing task by User 333'},
-            {'itemId': 444, 'testId': '54', 'content': 'Content for writing task by User 444'},
-        ]
+            {'itemId': f'{i}{i}{i}', 'testId': '54', 'content': f'Content for writing task by User {i}{i}{i}'} for i in range(500)]
 
         for writing_task_data in writing_tasks_data:
             WritingTasks.objects.get_or_create(**writing_task_data)
