@@ -1,6 +1,5 @@
 from django.test import TestCase
 
-# Create your tests here.
 from django.test import TestCase
 from .models import Raters, WritingTasks, ReviewAssignment
 from django.db import IntegrityError
@@ -8,7 +7,7 @@ from django.db import IntegrityError
 class WritingTaskAssignRatersTestCase(TestCase):
     
     def setUp(self):
-        # Set up test data: Create at least 4 raters
+        # Set up test data
         self.rater1 = Raters.objects.create(name="Rater 1", password="password123")
         self.rater2 = Raters.objects.create(name="Rater 2", password="password123")
         self.rater3 = Raters.objects.create(name="Rater 3", password="password123")
