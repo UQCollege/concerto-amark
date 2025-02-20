@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { type ApiData } from "./AdminDashboard";
-import { TECollapse } from "tw-elements-react";
+
 import Button from "./ui/Button";
 
 type Task = {
@@ -14,8 +14,8 @@ type Task = {
 
 export function UserDashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [show, setShow] = useState(false);
-  const toggleShow = () => setShow(!show);
+
+
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [taskHistory, setTaskHistory] = useState<number[]>([]);
 
@@ -242,11 +242,11 @@ export function UserDashboard() {
           )}
           <hr />
 
-          <button type="button" className="" onClick={toggleShow}>
+          <button type="button" className="" >
             Review
           </button>
 
-          <TECollapse show={show}>
+        
             <table>
               <thead>
                 <tr>
@@ -265,7 +265,7 @@ export function UserDashboard() {
                 ))}
               </tbody>
             </table>
-          </TECollapse>
+     
         </div>
         <div className="w-[70vw] h-[80vh]">
           {/* <button onClick={handleDownloadPDF}>Download PDF for Review</button> */}

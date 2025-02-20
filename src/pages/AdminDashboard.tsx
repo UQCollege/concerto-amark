@@ -1,17 +1,18 @@
 import { useState } from "react";
 import Loading from "./ui/Loading";
 import Button from "./ui/Button";
+import { transformApiData, type TransformedEntry } from "../utils/transformApiData";
 
-type taskData = {
-  testNumber: string;
-  itemid: number;
-  raterName: string;
-  dayNumber: number;
-  rate1: number;
-  rate2: number;
-  rate3: number;
-  rate4: number;
-};
+// type taskData = {
+//   testNumber: string;
+//   itemid: number;
+//   raterName: string;
+//   dayNumber: number;
+//   rate1: number;
+//   rate2: number;
+//   rate3: number;
+//   rate4: number;
+// };
 
 export type ApiData = {
   testId: string;
@@ -24,53 +25,11 @@ export type ApiData = {
   rate4: number;
 };
 
-export const generatedData = [
-  {
-    testNumber: "54",
-    itemid: 1,
-    raterName: "rater 1",
-    dayNumber: 1,
-    rate1: 0,
-    rate2: 0,
-    rate3: 0,
-    rate4: 0,
-  },
-  {
-    testNumber: "54",
-    itemid: 2,
-    raterName: "rater 2",
-    dayNumber: 1,
-    rate1: 0,
-    rate2: 0,
-    rate3: 0,
-    rate4: 0,
-  },
-  {
-    testNumber: "54",
-    itemid: 3,
-    raterName: "rater 1",
-    dayNumber: 1,
-    rate1: 0,
-    rate2: 0,
-    rate3: 0,
-    rate4: 0,
-  },
-  {
-    testNumber: "54",
-    itemid: 4,
-    raterName: "rater 2",
-    dayNumber: 1,
-    rate1: 0,
-    rate2: 0,
-    rate3: 0,
-    rate4: 0,
-  },
-];
 
 export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [taskData, setTaskData] = useState<taskData[]>([]);
+  const [taskData, setTaskData] = useState<TransformedEntry[]>([]);
 
   const fetchAssignmentData = async () => {
     await fetch("http://localhost:8000/api/clear-tasks");
@@ -97,29 +56,32 @@ export function AdminDashboard() {
     // Here you would implement the logic to generate an Excel file
     setIsProcess(true);
     const result = await fetchAssignmentData();
-    const newTaskData = result
-      .map((item: ApiData) => ({
-        testNumber: item.testId,
-        itemid: item.itemId,
-        raterName: item.raterName,
-        dayNumber: item.day,
-        rate1: item.rate1,
-        rate2: item.rate2,
-        rate3: item.rate3,
-        rate4: item.rate4,
-      }))
-      .sort((a: taskData, b: taskData) => {
-        // First, compare by itemid
-        if (a.itemid !== b.itemid) {
-          return a.itemid - b.itemid; // Assuming itemid is a number, otherwise use localeCompare if it's a string
-        }
-        // If itemid is the same, compare by dayNumber
-        return a.dayNumber - b.dayNumber;
+    const taskData = transformApiData(result);
+    console.log(taskData)
+    const newTaskData = transformApiData(result)
+      .sort((a: TransformedEntry, b: TransformedEntry) => {
+       
+          return Number(a.itemId) - Number(b.itemId); // Assuming itemid is a number, otherwise use localeCompare if it's a string
+      
       });
 
     setTaskData(newTaskData);
   };
-
+   const raterAlloc = (task: TransformedEntry)=>{
+    return <>
+    {task.Date.map((entry, index) => {
+      // Extract the date and rater names
+      const dateKey = Object.keys(entry)[0];
+      const raterNames = entry[dateKey].raterName;
+      
+      return (
+        <span key={index}>
+          <strong>Date {dateKey}:</strong> {raterNames.join(", ")} <br />
+        </span>
+      );
+    })}
+    </>
+   }
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4 border-spacing-4">
@@ -157,7 +119,7 @@ export function AdminDashboard() {
             <tr>
               <th>Test ID</th>
               <th>ItemID</th>
-              <th>Rater</th>
+          
               <th>Date</th>
               <th>(Task Completion)</th>
               <th>(Grammar)</th>
@@ -168,11 +130,9 @@ export function AdminDashboard() {
           <tbody>
             {taskData.map((task, index) => (
               <tr key={index}>
-                <td>{task.testNumber}</td>
-                <td>{task.itemid}</td>
-                <td>{task.raterName}</td>
-
-                <td>{task.dayNumber}</td>
+                <td>{task.testId}</td>
+                <td>{task.itemId}</td>
+                <td>{raterAlloc(task)}</td>
                 <td>{task.rate1}</td>
                 <td>{task.rate2}</td>
                 <td>{task.rate3}</td>
