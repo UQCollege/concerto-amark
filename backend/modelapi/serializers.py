@@ -6,6 +6,11 @@ class RatersSerializer(serializers.ModelSerializer):
         model = Raters
         fields = '__all__'
 
+class WritingTasksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WritingTasks
+        fields = '__all__'
+
 class ReviewAssignmentSerializer(serializers.ModelSerializer):
     itemId = serializers.CharField(source='writing_task.itemId', read_only=True)
     raterName = serializers.CharField(source='rater.name', read_only=True)

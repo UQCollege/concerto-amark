@@ -4,7 +4,7 @@ from django.http import JsonResponse
 # Create your views here.
 from rest_framework import viewsets
 from rest_framework.response import Response
-from .serializers import RatersSerializer, ReviewAssignmentSerializer
+from .serializers import RatersSerializer, ReviewAssignmentSerializer, WritingTasksSerializer
 from .models import Raters, WritingTasks, ReviewAssignment
 
 class RatersViewSet(viewsets.ModelViewSet):
@@ -13,6 +13,38 @@ class RatersViewSet(viewsets.ModelViewSet):
     """
     queryset = Raters.objects.all().order_by('name')
     serializer_class = RatersSerializer
+
+    # def list(self, request):
+    #     pass
+
+    # def create(self, request):
+    #     pass    
+
+    # def retrieve(self, request, pk=None):
+    #     pass
+
+    # def update(self, request, pk=None):
+    #     pass
+
+
+class WritingTasksViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = WritingTasks.objects.all().order_by('itemId')
+    serializer_class = WritingTasksSerializer
+
+    def list(self, request):
+        pass
+
+    def create(self, request):
+        pass
+
+    def retrieve(self, request, pk=None):
+        pass
+
+    def update(self, request, pk=None):
+        pass
 
 
 

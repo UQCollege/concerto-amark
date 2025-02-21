@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { type ApiData } from "./AdminDashboard";
+import { type ApiData } from "../utils/transformApiData";
 
 import Button from "./ui/Button";
 
@@ -22,7 +22,7 @@ export function UserDashboard() {
   useEffect(() => {
     const fetchTask = async () => {
       const response = await fetch(
-        "http://127.0.0.1:8000/api/raters-assignment/?rater_id=50"
+        "http://127.0.0.1:8000/api/raters-assignment/?rater_id=81"
       );
       const data = await response.json();
 
@@ -229,6 +229,7 @@ export function UserDashboard() {
             <div>
               <Button onClick={handleRevert}> Last</Button>
               <Button onClick={handleSubmit}>
+                disable button until all area benn marked
                 {isLastTask ? "Submit Final Assessment" : "Next"}
               </Button>
             </div>
@@ -246,12 +247,15 @@ export function UserDashboard() {
             Review
           </button>
 
-        
-            <table>
+        <div className="overflow-y-auto h-[50vh]">
+
+            <table className="border w-[15vw]">
               <thead>
                 <tr>
                   <td>itemID</td>
-                  <td>Mark</td>
+                  <td>Mark(other areas)</td>
+                  {/* <table>2</table> */}
+
                   <td>Notes</td>
                 </tr>
               </thead>
@@ -266,6 +270,7 @@ export function UserDashboard() {
               </tbody>
             </table>
      
+          </div>
         </div>
         <div className="w-[70vw] h-[80vh]">
           {/* <button onClick={handleDownloadPDF}>Download PDF for Review</button> */}

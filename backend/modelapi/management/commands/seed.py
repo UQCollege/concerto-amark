@@ -10,7 +10,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Database seeded successfully'))
 
     def seed_raters(self):
-        raters_data = [{'name':f'Rater{i}', 'password':f'password{i}'} for i in range(40)]
+        raters_data = [{'name':f'Rater{i}', 'password':f'password{i}'} for i in range(10)]
 
         for rater_data in raters_data:
             Raters.objects.get_or_create(**rater_data)
@@ -18,7 +18,7 @@ class Command(BaseCommand):
 
     def seed_writing_tasks(self):
         writing_tasks_data = [
-            {'itemId': f'{i}{i}{i}', 'testId': '54', 'content': f'Content for writing task by User {i}{i}{i}'} for i in range(500)]
+            {'itemId': f'{i}', 'testId': '54', 'content': f'Content for writing task by User {i}'} for i in range(25)]
 
         for writing_task_data in writing_tasks_data:
             WritingTasks.objects.get_or_create(**writing_task_data)

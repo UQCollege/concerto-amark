@@ -4,7 +4,7 @@ from collections import Counter
 
 # Create your models here.
 class Raters(models.Model):
-    name = models.CharField(max_length=100)  # Rater's name
+    name = models.CharField(max_length=100)  # Rater's firstname_lastname 
     password = models.CharField(max_length=100)  # Rater's password
 
     def __str__(self):

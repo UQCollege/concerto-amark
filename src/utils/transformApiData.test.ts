@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {ApiData} from "../pages/AdminDashboard";
-import { transformApiData, TransformedEntry } from "./transformApiData";
+import { transformApiData, type TransformedEntry, type ApiData } from "./transformApiData";
 
 describe("transformData function", () => {
   test("should transform input data into the expected format", () => {

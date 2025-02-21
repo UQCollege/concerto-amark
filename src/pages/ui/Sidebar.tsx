@@ -28,9 +28,8 @@ const Sidebar = ({ children }: SidebarProps) => {
         <nav className="h-full flex flex-col bg-gray-800 border-r shadow-sm">
           <div className="p-4 pb-2 flex justify-between items-center">
             <img
-              className={`overflow-hidden transition-all ${
-                expanded ? "w-32" : "w-0"
-              }`}
+              className={`overflow-hidden transition-all ${expanded ? "w-32" : "w-0"
+                }`}
               alt="Logo"
             />
 
@@ -44,20 +43,7 @@ const Sidebar = ({ children }: SidebarProps) => {
           <SidebarContext.Provider value={{ expanded }}>
             <ul className="flex-1 px-3">{children} </ul>
           </SidebarContext.Provider>
-          <div className="border-t flex p-3">
-            <img src="" alt="IMG" className="w-10 h-10 rounded-md" />
-            <div
-              className={`flex justify-between items-center overflow-hidden transition-all ${
-                expanded ? "w-53 ml-3" : "w-0"
-              }`}
-            >
-              {/* <div className="leading-4">
-                <h4 className="font-semibold">MEno</h4>
-                <span className="text-xs text-gray-600">XXX</span>
-              </div> */}
-              {/* <MoreVertical size={20} /> */}
-            </div>
-          </div>
+
         </nav>
       </aside>
     </>
@@ -79,25 +65,22 @@ export const SidebarItem = ({
   return (
     <Link to={link} className="hover: bg-indigo-50 text-gray-600">
       <li
-        className={`relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${
-          active
+        className={`relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${active
             ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
             : "bg-indigo-100 hover:bg-indigo-50 text-gray-600"
-        }`}
+          }`}
       >
         {icon}
         <span
-          className={`overflow-hidden transition-all ${
-            expanded ? "w-52 ml-3" : "w-0"
-          }`}
+          className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"
+            }`}
         >
           {text}
         </span>
         {alert && (
           <div
-            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
-              expanded ? "" : "top-2"
-            }`}
+            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${expanded ? "" : "top-2"
+              }`}
           ></div>
         )}
 

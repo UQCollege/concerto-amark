@@ -4,6 +4,7 @@ interface ButtonProps {
   onClick: () => void;
   children: ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
 const Button = ({ onClick, children, className }: ButtonProps) => {
