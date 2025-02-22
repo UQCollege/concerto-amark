@@ -4,18 +4,7 @@ import Button from "./ui/Button";
 import { transformApiData, type TransformedEntry } from "../utils/transformApiData";
 import { downloadExcel } from "../utils/downloadExcel";
 import DataTableUI from "./ui/DataTableUI";
-
-export const fetchAssignmentData = async () => {
-  await fetch("http://localhost:8000/api/clear-tasks");
-
-  const responseCode = await fetch("http://localhost:8000/api/assign-tasks");
-  if (responseCode.status !== 200) return;
-
-  const response = await fetch("http://127.0.0.1:8000/api/raters-assignment");
-  const data = await response.json();
-  console.log("data", data);
-  return data;
-};
+import { getAssessmentData } from "../utils/apiService";
 
 export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
@@ -29,7 +18,7 @@ export function AdminDashboard() {
 
     setIsProcess(true);
     setIsStart(true);
-    const result = await fetchAssignmentData();
+    const result = await getAssessmentData();
     const newTaskData = transformApiData(result)
       .sort((a: TransformedEntry, b: TransformedEntry) => {
 

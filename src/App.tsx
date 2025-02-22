@@ -4,6 +4,7 @@ import Root from './pages/Root';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { UserDashboard } from './pages/UserDashboard';
 import Home from './pages/Home';
+import "primereact/resources/themes/lara-light-cyan/theme.css";
 
 function App() {
   const router = createBrowserRouter([

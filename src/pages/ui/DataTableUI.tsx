@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { FilterMatchMode } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
-import "primereact/resources/themes/lara-light-cyan/theme.css";
+
 import { type TransformedEntry } from '../../utils/transformApiData';
 
 type DataTableUIProps = {
