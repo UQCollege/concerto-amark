@@ -8,14 +8,14 @@ import { InputText } from 'primereact/inputtext';
 import { type TransformedEntry } from '../../utils/transformApiData';
 import { type Task } from '../UserDashboard';
 
-type DataTableUIProps = {
+type TaskDataTableProps = {
     uniqueKey: string;
     apidata: TransformedEntry[] | Task[];
     fieldNames: string[];
 };
 
-const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
-    const [data, setData] = useState<DataTableUIProps[]>([]);
+const TaskDataTable = ({ uniqueKey, apidata, fieldNames }: TaskDataTableProps) => {
+    const [data, setData] = useState<TaskDataTableProps[]>([]);
 
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -76,4 +76,4 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
     );
 };
 
-export default DataTableUI;
+export default TaskDataTable;

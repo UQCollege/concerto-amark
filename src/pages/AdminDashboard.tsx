@@ -6,6 +6,7 @@ import { downloadExcel } from "../utils/downloadExcel";
 import DataTableUI from "./ui/DataTableUI";
 import { getAssessmentData } from "../utils/apiService";
 
+
 export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
   const [isStart, setIsStart] = useState(false);
@@ -58,7 +59,7 @@ export function AdminDashboard() {
 
         <h2 className="text-2xl">Result Overview</h2>
 
-        <DataTableUI apidata={taskData} />
+        <DataTableUI uniqueKey="main" apidata={taskData} fieldNames={["testId", "itemId", "day", "rater1", "rater2"]} />
 
 
 

@@ -23,6 +23,15 @@ export const getAssessmentData = async () => {
     }
 };
 
+export const getUserTasks = async (userId: number) => {
+    try {
+        const response = await apiService.get(`/raters-assignment/?rater_id=${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching data: ", error);
+    }
+}
+
 // Post Method
 
 // Put Method
