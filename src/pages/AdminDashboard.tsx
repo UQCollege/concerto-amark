@@ -36,17 +36,19 @@ export function AdminDashboard() {
   return (
     <div className="flex items-start min-h-screen">
       <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
-        <div className="flex flex-col items-start gap-3">
+        <div className="flex items-start gap-3">
 
           <div className="flex flex-row items-center gap-2">
 
-            <Button onClick={() => { }}>Data Migration</Button> <span>migration writing tasks from Concerto to current app</span>
+            <Button onClick={() => { }}>Data Migration</Button> 
           </div>
-          choose 3 papaers per each day
+          <div>
+            <Button onClick={() => { }}>Manual choose 3 Students</Button>
+          </div>
           <div className="flex flex-row items-center gap-2">
             <Button onClick={!isStart ? handleFetchResult : () => { }} className={isStart ? "bg-red-200 cursor-not-allowed opacity-50" : ""} disabled={isStart}>{isStart ? "locked" : "start"}</Button> <span>start the task allocation process</span>
           </div>
-          Manual allocation, adjuating
+
           <div className="flex flex-row items-center gap-2">
             <Button onClick={handleDownloadExcel}>Download as Excel</Button> <span>save allocation result to local</span>
           </div>

@@ -7,6 +7,7 @@ import DataTableUI from "./ui/DataTableUI";
 import MarkOption from "./ui/MarkOption";
 import { type Mark, SelectOptionType } from "./ui/MarkOption";
 import { Accordion, AccordionTab } from 'primereact/accordion';
+import InfoSidebar from "./ui/InfoSidebar";
 
 export type Task = {
   id: number;
@@ -27,7 +28,7 @@ const markOptions = [
 ];
 export function UserDashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [currentUser, setCurrentUser] = useState(81);
+  const [currentUser, setCurrentUser] = useState(50);
   const [marks, setMarks] = useState<Partial<Record<SelectOptionType, Mark>>>({});
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [taskHistory, setTaskHistory] = useState<number[]>([]);
@@ -126,10 +127,11 @@ export function UserDashboard() {
     <div className="">
       <div className="flex items-center h-[100vh]">
         <div className="w-[25vw] h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4">
-          <h2 className="text-2xl">
-            {completedTasks} of {totalTasks} tasks completed
-          </h2>
+          <div className="text-2xl">
+            {completedTasks} of {totalTasks} tasks completed <span><InfoSidebar tasks={tasks}/></span>
+          </div>
           <div className="flex flex-col justify-center items-center gap-4 border-spacing-4">
+          
             {markOptions.map(({ name, label }) => (
               <React.Fragment key={name}>
                 <span>{label}</span>
@@ -159,14 +161,14 @@ export function UserDashboard() {
               </Button>
             </div>
           </div>
-          <hr />
+      
           {completedTasks > 0 && !allTasksCompleted && (
             <div>
               Previously completed: {completedTasks}{" "}
               {completedTasks === 1 ? "assessment" : "assessments"}
             </div>
           )}
-          <hr />
+
 
         </div>
         <div className="w-[60vw] h-full">
@@ -175,21 +177,10 @@ export function UserDashboard() {
             className="border w-[100%] h-[100%]"
           ></iframe>
         </div>
+        
       </div>
-      <hr />
-      <div className="overflow-y-auto">
-        <Accordion>
-          <AccordionTab header="Review">
-
-            <DataTableUI
-              uniqueKey="task"
-              apidata={tasks}
-              fieldNames={["id", "title", "ta", "gra", "voc", "coco", "comment", "completed"]}
-            />
-
-          </AccordionTab>
-        </Accordion>
-      </div>
+     
+   
     </div>
   );
 }

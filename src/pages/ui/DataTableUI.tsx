@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 import { FilterMatchMode } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
-
 import { type TransformedEntry } from '../../utils/transformApiData';
 import { type Task } from '../UserDashboard';
 
@@ -48,6 +47,7 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
 
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const textEditor = (options: any) => {
         return <InputText value={options.value} onChange={(e) => options.editorCallback(e.target.value)} onKeyDown={(e) => e.stopPropagation()} />;
     };
