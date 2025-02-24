@@ -18,9 +18,13 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
 
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-        raterName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-        testId: { value: null, matchMode: FilterMatchMode.EQUALS }
-    });
+        testId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        itemId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        day: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        rater1: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+        rater2: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+
+    }); // Note: manually match data field
 
 
 
