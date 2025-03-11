@@ -56,3 +56,7 @@ td {
   border: #61dafbaa 1px solid;
   padding: 0.5em;
 }
+
+.p-radiobutton-icon {
+  color: red !important;
+}

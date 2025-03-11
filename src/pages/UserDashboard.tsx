@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import { type ApiData } from "../utils/transformApiData";
 import { getUserTasks } from "../utils/apiService";
 import Button from "./ui/Button";
-import DataTableUI from "./ui/DataTableUI";
+
 import MarkOption from "./ui/MarkOption";
 import { type Mark, SelectOptionType } from "./ui/MarkOption";
-import { Accordion, AccordionTab } from 'primereact/accordion';
 import InfoSidebar from "./ui/InfoSidebar";
+import { ChevronFirst, ChevronLast } from "lucide-react";
 
 export type Task = {
   id: number;
@@ -32,6 +32,7 @@ export function UserDashboard() {
   const [marks, setMarks] = useState<Partial<Record<SelectOptionType, Mark>>>({});
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [taskHistory, setTaskHistory] = useState<number[]>([]);
+  const [expanded, setExpanded] = useState(true);
 
 
   const isAllSelected = markOptions.every(
@@ -126,7 +127,10 @@ export function UserDashboard() {
   return (
     <div className="">
       <div className="flex items-center h-[100vh]">
-        <div className="w-[25vw] h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4">
+
+
+        <div className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
+          }`}>
           <div className="text-2xl">
             {completedTasks} of {totalTasks} tasks completed <span><InfoSidebar tasks={tasks} /></span>
           </div>
@@ -171,6 +175,12 @@ export function UserDashboard() {
 
 
         </div>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="p-1.5 rounded-lg bg-gray-550 hover:bg-gray-10"
+        >
+          {expanded ? <ChevronFirst /> : <ChevronLast />}
+        </button>
         <div className="w-[60vw] h-full">
           <iframe
             src={`${currentTaskIndex}.pdf`}

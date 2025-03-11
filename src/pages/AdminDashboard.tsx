@@ -40,13 +40,16 @@ export function AdminDashboard() {
 
           <div className="flex flex-row items-center gap-2">
 
-            <Button onClick={() => { }}>Data Migration</Button> 
+            <Button onClick={() => { }}>Data Migration</Button> <span>&rarr;</span>
           </div>
           <div>
-            <Button onClick={() => { }}>Manual choose 3 Students</Button>
+            <Button onClick={() => { }}>Manual choose 3 Students</Button> <span>&rarr;</span>
+          </div>
+          <div>
+            <Button onClick={() => { }}>Create Accessor List</Button> <span>&rarr;</span>
           </div>
           <div className="flex flex-row items-center gap-2">
-            <Button onClick={!isStart ? handleFetchResult : () => { }} className={isStart ? "bg-red-200 cursor-not-allowed opacity-50" : ""} disabled={isStart}>{isStart ? "locked" : "start"}</Button> <span>start the task allocation process</span>
+            <Button onClick={!isStart ? handleFetchResult : () => { }} className={isStart ? "bg-red-200 cursor-not-allowed opacity-50" : ""} disabled={isStart}>{isStart ? "locked" : "tasks allocating"}</Button> <span>&rarr;</span>
           </div>
 
           <div className="flex flex-row items-center gap-2">
@@ -55,11 +58,14 @@ export function AdminDashboard() {
 
           {taskData.length === 0 && isProcess && <Loading />}
         </div>
+        <div>
+          <Button onClick={() => { }}>Verification</Button> <span>At the end need to make sure all tasks been allocated correctly</span>
+        </div>
 
 
         <hr />
 
-        <h2 className="text-2xl">Result Overview</h2>
+
 
         <DataTableUI uniqueKey="main" apidata={taskData} fieldNames={["testId", "itemId", "day", "rater1", "rater2"]} />
 

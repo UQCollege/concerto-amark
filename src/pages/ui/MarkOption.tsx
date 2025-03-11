@@ -27,7 +27,7 @@ const MarkOption = ({ name, value, handleChange }: RadioInputProps) => {
                         <RadioButton
                             inputId={`${name}-${num}`}
                             name={name}
-                            value={num}
+                            value={num.toString()}
                             onChange={handleOnChange}
                             checked={value === num.toString()}
                         />

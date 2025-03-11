@@ -1,21 +1,40 @@
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { useState } from 'react';
-
+import React, { useState, useEffect, useRef } from 'react';
+import { classNames } from 'primereact/utils';
+import { Toast } from 'primereact/toast';
+import { Rating } from 'primereact/rating';
+import { Toolbar } from 'primereact/toolbar';
+import { InputTextarea } from 'primereact/inputtextarea';
+import { IconField } from 'primereact/iconfield';
+import { InputIcon } from 'primereact/inputicon';
+import { RadioButton, RadioButtonChangeEvent } from 'primereact/radiobutton';
+import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
+import { Dialog } from 'primereact/dialog';
+import { Tag } from 'primereact/tag';
+import { Button } from 'primereact/button';
 import { FilterMatchMode } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
 import { type TransformedEntry } from '../../utils/transformApiData';
 import { type Task } from '../UserDashboard';
+import 'primereact/resources/primereact.min.css';
+import 'primereact/resources/themes/saga-blue/theme.css';
+import 'primeicons/primeicons.css';
 
 type DataTableUIProps = {
     uniqueKey: string;
-    apidata: TransformedEntry[] | Task[];
+    apidata: TransformedEntry[];
     fieldNames: string[];
 };
 
-const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
-    const [data, setData] = useState<DataTableUIProps[]>([]);
+//TODO: Confirm input cases with Allister, delete
+const inputCases = "input cases: "
 
+const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
+    const [data, setData] = useState<TransformedEntry[]>(apidata);
+    useEffect(() => {
+        setData(apidata);
+    }, [apidata]);
     const [filters, setFilters] = useState({
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
         testId: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -26,7 +45,16 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
 
     }); // Note: manually match data field
 
-
+    // const [datas, setdatas] = useState<data[]>([]);
+    const [dataDialog, setdataDialog] = useState<boolean>(false);
+    const [deletedataDialog, setDeletedataDialog] = useState<boolean>(false);
+    const [deletedatasDialog, setDeletedatasDialog] = useState<boolean>(false);
+    const [dataRow, setDataRow] = useState(""); //TODO: Confirm input cases with Allister
+    const [selectedData, setselectedData] = useState<TransformedEntry[]>([]);
+    const [submitted, setSubmitted] = useState<boolean>(false);
+    // const [globalFilter, setGlobalFilter] = useState<string>('');
+    const toast = useRef<Toast>(null);
+    const dt = useRef<DataTable<TransformedEntry[]>>(null);
 
     const isPositiveInteger = (val: any) => {
         let str = String(val).trim();
@@ -56,26 +84,193 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
         return <InputText value={options.value} onChange={(e) => options.editorCallback(e.target.value)} onKeyDown={(e) => e.stopPropagation()} />;
     };
 
+    const openNew = () => {
+        setDataRow(inputCases);
+        setSubmitted(false);
+        setdataDialog(true);
+    };
+
+    const hideDialog = () => {
+        setSubmitted(false);
+        setdataDialog(false);
+    };
+
+    const hideDeletedataDialog = () => {
+        setDeletedataDialog(false);
+    };
+
+    const hideDeletedatasDialog = () => {
+        setDeletedatasDialog(false);
+    };
+
+    const savedata = () => {
+        setSubmitted(true);
+        // TODO: add logic to save data
+    };
+
+    const editdata = (data: TransformedEntry) => {
+
+        // setDataRow({ ...data });
+        setdataDialog(true);
+    };
+
+    const confirmDeletedata = (data: TransformedEntry) => {
+        // setDataRow(data);
+        // setDeletedataDialog(true);
+    };
+
+    const deletedata = () => {
+        let _data = data.filter((val) => val.index !== val.index);
+
+        setData(_data);
+        setDeletedataDialog(false);
+
+        toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'data Deleted', life: 3000 });
+    };
+
+    const findIndexById = (index: number) => {
+        let _index = -1;
+
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].index === index) {
+                _index = i;
+                break;
+            }
+        }
+
+        return _index;
+    };
+
+    const createId = (): string => {
+        let id = '';
+        let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+        for (let i = 0; i < 5; i++) {
+            id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        return id;
+    };
+
+    const confirmDeleteSelected = () => {
+        setDeletedatasDialog(true);
+    };
+
+    const deleteselectedData = () => {
+        let _data = data.filter((val) => !selectedData.includes(val));
+
+        setData(_data);
+        setDeletedatasDialog(false);
+        setselectedData([]);
+        toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'Deleted', life: 3000 });
+    };
+
+
+    const actionBodyTemplate = (rowData: TransformedEntry) => {
+        return (
+            <React.Fragment>
+                <Button icon="pi pi-pencil" rounded outlined className="mr-2" onClick={() => editdata(rowData)} />
+                <Button icon="pi pi-trash" rounded outlined severity="danger" onClick={() => confirmDeletedata(rowData)} />
+            </React.Fragment>
+        );
+    };
+    const dataDialogFooter = (
+        <React.Fragment>
+            <Button label="Cancel" icon="pi pi-times" outlined onClick={hideDialog} />
+            <Button label="Save" icon="pi pi-check" onClick={savedata} />
+        </React.Fragment>
+    );
+    const deletedataDialogFooter = (
+        <React.Fragment>
+            <Button label="No" icon="pi pi-times" outlined onClick={hideDeletedataDialog} />
+            <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deletedata} />
+        </React.Fragment>
+    );
+    const deletedatasDialogFooter = (
+        <React.Fragment>
+            <Button label="No" icon="pi pi-times" outlined onClick={hideDeletedatasDialog} />
+            <Button label="Yes" icon="pi pi-check" severity="danger" onClick={deleteselectedData} />
+        </React.Fragment>
+    );
+
+
+    const leftToolbarTemplate = () => {
+        return (
+            <div className="flex flex-wrap gap-2">
+                <Button label="New" icon="pi pi-plus" severity="success" onClick={openNew} />
+                <Button label="Delete" icon="pi pi-trash" severity="danger" onClick={confirmDeleteSelected} disabled={!selectedData || !selectedData.length} />
+            </div>
+        );
+    };
+
+    const centerToolbarTemplate = () => {
+        return <h2 className='text-gray-500 text-xl'><b>Assigned Table</b> </h2>;
+    };
+
+
     return (
 
+        <div>
+            <Toast ref={toast} />
 
-        <DataTable
-            value={apidata}
-            stripedRows
-            paginator
-            rows={5}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            tableStyle={{ minWidth: '20rem' }}
-            filters={filters}
-            filterDisplay="row"
-            editMode="cell"
-            dataKey="index"
-        >
-            {fieldNames.map((field) => (
-                <Column key={`${uniqueKey}-${field}`} field={field} header={field} sortable filter filterPlaceholder="Search by test ID" editor={(options) => textEditor(options)} onCellEditComplete={onCellEditComplete}></Column>
-            ))}
+            <div className="card">
+                <Toolbar className="mb-4" left={leftToolbarTemplate} center={centerToolbarTemplate} ></Toolbar>
+                <DataTable
+                    ref={dt}
+                    value={data}
+                    selection={selectedData}
+                    onSelectionChange={(e) => {
+                        if (Array.isArray(e.value)) {
+                            setselectedData(e.value);
+                        }
+                    }}
 
-        </DataTable>
+                    selectionMode="multiple"
+                    stripedRows
+                    paginator
+                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} data"
+                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+                    rows={5}
+                    rowsPerPageOptions={[5, 10, 25, 50]}
+                    tableStyle={{ minWidth: '20rem' }}
+                    filters={filters}
+                    filterDisplay="row"
+                    editMode="cell"
+                    dataKey="index"
+                >
+                    <Column selectionMode="multiple" exportable={false}></Column>
+                    {fieldNames.map((field) => (
+                        <Column key={`${uniqueKey}-${field}`} field={field} header={field} sortable filter filterPlaceholder="Search by test ID" editor={(options) => textEditor(options)} onCellEditComplete={onCellEditComplete}></Column>
+                    ))}
+                    <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '12rem' }}></Column>
+
+                </DataTable>
+            </div>
+
+            <Dialog visible={dataDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="data Details" modal className="p-fluid" footer={dataDialogFooter} onHide={hideDialog}>
+
+            </Dialog>
+
+
+            <Dialog visible={deletedataDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deletedataDialogFooter} onHide={hideDeletedataDialog}>
+                <div className="confirmation-content">
+                    <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                    {selectedData && (
+                        <span>
+                            Are you sure you want to delete <b>selected</b>?
+                        </span>
+                    )}
+                </div>
+            </Dialog>
+
+            <Dialog visible={deletedatasDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Confirm" modal footer={deletedatasDialogFooter} onHide={hideDeletedatasDialog}>
+                <div className="confirmation-content">
+                    <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
+                    {selectedData && <span>Are you sure you want to delete the selected data?</span>}
+                </div>
+            </Dialog>
+
+        </div>
 
     );
 };
