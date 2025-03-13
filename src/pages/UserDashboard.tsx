@@ -1,6 +1,5 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { type ApiData } from "../utils/transformApiData";
 import { getUserTasks } from "../utils/apiService";
 import Button from "./ui/Button";
 
@@ -8,11 +7,13 @@ import MarkOption from "./ui/MarkOption";
 import { type Mark, SelectOptionType } from "./ui/MarkOption";
 import InfoSidebar from "./ui/InfoSidebar";
 import { ChevronFirst, ChevronLast } from "lucide-react";
+import { sampleTaskData } from "../utils/data/sampledata";
 
 export type Task = {
   id: number;
-  title: string;
-  pdfUrl: string;
+  userId: string;
+  trait: string;
+  response: string;
   completed: boolean;
   ta: string;
   gra: string;
@@ -20,6 +21,22 @@ export type Task = {
   coco: string;
   comment: string;
 };
+
+export type TaskAPI = {
+  testId: string;
+  userId: string;
+  raterName: string;
+  startedTime: string;
+  response: string;
+  trait: string;
+  ta: string | undefined;
+  gra: string | undefined;
+  voc: string | undefined;
+  coco: string | undefined;
+
+}
+
+
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
   { name: "gra" as const, label: "GR&A Mark:" },
@@ -47,13 +64,14 @@ export function UserDashboard() {
 
   useEffect(() => {
     const fetchTask = async () => {
-      const data = await getUserTasks(currentUser);
+      const data = import.meta.env.VITE_MODE === "DEMO" ? sampleTaskData : await getUserTasks(currentUser);
 
-      const tasks = data.map((task: ApiData, index: number) => ({
+      const tasks = data.map((task: TaskAPI, index: number) => ({
         index,
-        id: task.itemId,
-        title: `Doc ${task.itemId}`,
-        pdfUrl: "/document4.pdf",
+        id: task.testId,
+        userId: task.userId,
+        trait: task.trait,
+        response: task.response,
         completed: false,
         ta: "",
         gra: "",
@@ -182,10 +200,10 @@ export function UserDashboard() {
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
         <div className="w-[60vw] h-full">
-          <iframe
-            src={`${currentTaskIndex}.pdf`}
-            className="border w-[100%] h-[100%]"
-          ></iframe>
+          <h3 className="header">{tasks[currentTaskIndex].id}</h3>
+          <h3 className="header">{tasks[currentTaskIndex].trait}</h3>
+          <h3 className="header">{tasks[currentTaskIndex].userId}</h3>
+          <p className="body">{tasks[currentTaskIndex].response} </p>
         </div>
 
       </div>

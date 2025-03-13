@@ -1,10 +1,12 @@
 import { useState } from "react";
+
 import Loading from "./ui/Loading";
 import Button from "./ui/Button";
 import { transformApiData, type TransformedEntry } from "../utils/transformApiData";
 import { downloadExcel } from "../utils/downloadExcel";
 import DataTableUI from "./ui/DataTableUI";
 import { getAssessmentData } from "../utils/apiService";
+import { sampleApiData } from "../utils/data/sampledata";
 
 
 export function AdminDashboard() {
@@ -19,11 +21,12 @@ export function AdminDashboard() {
 
     setIsProcess(true);
     setIsStart(true);
-    const result = await getAssessmentData();
+    console.log(import.meta.env.MODE)
+    const result = import.meta.env.VITE_MODE === "DEMO" ? sampleApiData : await getAssessmentData();
     const newTaskData = transformApiData(result)
       .sort((a: TransformedEntry, b: TransformedEntry) => {
 
-        return Number(a.itemId) - Number(b.itemId);
+        return Number(a.userId) - Number(b.userId);
 
       });
 
@@ -67,7 +70,7 @@ export function AdminDashboard() {
 
 
 
-        <DataTableUI uniqueKey="main" apidata={taskData} fieldNames={["testId", "itemId", "day", "rater1", "rater2"]} />
+        <DataTableUI uniqueKey="main" apidata={taskData} fieldNames={["testId", "userId", "startedTime", "raterName", "raterName"]} />
 
 
 

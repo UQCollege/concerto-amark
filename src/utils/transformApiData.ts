@@ -1,32 +1,32 @@
 
 export type ApiData = {
   testId: string;
-  itemId: string;
+  userId: string;
   raterName: string;
-  day: number;
-  rate1: number;
-  rate2: number;
-  rate3: number;
-  rate4: number;
+  startedTime: string;
+  ta: number;
+  gra: number;
+  voc: number;
+  coco: number;
 };
 
 export interface TransformedEntry {
   index: number;
   testId: string;
-  itemId: string;
-  day: number;
+  userId: string;
+  startedTime: string;
   rater1: string;
   rater2: string;
-  rate1: number;
-  rate2: number;
-  rate3: number;
-  rate4: number;
+  ta: number;
+  gra: number;
+  voc: number;
+  coco: number;
 }
 
 export function transformApiData(data: ApiData[]): TransformedEntry[] {
-  const result = data.map(({ testId, itemId, raterName, day, rate1, rate2, rate3, rate4 }, index) => {
-    const tRaters = data.filter((entry) => entry.testId === testId && entry.day === day);
-    return { index, testId, itemId, day, rater1: tRaters[0].raterName, rater2: tRaters[1].raterName, rate1, rate2, rate3, rate4 };
+  const result = data.map(({ testId, userId, raterName, startedTime, ta, gra, voc, coco }, index) => {
+    const tRaters = data.filter((entry) => entry.testId === testId && entry.startedTime === startedTime);
+    return { index, testId, userId, startedTime, rater1: tRaters[0].raterName, rater2: tRaters[1].raterName, ta, gra, voc, coco };
   });
   console.log("result", result);
   return result

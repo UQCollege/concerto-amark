@@ -12,7 +12,7 @@ const apiService = axios.create({
 // Get Method
 export const getAssessmentData = async () => {
     try {
-        console.log("Fetching data...", import.meta.env.API_URL);
+        console.log("Fetching data...", import.meta.env.VITE_API_URL);
         await apiService.get("/clear-tasks");
         await apiService.get("/assign-tasks");
         const response = await
