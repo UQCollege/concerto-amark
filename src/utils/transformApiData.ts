@@ -1,34 +1,40 @@
-
 export type ApiData = {
-  testId: string;
+  id: number;
+  response: string;
+  startedTime: string;
+  trait: string;
   userId: string;
   raterName: string;
-  startedTime: string;
-  ta: number;
-  gra: number;
-  voc: number;
-  coco: number;
+  ta: number | null;
+  gra: number | null;
+  voc: number | null;
+  coco: number | null;
 };
 
-export interface TransformedEntry {
+// TD: Task distribution
+export interface TD {
   index: number;
-  testId: string;
+  trait: string;
   userId: string;
   startedTime: string;
   rater1: string;
   rater2: string;
-  ta: number;
-  gra: number;
-  voc: number;
-  coco: number;
 }
 
-export function transformApiData(data: ApiData[]): TransformedEntry[] {
-  const result = data.map(({ testId, userId, raterName, startedTime, ta, gra, voc, coco }, index) => {
-    const tRaters = data.filter((entry) => entry.testId === testId && entry.startedTime === startedTime);
-    return { index, testId, userId, startedTime, rater1: tRaters[0].raterName, rater2: tRaters[1].raterName, ta, gra, voc, coco };
+export function transformApiData(data: ApiData[]): TD[] {
+  const result = data.map(({ userId, startedTime, trait, id }) => {
+    const tRaters = data.filter(
+      (entry) => entry.trait === trait && entry.userId === userId
+    );
+    return {
+      index: id,
+      trait,
+      userId,
+      startedTime,
+      rater1: tRaters[0].raterName,
+      rater2: tRaters[1].raterName,
+    };
   });
-  console.log("result", result);
-  return result
 
+  return result;
 }

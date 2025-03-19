@@ -55,7 +55,7 @@ class WritingTasks(models.Model):
 
 
 class ReviewAssignment(models.Model):
-    DAY_CHOICES =[(1, "Day 1"), (2, "Day 2")]
+    DAY_CHOICES =[(1, "Writing task 1"), (2, "Writing task 2")]
 
     writing_task = models.ForeignKey(WritingTasks, on_delete=models.CASCADE, related_name="reviews")
     rater = models.ForeignKey(Raters, on_delete=models.CASCADE, related_name="assignments")

@@ -6,9 +6,17 @@ import Button from "./ui/Button";
 import MarkOption from "./ui/MarkOption";
 import { type Mark, SelectOptionType } from "./ui/MarkOption";
 import InfoSidebar from "./ui/InfoSidebar";
+import { TaskContent } from "./ui/InfoSidebar";
 import { ChevronFirst, ChevronLast } from "lucide-react";
 import { sampleTaskData } from "../utils/data/sampledata";
-import { PDFViewer, Page, Text, View, Document, StyleSheet} from "@react-pdf/renderer"
+import {
+  PDFViewer,
+  Page,
+  Text,
+  View,
+  Document,
+  StyleSheet,
+} from "@react-pdf/renderer";
 
 export type Task = {
   userId: string;
@@ -34,9 +42,7 @@ export type TaskAPI = {
   gra: string | undefined;
   voc: string | undefined;
   coco: string | undefined;
-
-}
-
+};
 
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
@@ -47,25 +53,30 @@ const markOptions = [
 export function UserDashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [currentUser, setCurrentUser] = useState(81); //50
-  const [marks, setMarks] = useState<Partial<Record<SelectOptionType, Mark>>>({});
+  const [marks, setMarks] = useState<Partial<Record<SelectOptionType, Mark>>>(
+    {}
+  );
   const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
   const [taskHistory, setTaskHistory] = useState<number[]>([]);
   const [expanded, setExpanded] = useState(true);
 
-
   const isAllSelected = markOptions.every(
     (opt) => marks[opt.name] && marks[opt.name] !== ""
   );
-  const handleMarkChange = (selected: Partial<Record<SelectOptionType, Mark>>) => {
+  const handleMarkChange = (
+    selected: Partial<Record<SelectOptionType, Mark>>
+  ) => {
     const key = Object.keys(selected)[0] as SelectOptionType;
     const val = selected[key] as Mark;
     setMarks((prev) => ({ ...prev, [key]: val }));
   };
 
-
   useEffect(() => {
     const fetchTask = async () => {
-      const data = import.meta.env.VITE_MODE === "DEMO" ? sampleTaskData : await getUserTasks(currentUser);
+      const data =
+        import.meta.env.VITE_MODE === "DEMO"
+          ? sampleTaskData
+          : await getUserTasks(currentUser);
       const tasks = data.map((task: TaskAPI, index: number) => ({
         index,
         startedTime: task.startedTime,
@@ -116,7 +127,9 @@ export function UserDashboard() {
   const handleSubmit = () => {
     setTasks(
       tasks.map((task, index) =>
-        index === currentTaskIndex ? { ...task, ...marks, completed: true } : task
+        index === currentTaskIndex
+          ? { ...task, ...marks, completed: true }
+          : task
       )
     );
     setTaskHistory((prevHistory) => [...prevHistory, currentTaskIndex]);
@@ -137,46 +150,56 @@ export function UserDashboard() {
         All assessments completed. Great job!
         <br />
         would you like try more, please{" "}
-        <Button className="bg-white-200 text-gray-300" onClick={() => { }}>
+        <Button className="bg-white-200 text-gray-300" onClick={() => {}}>
           click here
         </Button>
       </div>
     );
   }
-// Create styles
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: 'row',
-    backgroundColor: '#E4E4E4'
-  },
-  section: {
-    margin: 10,
-    padding: 10,
-    flexGrow: 1
-  }
-});
+  // Create styles
+  const styles = StyleSheet.create({
+    page: {
+      flexDirection: "row",
+      backgroundColor: "#E4E4E4",
+    },
+    section: {
+      margin: 10,
+      padding: 10,
+      flexGrow: 1,
+    },
+  });
 
   return (
     <div className="">
       <div className="flex items-center h-[100vh]">
-
-
-        <div className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
-          }`}>
+        <div
+          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${
+            expanded ? "w-[25vw]" : "w-0 invisible"
+          }`}
+        >
           <div className="text-2xl">
-            {completedTasks} of {totalTasks} tasks completed <span><InfoSidebar tasks={tasks} /></span>
+            {completedTasks} of {totalTasks} tasks completed
+            <span>
+              <InfoSidebar
+                infoList={tasks}
+                renderInfo={(info) => <TaskContent info={info as Task} />}
+              ></InfoSidebar>
+            </span>
           </div>
           <div className="flex flex-col justify-center items-center gap-4 border-spacing-4">
-
             {markOptions.map(({ name, label }) => (
               <React.Fragment key={name}>
                 <span>{label}</span>
                 {/* // forces remount on task change */}
-                <MarkOption key={`${name}-${currentTaskIndex}`} name={name} value={marks[name] || ""} handleChange={handleMarkChange} />
+                <MarkOption
+                  key={`${name}-${currentTaskIndex}`}
+                  name={name}
+                  value={marks[name] || ""}
+                  handleChange={handleMarkChange}
+                />
                 <hr />
               </React.Fragment>
             ))}
-
 
             <div className="flex flex-col justify-center items-center gap-3">
               <label htmlFor="comment">Notes:</label>
@@ -192,7 +215,15 @@ const styles = StyleSheet.create({
             </div>
             <div>
               <Button onClick={handleRevert}> Last</Button>
-              <Button onClick={isAllSelected ? handleSubmit : () => { }} className={!isAllSelected ? "bg-red-200 cursor-not-allowed opacity-50" : ""} disabled={!isAllSelected}>
+              <Button
+                onClick={isAllSelected ? handleSubmit : () => {}}
+                className={
+                  !isAllSelected
+                    ? "bg-red-200 cursor-not-allowed opacity-50"
+                    : ""
+                }
+                disabled={!isAllSelected}
+              >
                 {isLastTask ? "Submit Final Assessment" : "Next"}
               </Button>
             </div>
@@ -204,8 +235,6 @@ const styles = StyleSheet.create({
               {completedTasks === 1 ? "assessment" : "assessments"}
             </div>
           )}
-
-
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
@@ -214,33 +243,21 @@ const styles = StyleSheet.create({
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
 
-
-
         <div className="w-[60vw] h-full">
           <h3 className="header">{tasks[currentTaskIndex].userId}</h3>
           <h3 className="header">{tasks[currentTaskIndex].trait}</h3>
           <h3 className="header">{tasks[currentTaskIndex].startedTime}</h3>
           <PDFViewer>
-
-          <Document>
-          <Page size="A4" style={styles.page}>
-            <View style={styles.section}>
-          <Text>
-          {tasks[currentTaskIndex].response}
-          </Text>
-
-            </View>
-            
-            </Page>  
-            </Document>        
+            <Document>
+              <Page size="A4" style={styles.page}>
+                <View style={styles.section}>
+                  <Text>{tasks[currentTaskIndex].response}</Text>
+                </View>
+              </Page>
+            </Document>
           </PDFViewer>
-
-         
         </div>
-
       </div>
-
-
     </div>
   );
 }
