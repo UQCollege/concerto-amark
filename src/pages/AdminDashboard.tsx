@@ -7,6 +7,8 @@ import { downloadExcel } from "../utils/downloadExcel";
 import DataTableUI from "./ui/DataTableUI";
 import { getAssessmentData } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
+import { Divide } from "lucide-react";
+import { list } from "postcss";
 
 
 export function AdminDashboard() {
@@ -35,6 +37,22 @@ export function AdminDashboard() {
   const handleDownloadExcel = () => {
     downloadExcel(taskData);
   }
+
+//  const verify_tasks=(taskData: TransformedEntry[])=>{
+//   const assessorsList= ["Alice1", "Alice2","Alice3", "Alice4"]
+
+//   const verify_assessorList = []
+  
+//   for (const rater of assessorsList){
+//   console.log("rate",  rater)
+//     const obj = {rater: 0} as {[key:string]: number}
+//      obj.rater= taskData.filter((task)=> rater === task.rater1 || rater===task.rater2).length
+//      verify_assessorList.push(obj)
+//   }
+//   console.log(verify_assessorList)
+//   return verify_assessorList
+//  }
+
 
   return (
     <div className="flex items-start min-h-screen">
@@ -68,11 +86,11 @@ export function AdminDashboard() {
 
         <hr />
 
+        {/* <div>verify tasks allocation {verify_tasks(taskData).map((item, index)=> <li key={index}>{Object.keys(item)}: {Object.values(item)}</li>)}</div> */}
 
+        <DataTableUI uniqueKey="main" apidata={taskData} fieldNames={[ "userId","trait", "startedTime", "raterName", "raterName"]} />
 
-        <DataTableUI uniqueKey="main" apidata={taskData} fieldNames={["testId", "userId", "startedTime", "raterName", "raterName"]} />
-
-
+   
 
       </div>
     </div>

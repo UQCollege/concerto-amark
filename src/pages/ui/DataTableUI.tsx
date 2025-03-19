@@ -1,22 +1,18 @@
 import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
+import { Column, ColumnEvent } from 'primereact/column';
 import React, { useState, useEffect, useRef } from 'react';
-import { classNames } from 'primereact/utils';
+
 import { Toast } from 'primereact/toast';
-import { Rating } from 'primereact/rating';
+
 import { Toolbar } from 'primereact/toolbar';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
-import { RadioButton, RadioButtonChangeEvent } from 'primereact/radiobutton';
-import { InputNumber, InputNumberValueChangeEvent } from 'primereact/inputnumber';
+
 import { Dialog } from 'primereact/dialog';
-import { Tag } from 'primereact/tag';
+
 import { Button } from 'primereact/button';
 import { FilterMatchMode } from 'primereact/api';
 import { InputText } from 'primereact/inputtext';
 import { type TransformedEntry } from '../../utils/transformApiData';
-import { type Task } from '../UserDashboard';
+
 import 'primereact/resources/primereact.min.css';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primeicons/primeicons.css';
@@ -56,16 +52,16 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
     const toast = useRef<Toast>(null);
     const dt = useRef<DataTable<TransformedEntry[]>>(null);
 
-    const isPositiveInteger = (val: any) => {
+    const isPositiveInteger = (val: string) => {
         let str = String(val).trim();
         if (!str) return false;
         str = str.replace(/^0+/, '') || '0';
-        let n = Math.floor(Number(str));
+        const n = Math.floor(Number(str));
         return n !== Infinity && String(n) === str && n >= 0;
     };
 
-    const onCellEditComplete = (e: any) => {
-        let { rowData, newValue, field, originalEvent: event } = e;
+    const onCellEditComplete = (e: ColumnEvent) => {
+        const { rowData, newValue, field, originalEvent: event } = e;
         switch (field) {
             case 'day':
                 if (isPositiveInteger(newValue)) rowData[field] = newValue;
@@ -120,7 +116,7 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
     };
 
     const deletedata = () => {
-        let _data = data.filter((val) => val.index !== val.index);
+        const _data = data.filter((val) => val.index !== val.index);
 
         setData(_data);
         setDeletedataDialog(false);
@@ -128,36 +124,14 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
         toast.current?.show({ severity: 'success', summary: 'Successful', detail: 'data Deleted', life: 3000 });
     };
 
-    const findIndexById = (index: number) => {
-        let _index = -1;
-
-        for (let i = 0; i < data.length; i++) {
-            if (data[i].index === index) {
-                _index = i;
-                break;
-            }
-        }
-
-        return _index;
-    };
-
-    const createId = (): string => {
-        let id = '';
-        let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-        for (let i = 0; i < 5; i++) {
-            id += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-
-        return id;
-    };
+ 
 
     const confirmDeleteSelected = () => {
         setDeletedatasDialog(true);
     };
 
     const deleteselectedData = () => {
-        let _data = data.filter((val) => !selectedData.includes(val));
+        const _data = data.filter((val) => !selectedData.includes(val));
 
         setData(_data);
         setDeletedatasDialog(false);
@@ -193,7 +167,7 @@ const DataTableUI = ({ uniqueKey, apidata, fieldNames }: DataTableUIProps) => {
         </React.Fragment>
     );
 
-
+    
     const leftToolbarTemplate = () => {
         return (
             <div className="flex flex-wrap gap-2">

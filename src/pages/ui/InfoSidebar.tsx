@@ -24,11 +24,11 @@ const InfoSidebar = ({ tasks }: InfoSidebarProps) => {
 
             <Sidebar visible={visibleRight} position="right" onHide={() => setVisibleRight(false)} className='card w-[25vw] bg-gray-800 text-white'>
                 <Panel header="Task List" >
-                    {tasks.map((task) => <div key={task.id}>
+                    {tasks.map((task, index) => <div key={index}>
 
                         <p className='p-2'>
 
-                            {task.id} - {task.title}: <span>{task.ta}</span> <span>{task.gra}</span> <span>{task.voc}</span> <span>{task.coco}</span> <span>Note: {task.comment}</span> <input type="checkbox" checked={task.completed} />
+                            {task.userId} - {task.trait}: <span>{task.ta}</span> <span>{task.gra}</span> <span>{task.voc}</span> <span>{task.coco}</span> <span>Note: {task.comment}</span> <input type="checkbox" checked={task.completed} />
                         </p>
 
 

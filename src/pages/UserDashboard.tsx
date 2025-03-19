@@ -8,11 +8,12 @@ import { type Mark, SelectOptionType } from "./ui/MarkOption";
 import InfoSidebar from "./ui/InfoSidebar";
 import { ChevronFirst, ChevronLast } from "lucide-react";
 import { sampleTaskData } from "../utils/data/sampledata";
+import { PDFViewer, Page, Text, View, Document, StyleSheet} from "@react-pdf/renderer"
 
 export type Task = {
-  id: number;
   userId: string;
   trait: string;
+  startedTime: string;
   response: string;
   completed: boolean;
   ta: string;
@@ -65,10 +66,9 @@ export function UserDashboard() {
   useEffect(() => {
     const fetchTask = async () => {
       const data = import.meta.env.VITE_MODE === "DEMO" ? sampleTaskData : await getUserTasks(currentUser);
-
       const tasks = data.map((task: TaskAPI, index: number) => ({
         index,
-        id: task.testId,
+        startedTime: task.startedTime,
         userId: task.userId,
         trait: task.trait,
         response: task.response,
@@ -132,6 +132,8 @@ export function UserDashboard() {
   if (allTasksCompleted) {
     return (
       <div>
+        {completedTasks}
+        {totalTasks}
         All assessments completed. Great job!
         <br />
         would you like try more, please{" "}
@@ -141,6 +143,18 @@ export function UserDashboard() {
       </div>
     );
   }
+// Create styles
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'row',
+    backgroundColor: '#E4E4E4'
+  },
+  section: {
+    margin: 10,
+    padding: 10,
+    flexGrow: 1
+  }
+});
 
   return (
     <div className="">
@@ -199,11 +213,29 @@ export function UserDashboard() {
         >
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
+
+
+
         <div className="w-[60vw] h-full">
-          <h3 className="header">{tasks[currentTaskIndex].id}</h3>
-          <h3 className="header">{tasks[currentTaskIndex].trait}</h3>
           <h3 className="header">{tasks[currentTaskIndex].userId}</h3>
-          <p className="body">{tasks[currentTaskIndex].response} </p>
+          <h3 className="header">{tasks[currentTaskIndex].trait}</h3>
+          <h3 className="header">{tasks[currentTaskIndex].startedTime}</h3>
+          <PDFViewer>
+
+          <Document>
+          <Page size="A4" style={styles.page}>
+            <View style={styles.section}>
+          <Text>
+          {tasks[currentTaskIndex].response}
+          </Text>
+
+            </View>
+            
+            </Page>  
+            </Document>        
+          </PDFViewer>
+
+         
         </div>
 
       </div>

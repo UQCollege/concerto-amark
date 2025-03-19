@@ -1,9 +1,9 @@
 export const extrConcertoData = [
     {
-        testId: 1,
+   
         startedTime: "",
         trait: "",
-        response: "",
+        response: "This is test example 1",
         login: "",
         userId: "",
     },
@@ -14,7 +14,7 @@ export const extrConcertoData = [
 
 export const sampleApiData = [
     {
-        testId: "1",
+        trait: "Writing 1",
         userId: "1",
         raterName: "Alice1",
         startedTime: "2025-02-27",
@@ -24,7 +24,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait: "Writing 2",
         userId: "1",
         raterName: "Alice2",
         startedTime: "2025-02-28",
@@ -34,7 +34,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait: "Writing 1",
         userId: "1",
         raterName: "Alice3",
         startedTime: "2025-02-27",
@@ -44,7 +44,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait: "Writing 2",
         userId: "1",
         raterName: "Alice4",
         startedTime: "2025-02-28",
@@ -54,7 +54,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 1", 
         userId: "2",
         raterName: "Alice1",
         startedTime: "2025-02-27",
@@ -64,7 +64,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 2",
         userId: "2",
         raterName: "Alice2",
         startedTime: "2025-02-28",
@@ -74,7 +74,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 1",
         userId: "2",
         raterName: "Alice3",
         startedTime: "2025-02-27",
@@ -84,7 +84,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 2",
         userId: "2",
         raterName: "Alice4",
         startedTime: "2025-02-28",
@@ -94,7 +94,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 1",
         userId: "3",
         raterName: "Alice1",
         startedTime: "2025-02-27",
@@ -104,7 +104,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 2",
         userId: "3",
         raterName: "Alice2",
         startedTime: "2025-02-28",
@@ -114,7 +114,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 1",
         userId: "3",
         raterName: "Alice3",
         startedTime: "2025-02-27",
@@ -124,7 +124,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 2",
         userId: "3",
         raterName: "Alice4",
         startedTime: "2025-02-28",
@@ -134,7 +134,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 1",
         userId: "4",
         raterName: "Alice1",
         startedTime: "2025-02-27",
@@ -144,7 +144,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait:"Writing 2",
         userId: "4",
         raterName: "Alice2",
         startedTime: "2025-02-28",
@@ -154,7 +154,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait: "Writing 1",
         userId: "4",
         raterName: "Alice3",
         startedTime: "2025-02-27",
@@ -164,7 +164,7 @@ export const sampleApiData = [
         coco: undefined,
     },
     {
-        testId: "1",
+        trait: "Writing 2",
         userId: "4",
         raterName: "Alice4",
         startedTime: "2025-02-28",
@@ -176,48 +176,48 @@ export const sampleApiData = [
 ]
 
 export const sampleTaskData = [{
-    testId: "1",
+
     userId: "1",
     raterName: "Alice1",
     startedTime: "2025-02-27",
-    response: "",
-    trait: "",
+    response: `This is test example 1`,
+    trait: "Writing 1",
     ta: undefined,
     gra: undefined,
     voc: undefined,
     coco: undefined,
 },
 {
-    testId: "1",
+
     userId: "2",
     raterName: "Alice2",
     startedTime: "2025-02-27",
-    response: "",
-    trait: "",
+    response: "This is test example 2",
+    trait: "Writing 1",
     ta: undefined,
     gra: undefined,
     voc: undefined,
     coco: undefined,
 },
 {
-    testId: "1",
+
     userId: "3",
     raterName: "Alice1",
     startedTime: "2025-02-27",
-    response: "",
-    trait: "",
+    response: "This is test example 3",
+    trait: "Writing 1",
     ta: undefined,
     gra: undefined,
     voc: undefined,
     coco: undefined,
 },
 {
-    testId: "1",
+
     userId: "4",
     raterName: "Alice1",
     startedTime: "2025-02-27",
-    response: "",
-    trait: "",
+    response: "This is test example 4",
+    trait: "Writing 1",
     ta: undefined,
     gra: undefined,
     voc: undefined,
