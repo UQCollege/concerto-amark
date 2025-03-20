@@ -12,6 +12,7 @@ import { sampleApiData } from "../utils/data/sampledata";
 import InfoSidebar from "./ui/InfoSidebar";
 import { TaskContent } from "./ui/InfoSidebar";
 import { setTasks } from "../features/data/taskAllocationSlice";
+import { verifyTaskAllocation } from "../utils/verifyTaskAllocation";
 
 export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
@@ -39,21 +40,6 @@ export function AdminDashboard() {
     downloadExcel(taskData);
   };
 
-  const verify_tasks = (taskData: TD[]) => {
-    console.log("assessList", assessorsList)
-
-    const verify_assessorList = [];
-
-    for (const rater of assessorsList) {
-      const obj = {} as { [key: string]: number };
-      obj[rater] = taskData.filter(
-        (task) => rater === task.rater1 || rater === task.rater2
-      ).length;
-      verify_assessorList.push(obj);
-    }
-
-    return verify_assessorList;
-  };
 
   const updateRaterList = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -116,22 +102,20 @@ export function AdminDashboard() {
           {taskData.length === 0 && isProcess && <Loading />}
         </div>
         <div>
-          <Button onClick={() => {}}>Verification</Button>{" "}
+   
+          <InfoSidebar
+          infoHead="Verification"
+            infoList={verifyTaskAllocation(taskData, assessorsList)}
+            renderInfo={(info) => (
+              <TaskContent info={info as { name: string; value: number }} />
+            )}
+          />
           <span>
             At the end need to make sure all tasks been allocated correctly
           </span>
         </div>
 
         <hr />
-
-        <div>
-          <InfoSidebar
-            infoList={verify_tasks(taskData)}
-            renderInfo={(info) => (
-              <TaskContent info={info as { name: string; value: number }} />
-            )}
-          />
-        </div>
         <DataTableUI
     
           taskData={taskData} 

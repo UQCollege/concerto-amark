@@ -181,6 +181,7 @@ export function UserDashboard() {
             {completedTasks} of {totalTasks} tasks completed
             <span>
               <InfoSidebar
+              infoHead="Review Task List"
                 infoList={tasks}
                 renderInfo={(info) => <TaskContent info={info as Task} />}
               ></InfoSidebar>

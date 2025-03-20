@@ -5,18 +5,19 @@ import { Task } from "../UserDashboard";
 import { Panel } from "primereact/panel";
 
 export interface InfoSidebarProps {
+  infoHead: string;
   infoList: (Task | { [key: string]: number })[];
   renderInfo: (task: Task | { name: string; value: number }) => React.ReactNode;
 }
 
-const InfoSidebar = ({ infoList, renderInfo }: InfoSidebarProps) => {
+const InfoSidebar = ({ infoHead,infoList, renderInfo }: InfoSidebarProps) => {
   const [visibleRight, setVisibleRight] = useState(false);
 
   return (
     <>
       <Button
         onClick={() => setVisibleRight(true)}
-        label="(Click here to review)"
+        label={infoHead}
       />
       <Sidebar
         visible={visibleRight}

@@ -1,88 +1,56 @@
-import { describe, expect, test } from "vitest";
-import { transformApiData, type TransformedEntry, type ApiData } from "./transformApiData";
+import { describe, test, expect } from "vitest";
+import { ApiData, TD, transformApiData } from "./transformApiData";
 
-describe("transformData function", () => {
-  test("should transform input data into the expected format", () => {
-    const input: ApiData[] = [
-      { testId: "54", itemId: "A", raterName: "R1", day: 1, rate1: 5, rate2: 4, rate3: 5, rate4: 3 },
-      { testId: "54", itemId: "A", raterName: "R2", day: 1,  rate1: 5, rate2: 4, rate3: 5, rate4: 3 },
-      { testId: "54", itemId: "A", raterName: "R3", day: 2,  rate1: 5, rate2: 4, rate3: 5, rate4: 3 },
-      { testId: "54", itemId: "A", raterName: "R4", day: 2,  rate1: 5, rate2: 4, rate3: 5, rate4: 3 },
-      { testId: "54", itemId: "B", raterName: "R1", day: 1,  rate1: 5, rate2: 4, rate3: 5, rate4: 3 },
+describe("transformApiData function", () => {
+  test("should transform ApiData into TD correctly", () => {
+    const sampleApiData: ApiData[] = [
+      { id: 1, response: "A", startedTime: "2025-02-27", trait: "Writing", userId: "1", raterName: "Alice", ta: null, gra: null, voc: null, coco: null },
+      { id: 2, response: "B", startedTime: "2025-02-27", trait: "Writing", userId: "1", raterName: "Bob", ta: null, gra: null, voc: null, coco: null },
+      { id: 3, response: "C", startedTime: "2025-02-27", trait: "Reading", userId: "2", raterName: "Charlie", ta: null, gra: null, voc: null, coco: null },
+      { id: 4, response: "D", startedTime: "2025-02-27", trait: "Reading", userId: "2", raterName: "David", ta: null, gra: null, voc: null, coco: null },
     ];
 
-    const expectedOutput: TransformedEntry[] = [
-      {
-        testId: "54",
-        itemId: "A",
-        Date: [
-          { "1": { raterName: ["R1", "R2"] } },
-          { "2": { raterName: ["R3", "R4"] } }
-        ],
-        rate1: 5,
-        rate2: 4,
-        rate3: 5,
-        rate4: 3
-      },
-      {
-        testId: "54",
-        itemId: "B",
-        Date: [
-          { "1": { raterName: ["R1"] } }
-        ],
-        rate1: 5,
-        rate2: 4,
-        rate3: 5,
-        rate4: 3
-      }
+    const expectedOutput: TD[] = [
+      { id: 1, trait: "Writing", userId: "1", startedTime: "2025-02-27", rater1: "Alice", rater2: "Bob" },
+      { id: 2, trait: "Writing", userId: "1", startedTime: "2025-02-27", rater1: "Alice", rater2: "Bob" },
+      { id: 3, trait: "Reading", userId: "2", startedTime: "2025-02-27", rater1: "Charlie", rater2: "David" },
+      { id: 4, trait: "Reading", userId: "2", startedTime: "2025-02-27", rater1: "Charlie", rater2: "David" },
     ];
 
-    expect(transformApiData(input)).toEqual(expectedOutput);
+    expect(transformApiData(sampleApiData)).toEqual(expectedOutput);
   });
 
-  test("should return an empty array when input is empty", () => {
+  test("should return an empty array when input data is empty", () => {
     expect(transformApiData([])).toEqual([]);
   });
 
-  test("should handle single entry correctly", () => {
-    const input: ApiData[] = [
-      { testId: "54", itemId: "C", raterName: "R1", day: 3, rate1: 4, rate2: 3, rate3: 2, rate4: 1 }
+  test("should handle cases where only one rater exists for a trait-user combination", () => {
+    const sampleApiData: ApiData[] = [
+      { id: 1, response: "A", startedTime: "2025-02-27", trait: "Writing", userId: "1", raterName: "Alice", ta: null, gra: null, voc: null, coco: null },
     ];
-    const expectedOutput: TransformedEntry[] = [
-      {
-        testId: "54",
-        itemId: "C",
-        Date: [
-          { "3": { raterName: ["R1"] } }
-        ],
-        rate1: 4,
-        rate2: 3,
-        rate3: 2,
-        rate4: 1
-      }
+
+    const expectedOutput: TD[] = [
+      { id: 1, trait: "Writing", userId: "1", startedTime: "2025-02-27", rater1: "Alice", rater2: "Alice" }, // Only one rater, so duplicated
     ];
-    expect(transformApiData(input)).toEqual(expectedOutput);
+
+    expect(transformApiData(sampleApiData)).toEqual(expectedOutput);
   });
 
-  test("should correctly group multiple raters with the same item and date", () => {
-    const input: ApiData[] = [
-      { testId: "54", itemId: "D", raterName: "R1", day: 5, rate1: 3, rate2: 3, rate3: 3, rate4: 3 },
-      { testId: "54", itemId: "D", raterName: "R2", day: 5, rate1: 3, rate2: 3, rate3: 3, rate4: 3 },
-      { testId: "54", itemId: "D", raterName: "R3", day: 5, rate1: 3, rate2: 3, rate3: 3, rate4: 3 }
+  test("should correctly transform when multiple traits exist for the same user", () => {
+    const sampleApiData: ApiData[] = [
+      { id: 1, response: "A", startedTime: "2025-02-27", trait: "Writing", userId: "1", raterName: "Alice", ta: null, gra: null, voc: null, coco: null },
+      { id: 2, response: "B", startedTime: "2025-02-27", trait: "Writing", userId: "1", raterName: "Bob", ta: null, gra: null, voc: null, coco: null },
+      { id: 3, response: "C", startedTime: "2025-02-27", trait: "Speaking", userId: "1", raterName: "Charlie", ta: null, gra: null, voc: null, coco: null },
+      { id: 4, response: "D", startedTime: "2025-02-27", trait: "Speaking", userId: "1", raterName: "David", ta: null, gra: null, voc: null, coco: null },
     ];
-    const expectedOutput: TransformedEntry[] = [
-      {
-        testId: "54",
-        itemId: "D",
-        Date: [
-          { "5": { raterName: ["R1", "R2", "R3"] } }
-        ],
-        rate1: 3,
-        rate2: 3,
-        rate3: 3,
-        rate4: 3
-      }
+
+    const expectedOutput: TD[] = [
+      { id: 1, trait: "Writing", userId: "1", startedTime: "2025-02-27", rater1: "Alice", rater2: "Bob" },
+      { id: 2, trait: "Writing", userId: "1", startedTime: "2025-02-27", rater1: "Alice", rater2: "Bob" },
+      { id: 3, trait: "Speaking", userId: "1", startedTime: "2025-02-27", rater1: "Charlie", rater2: "David" },
+      { id: 4, trait: "Speaking", userId: "1", startedTime: "2025-02-27", rater1: "Charlie", rater2: "David" },
     ];
-    expect(transformApiData(input)).toEqual(expectedOutput);
+
+    expect(transformApiData(sampleApiData)).toEqual(expectedOutput);
   });
 });

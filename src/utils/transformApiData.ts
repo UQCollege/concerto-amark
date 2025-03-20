@@ -21,20 +21,20 @@ export interface TD {
   rater2: string;
 }
 
+
 export function transformApiData(data: ApiData[]): TD[] {
-  const result = data.map(({ userId, startedTime, trait, id }) => {
+  return data.map(({ userId, startedTime, trait, id }) => {
     const tRaters = data.filter(
       (entry) => entry.trait === trait && entry.userId === userId
     );
+
     return {
       id,
       trait,
       userId,
       startedTime,
-      rater1: tRaters[0].raterName,
-      rater2: tRaters[1].raterName,
+      rater1: tRaters[0]?.raterName ?? "Unknown", 
+      rater2: tRaters[1]?.raterName ?? tRaters[0]?.raterName ?? "Unknown", 
     };
   });
-
-  return result;
 }
