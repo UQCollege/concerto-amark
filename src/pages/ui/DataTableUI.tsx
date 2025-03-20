@@ -1,59 +1,132 @@
-import { DataTable, DataTableRowEditCompleteEvent  } from "primereact/datatable";
+import { DataTable, DataTableRowEditCompleteEvent } from "primereact/datatable";
 import { Column, ColumnEditorOptions } from "primereact/column";
-import React, {} from "react";
-
+import React, { useState } from "react";
 import { InputText } from "primereact/inputtext";
+import { Button } from "primereact/button";
 import { type TD } from "../../utils/transformApiData";
-
 import { useAppDispatch } from "../../hooks";
 import "primereact/resources/primereact.min.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
-import { updateTasks } from "../../features/data/taskAllocationSlice";
-
+import { updateTasks, removeTasks } from "../../features/data/taskAllocationSlice";
+import { FilterMatchMode } from "primereact/api";
+import DialogUi from "./DialogUi";
 
 type DataTableUIProps = {
-
   taskData: TD[];
   fieldNames: string[];
 };
 
+export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) {
+  const dispatch = useAppDispatch();
+  const [filters, setFilters] = useState(() =>
+    fieldNames.reduce(
+      (acc, field) => ({
+        ...acc,
+        [field]: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      }),
+      {}
+    )
+  );
 
-export default function DataTableUI({ taskData,fieldNames }: DataTableUIProps) {
+  // Dialog state
+  const [selectedRow, setSelectedRow] = useState<TD | null>(null);
+  const [isDialogVisible, setIsDialogVisible] = useState(false);
 
-const dispatch = useAppDispatch();
-  
   const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
-      console.log("onRowEditComplete", e.data);
-      const _data = [...taskData];
-      const { newData, index } = e;
-      _data[index] = newData as TD;
-      console.log("onRowEditComplete", _data[index]);
+    console.log("onRowEditComplete", e.data);
+    const _data = [...taskData];
+    const { newData, index } = e;
+    _data[index] = newData as TD;
+    console.log("onRowEditComplete", _data[index]);
 
-
-      dispatch(updateTasks( _data[index] as TD));
+    dispatch(updateTasks(_data[index] as TD));
   };
 
-  const textEditor = (options: ColumnEditorOptions) => {
-      return <InputText type="text" value={options.value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => options.editorCallback!(e.target.value)} />;
+  const confirmDelete = (rowData: TD) => {
+    setSelectedRow(rowData);
+    setIsDialogVisible(true);
   };
 
- 
-
-  const allowEdit = () => {
-      return true;
+  const onDeleteConfirmed = () => {
+    if (selectedRow) {
+      console.log("Deleting row:", selectedRow);
+      dispatch(removeTasks({ id: selectedRow.id }));
+    }
+    setIsDialogVisible(false);
+    setSelectedRow(null);
   };
+
+  const textEditor = (options: ColumnEditorOptions) => (
+    <InputText
+      type="text"
+      value={options.value}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+        options.editorCallback!(e.target.value)
+      }
+    />
+  );
+
+  const columnFilterTemplate = (field: string) => (
+    <InputText
+      onInput={(e) =>
+        setFilters({
+          ...filters,
+          [field]: { value: e.currentTarget.value, matchMode: FilterMatchMode.CONTAINS },
+        })
+      }
+      placeholder={`Search ${field}...`}
+    />
+  );
+
+  const actionBodyTemplate = (rowData: TD) => (
+    <Button
+      icon="pi pi-trash"
+      className="p-button-rounded p-button-danger"
+      onClick={() => confirmDelete(rowData)}
+    />
+  );
 
   return (
-      <div className="card p-fluid">
-    data size:     {taskData.length}
-          <DataTable value={taskData} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete} tableStyle={{ minWidth: '50rem' }}>
-                         {fieldNames.map((field, idx) => (
-<Column  key={`col-${field}-${idx}`} field={field} header={field} editor={(options) => textEditor(options)} style={{ width: '20%' }}></Column>
-                     ))}                
-        <Column rowEditor={allowEdit} headerStyle={{ width: '10%', minWidth: '8rem' }} bodyStyle={{ textAlign: 'center' }}></Column>
-          </DataTable>
-      </div>
+    <div className="card p-fluid">
+
+      <DataTable
+        value={taskData}
+        editMode="row"
+        dataKey="id"
+        onRowEditComplete={onRowEditComplete}
+        filters={filters}
+        paginator
+        rows={5}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        tableStyle={{ minWidth: "50rem" }}
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+      >
+        {fieldNames.map((field, idx) => (
+          <Column
+            key={`col-${field}-${idx}`}
+            field={field}
+            header={field}
+            sortable
+            filter
+            filterElement={columnFilterTemplate(field)}
+            editor={textEditor}
+            style={{ width: "10%" }}
+          />
+        ))}
+ 
+        <Column rowEditor={() => true} headerStyle={{ width: "5%", minWidth: "5rem" }} bodyStyle={{ textAlign: "center" }}  hidden={taskData.length ===0}/> 
+        <Column body={actionBodyTemplate} headerStyle={{ width: "5%", minWidth: "5rem" }} style={{  textAlign: "center" }} hidden={taskData.length ===0}/>
+
+      </DataTable>
+
+      <DialogUi
+        visible={isDialogVisible}
+        message="Are you sure you want to delete this record?"
+        onHide={() => setIsDialogVisible(false)}
+        onConfirm={onDeleteConfirmed}
+      />
+    </div>
   );
 }
-
