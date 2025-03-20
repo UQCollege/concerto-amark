@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAppDispatch, useAppSelector } from "../hooks";
+import { setRaters } from "../features/data/ratersUpdateSlice";
 
 import Loading from "./ui/Loading";
 import Button from "./ui/Button";
@@ -9,12 +11,15 @@ import { getAssessmentData } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
 import InfoSidebar from "./ui/InfoSidebar";
 import { TaskContent } from "./ui/InfoSidebar";
+import { setTasks } from "../features/data/taskAllocationSlice";
 
 export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
   const [isStart, setIsStart] = useState(false);
-  const [taskData, setTaskData] = useState<TD[]>([]);
-  const [raterList, setRaterList] = useState<string[]>([]);
+
+  const dispatch=useAppDispatch()
+  const taskData = useAppSelector((state)=>state.taskAllocation)
+  const assessorsList = useAppSelector((state)=>state.ratersUpdate)
 
   const handleFetchResult = async () => {
     setIsProcess(true);
@@ -27,14 +32,15 @@ export function AdminDashboard() {
       return Number(a.userId) - Number(b.userId);
     });
 
-    setTaskData(newTaskData);
+
+    dispatch(setTasks(newTaskData))
   };
   const handleDownloadExcel = () => {
     downloadExcel(taskData);
   };
 
   const verify_tasks = (taskData: TD[]) => {
-    const assessorsList = raterList;
+    console.log("assessList", assessorsList)
 
     const verify_assessorList = [];
 
@@ -56,7 +62,8 @@ export function AdminDashboard() {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const rows = text.split(",").map((row) => row.trim());
-      setRaterList(rows);
+      const newrows= rows.map((row)=>({prev:row, new:row}))
+       dispatch(setRaters(newrows))
     };
     reader.readAsText(file);
   };
@@ -126,9 +133,9 @@ export function AdminDashboard() {
           />
         </div>
         <DataTableUI
-          uniqueKey="main"
-          apidata={taskData}
-          fieldNames={["userId", "trait", "startedTime", "rater1", "rater2"]}
+    
+          taskData={taskData} 
+          fieldNames={["id", "userId", "trait", "startedTime", "rater1", "rater2"]}
         />
       </div>
     </div>

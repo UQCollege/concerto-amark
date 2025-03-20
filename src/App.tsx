@@ -4,6 +4,8 @@ import Root from './pages/Root';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { UserDashboard } from './pages/UserDashboard';
 import Home from './pages/Home';
+import { Provider } from 'react-redux';
+import store from './store';
 
 
 function App() {
@@ -12,7 +14,10 @@ function App() {
   ])
   return (
     <>
+    <Provider store={store}>
+
       <RouterProvider router={router} />
+    </Provider>
     </>
   )
 }

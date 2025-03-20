@@ -13,7 +13,7 @@ export type ApiData = {
 
 // TD: Task distribution
 export interface TD {
-  index: number;
+  id: number;
   trait: string;
   userId: string;
   startedTime: string;
@@ -27,7 +27,7 @@ export function transformApiData(data: ApiData[]): TD[] {
       (entry) => entry.trait === trait && entry.userId === userId
     );
     return {
-      index: id,
+      id,
       trait,
       userId,
       startedTime,
