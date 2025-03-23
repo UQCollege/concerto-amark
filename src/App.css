@@ -60,3 +60,12 @@ td {
 .p-radiobutton-icon {
   color: red !important;
 }
+
+.p-editable-column {
+  text-align: center;
+}
+
+.p-column-header-content {
+  text-align: center;
+  padding: 0 0.1em 0 0.1em;
+}

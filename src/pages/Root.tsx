@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
-import Sidebar from "./ui/Sidebar";
-import { SidebarItem } from "./ui/Sidebar";
+import Sidebar from "../uis/Sidebar";
+import { SidebarItem } from "../uis/Sidebar";
 import { Flag, Home, Layers, LayoutDashboard, LogOut } from "lucide-react";
 import { PrimeReactProvider } from 'primereact/api';
 

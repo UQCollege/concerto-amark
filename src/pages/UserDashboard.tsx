@@ -1,14 +1,16 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { getUserTasks } from "../utils/apiService";
-import Button from "./ui/Button";
+import Button from "../uis/Button";
 
-import MarkOption from "./ui/MarkOption";
-import { type Mark, SelectOptionType } from "./ui/MarkOption";
-import InfoSidebar from "./ui/InfoSidebar";
-import { TaskContent } from "./ui/InfoSidebar";
+import MarkOption from "../uis/MarkOption";
+import { type Mark, SelectOptionType } from "../uis/MarkOption";
+import InfoSidebar from "../uis/InfoSidebar";
+import { TaskContent } from "../uis/InfoSidebar";
 import { ChevronFirst, ChevronLast } from "lucide-react";
 import { sampleTaskData } from "../utils/data/sampledata";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { setRating, setComment, setCompleted, type AssessData, type Task, type TaskAPI, type Rating, initialRating } from "../features/data/assessDataSlice";
 import {
   PDFViewer,
   Page,
@@ -18,58 +20,30 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 
-export type Task = {
-  userId: string;
-  trait: string;
-  startedTime: string;
-  response: string;
-  completed: boolean;
-  ta: string;
-  gra: string;
-  voc: string;
-  coco: string;
-  comment: string;
-};
-
-export type TaskAPI = {
-  testId: string;
-  userId: string;
-  raterName: string;
-  startedTime: string;
-  response: string;
-  trait: string;
-  ta: string | undefined;
-  gra: string | undefined;
-  voc: string | undefined;
-  coco: string | undefined;
-};
-
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
   { name: "gra" as const, label: "GR&A Mark:" },
   { name: "voc" as const, label: "Voc Mark:" },
   { name: "coco" as const, label: "Co&co Mark:" },
 ];
+
 export function UserDashboard() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [currentUser, setCurrentUser] = useState(81); //50
-  const [marks, setMarks] = useState<Partial<Record<SelectOptionType, Mark>>>(
-    {}
-  );
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-  const [taskHistory, setTaskHistory] = useState<number[]>([]);
+  const [currentUser, setCurrentUser] = useState(81); //userId
+  const [currentTaskId, setCurrentTaskId] = useState(0);
   const [expanded, setExpanded] = useState(true);
 
+  const assessData = useAppSelector((state) => state.assess)
+  const dispatch = useAppDispatch();
+
+  const currentTask = assessData.find((task) => task.id === currentTaskId);
+  const totalTasks = assessData.length;
+  const completedTasks = assessData.filter((task) => task.completed).length;
+  const allTasksCompleted = completedTasks === totalTasks;
+  const isLastTask = completedTasks === totalTasks - 1 && !currentTask?.completed;
+  const marks = currentTask?.ratings || { ta: undefined, gra: undefined, voc: undefined, coco: undefined };
   const isAllSelected = markOptions.every(
-    (opt) => marks[opt.name] && marks[opt.name] !== ""
+    (opt) => marks[opt.name] && marks[opt.name] !== undefined
   );
-  const handleMarkChange = (
-    selected: Partial<Record<SelectOptionType, Mark>>
-  ) => {
-    const key = Object.keys(selected)[0] as SelectOptionType;
-    const val = selected[key] as Mark;
-    setMarks((prev) => ({ ...prev, [key]: val }));
-  };
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -77,70 +51,51 @@ export function UserDashboard() {
         import.meta.env.VITE_MODE === "DEMO"
           ? sampleTaskData
           : await getUserTasks(currentUser);
-      const tasks = data.map((task: TaskAPI, index: number) => ({
-        index,
-        startedTime: task.startedTime,
-        userId: task.userId,
-        trait: task.trait,
-        response: task.response,
-        completed: false,
-        ta: "",
-        gra: "",
-        voc: "",
-        coco: "",
-        comment: "",
-      }));
+      const tasks: AssessData[] = data
+        .map((task: any) => ({
+          id: task.id,
+          userId: task.userId,
+          trait: task.trait,
+          startedTime: task.startedTime,
+          response: task.response,
+          ratings: { ta: task.ta, gra: task.gra, voc: task.voc, coco: task.coco },
+          comments: "",
+          completed: false,
+        }))
+        .sort((a: AssessData, b: AssessData) => a.id - b.id);
 
-      setTasks(tasks);
+      dispatch(initialRating(tasks));
+      setCurrentTaskId(tasks[0]?.id ?? 0);
     };
     fetchTask();
   }, []);
 
-  const currentTask = tasks[currentTaskIndex];
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((task) => task.completed).length;
+  if (!currentTask) return <div>Loading task...</div>;
+
+  const handleMarkChange = (selected: Partial<Record<SelectOptionType, Rating>>) => {
+    const key = Object.keys(selected)[0] as SelectOptionType;
+    const val = selected[key] as Rating;
+    dispatch(setRating({ id: currentTask.id, ratingType: key, value: val }));
+  };
 
   const handleCommentChange = (comment: string) => {
-    setTasks(
-      tasks.map((task, index) =>
-        index === currentTaskIndex ? { ...task, ...marks, comment } : task
-      )
-    );
-  };
-  const handleRevert = () => {
-    if (taskHistory.length > 0) {
-      const previousIndex = taskHistory[taskHistory.length - 1];
-      const previousTask = tasks[previousIndex];
-      setMarks({
-        ta: previousTask.ta as Mark,
-        gra: previousTask.gra as Mark,
-        voc: previousTask.voc as Mark,
-        coco: previousTask.coco as Mark,
-      });
-      setCurrentTaskIndex(previousIndex);
-      setTaskHistory(taskHistory.slice(0, -1));
-    } else {
-      console.log("No previous task to revert to");
-    }
+    dispatch(setComment({ id: currentTask.id, comment }));
   };
 
   const handleSubmit = () => {
-    setTasks(
-      tasks.map((task, index) =>
-        index === currentTaskIndex
-          ? { ...task, ...marks, completed: true }
-          : task
-      )
-    );
-    setTaskHistory((prevHistory) => [...prevHistory, currentTaskIndex]);
-    if (currentTaskIndex < tasks.length - 1) {
-      setCurrentTaskIndex(currentTaskIndex + 1);
+    dispatch(setCompleted({ id: currentTask.id, completed: true }));
+    const index = assessData.findIndex((t) => t.id === currentTaskId);
+    if (index < assessData.length - 1) {
+      setCurrentTaskId(assessData[index + 1].id);
     }
-    setMarks({ ta: "", gra: "", voc: "", coco: "" });
   };
 
-  const isLastTask = currentTaskIndex === tasks.length - 1;
-  const allTasksCompleted = completedTasks === totalTasks;
+  const handleRevert = () => {
+    const index = assessData.findIndex((t) => t.id === currentTaskId);
+    if (index > 0) {
+      setCurrentTaskId(assessData[index - 1].id);
+    }
+  };
 
   if (allTasksCompleted) {
     return (
@@ -150,7 +105,7 @@ export function UserDashboard() {
         All assessments completed. Great job!
         <br />
         would you like try more, please{" "}
-        <Button className="bg-white-200 text-gray-300" onClick={() => {}}>
+        <Button className="bg-white-200 text-gray-300" onClick={() => { }}>
           click here
         </Button>
       </div>
@@ -173,29 +128,29 @@ export function UserDashboard() {
     <div className="">
       <div className="flex items-center h-[100vh]">
         <div
-          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${
-            expanded ? "w-[25vw]" : "w-0 invisible"
-          }`}
+          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
+            }`}
         >
+          {/* Sidbar info */}
           <div className="text-2xl">
             {completedTasks} of {totalTasks} tasks completed
             <span>
               <InfoSidebar
-              infoHead="Review Task List"
-                infoList={tasks}
-                renderInfo={(info) => <TaskContent info={info as Task} />}
+                infoHead="Review Task List"
+                infoList={assessData}
+                renderInfo={(info) => <TaskContent info={info as AssessData} />}
               ></InfoSidebar>
             </span>
           </div>
+
           <div className="flex flex-col justify-center items-center gap-4 border-spacing-4">
             {markOptions.map(({ name, label }) => (
               <React.Fragment key={name}>
                 <span>{label}</span>
-                {/* // forces remount on task change */}
                 <MarkOption
-                  key={`${name}-${currentTaskIndex}`}
+                  key={`${name}-${currentTaskId}`}
                   name={name}
-                  value={marks[name] || ""}
+                  value={marks[name] || undefined}
                   handleChange={handleMarkChange}
                 />
                 <hr />
@@ -208,7 +163,7 @@ export function UserDashboard() {
               <textarea
                 className="border"
                 id="comment"
-                value={currentTask.comment}
+                value={currentTask.comments}
                 onChange={(e) => handleCommentChange(e.target.value)}
                 placeholder="Enter your Notes here"
                 rows={8}
@@ -217,7 +172,7 @@ export function UserDashboard() {
             <div>
               <Button onClick={handleRevert}> Last</Button>
               <Button
-                onClick={isAllSelected ? handleSubmit : () => {}}
+                onClick={isAllSelected ? handleSubmit : () => { }}
                 className={
                   !isAllSelected
                     ? "bg-red-200 cursor-not-allowed opacity-50"
@@ -232,7 +187,7 @@ export function UserDashboard() {
 
           {completedTasks > 0 && !allTasksCompleted && (
             <div>
-              Previously completed: {completedTasks}{" "}
+              Previously completed: {completedTasks}/{totalTasks}{" "}
               {completedTasks === 1 ? "assessment" : "assessments"}
             </div>
           )}
@@ -243,21 +198,24 @@ export function UserDashboard() {
         >
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
-
+        {/* PDF view */}
         <div className="w-[60vw] h-full">
-          <h3 className="header">{tasks[currentTaskIndex].userId}</h3>
-          <h3 className="header">{tasks[currentTaskIndex].trait}</h3>
-          <h3 className="header">{tasks[currentTaskIndex].startedTime}</h3>
-          <PDFViewer>
+
+          <h3 className="header">{currentTask.userId}</h3>
+          <h3 className="header">{currentTask.trait}</h3>
+          <h3 className="header">{currentTask.startedTime}</h3>
+          <p className="card">{currentTask.response}</p>
+          {/* <PDFViewer>
             <Document>
               <Page size="A4" style={styles.page}>
                 <View style={styles.section}>
-                  <Text>{tasks[currentTaskIndex].response}</Text>
+                  <Text>{currentTask.response}</Text>
                 </View>
               </Page>
             </Document>
-          </PDFViewer>
+          </PDFViewer> */}
         </div>
+
       </div>
     </div>
   );

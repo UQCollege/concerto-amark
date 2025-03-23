@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { Sidebar } from "primereact/sidebar";
 import { Button } from "primereact/button";
-import { Task } from "../UserDashboard";
+import { AssessData } from "../features/data/assessDataSlice";
 import { Panel } from "primereact/panel";
 
 export interface InfoSidebarProps {
   infoHead: string;
-  infoList: (Task | { [key: string]: number })[];
-  renderInfo: (task: Task | { name: string; value: number }) => React.ReactNode;
+  infoList: (AssessData | { [key: string]: number })[];
+  renderInfo: (task: AssessData | { name: string; value: number }) => React.ReactNode;
 }
 
-const InfoSidebar = ({ infoHead,infoList, renderInfo }: InfoSidebarProps) => {
+const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
   const [visibleRight, setVisibleRight] = useState(false);
 
   return (
@@ -31,7 +31,7 @@ const InfoSidebar = ({ infoHead,infoList, renderInfo }: InfoSidebarProps) => {
               // Case: Original format
               return (
                 <div key={index}>
-                  <p className="p-2">{renderInfo(info as Task)}</p>
+                  <p className="p-2">{renderInfo(info as AssessData)}</p>
                 </div>
               );
             } else {
@@ -51,7 +51,7 @@ const InfoSidebar = ({ infoHead,infoList, renderInfo }: InfoSidebarProps) => {
 };
 
 export interface TaskContentProps {
-  info: Task | { name: string; value: number };
+  info: AssessData | { name: string; value: number };
 }
 
 export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
@@ -60,12 +60,12 @@ export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
     return (
       <>
         <span>
-          {info.userId} - {info.trait}: {info.ta}{" "}
+          {info.userId} - {info.trait}: {info.ratings.ta}{" "}
         </span>
-        <span>{info.gra}</span>
-        <span>{info.voc}</span>
-        <span>{info.coco}</span>
-        <span> Note: {info.comment}</span>
+        <span>{info.ratings.gra}</span>
+        <span>{info.ratings.voc}</span>
+        <span>{info.ratings.coco}</span>
+        <span> Note: {info.comments}</span>
 
         {/* Render a checkbox */}
         <input type="checkbox" checked={info.completed} />

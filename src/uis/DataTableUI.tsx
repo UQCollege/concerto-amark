@@ -3,12 +3,12 @@ import { Column, ColumnEditorOptions } from "primereact/column";
 import React, { useState } from "react";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
-import { type TD } from "../../utils/transformApiData";
-import { useAppDispatch } from "../../hooks";
+import { type TD } from "../utils/transformApiData";
+import { useAppDispatch } from "../store/hooks";
 import "primereact/resources/primereact.min.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
-import { updateTasks, removeTasks } from "../../features/data/taskAllocationSlice";
+import { updateTasks, removeTasks } from "../features/data/taskAllocationSlice";
 import { FilterMatchMode } from "primereact/api";
 import DialogUi from "./DialogUi";
 
@@ -112,12 +112,12 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
             filter
             filterElement={columnFilterTemplate(field)}
             editor={textEditor}
-            style={{ width: "10%" }}
+            style={{ width: "10%", padding: "0", margin: "0" }}
           />
         ))}
- 
-        <Column rowEditor={() => true} headerStyle={{ width: "5%", minWidth: "5rem" }} bodyStyle={{ textAlign: "center" }}  hidden={taskData.length ===0}/> 
-        <Column body={actionBodyTemplate} headerStyle={{ width: "5%", minWidth: "5rem" }} style={{  textAlign: "center" }} hidden={taskData.length ===0}/>
+
+        <Column rowEditor={() => true} headerStyle={{ width: "5%", minWidth: "5rem" }} bodyStyle={{ textAlign: "center" }} hidden={taskData.length === 0} />
+        <Column body={actionBodyTemplate} headerStyle={{ width: "5%", minWidth: "5rem" }} style={{ textAlign: "center" }} hidden={taskData.length === 0} />
 
       </DataTable>
 

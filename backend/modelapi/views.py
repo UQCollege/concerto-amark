@@ -31,7 +31,7 @@ class WritingTasksViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = WritingTasks.objects.all().order_by('itemId')
+    queryset = WritingTasks.objects.all().order_by('id')
     serializer_class = WritingTasksSerializer
 
     def list(self, request):
@@ -53,7 +53,7 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = ReviewAssignment.objects.all().order_by('day')
+    queryset = ReviewAssignment.objects.all().order_by('id')
     serializer_class = ReviewAssignmentSerializer
 
     def list(self, request, *args, **kwargs):

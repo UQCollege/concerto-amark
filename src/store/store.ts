@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
-import assessReducer from "./features/data/assessDataSlice";
-import ratersUpdateReducer from "./features/data/ratersUpdateSlice"
-import taskAllocationReducer from "./features/data/taskAllocationSlice"
+import assessReducer from "../features/data/assessDataSlice";
+import ratersUpdateReducer from "../features/data/ratersUpdateSlice"
+import taskAllocationReducer from "../features/data/taskAllocationSlice"
 
 const store = configureStore({
   reducer: {

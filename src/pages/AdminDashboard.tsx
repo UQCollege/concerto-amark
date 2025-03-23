@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { setRaters } from "../features/data/ratersUpdateSlice";
 
-import Loading from "./ui/Loading";
-import Button from "./ui/Button";
+import Loading from "../uis/Loading";
+import Button from "../uis/Button";
 import { transformApiData, type TD } from "../utils/transformApiData";
 import { downloadExcel } from "../utils/downloadExcel";
-import DataTableUI from "./ui/DataTableUI";
+import DataTableUI from "../uis/DataTableUI";
 import { getAssessmentData } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
-import InfoSidebar from "./ui/InfoSidebar";
-import { TaskContent } from "./ui/InfoSidebar";
+import InfoSidebar from "../uis/InfoSidebar";
+import { TaskContent } from "../uis/InfoSidebar";
 import { setTasks } from "../features/data/taskAllocationSlice";
 import { verifyTaskAllocation } from "../utils/verifyTaskAllocation";
 
@@ -18,9 +18,9 @@ export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
   const [isStart, setIsStart] = useState(false);
 
-  const dispatch=useAppDispatch()
-  const taskData = useAppSelector((state)=>state.taskAllocation)
-  const assessorsList = useAppSelector((state)=>state.ratersUpdate)
+  const dispatch = useAppDispatch()
+  const taskData = useAppSelector((state) => state.taskAllocation)
+  const assessorsList = useAppSelector((state) => state.ratersUpdate)
 
   const handleFetchResult = async () => {
     setIsProcess(true);
@@ -48,8 +48,8 @@ export function AdminDashboard() {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const rows = text.split(",").map((row) => row.trim());
-      const newrows= rows.map((row)=>({prev:row, new:row}))
-       dispatch(setRaters(newrows))
+      const newrows = rows.map((row) => ({ prev: row, new: row }))
+      dispatch(setRaters(newrows))
     };
     reader.readAsText(file);
   };
@@ -59,11 +59,11 @@ export function AdminDashboard() {
       <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <div className="flex flex-row items-center gap-2">
-            <Button onClick={() => {}}>Data Migration</Button>{" "}
+            <Button onClick={() => { }}>Data Migration</Button>{" "}
             <span>&rarr;</span>
           </div>
           <div>
-            <Button onClick={() => {}}>Manual choose 3 Students</Button>{" "}
+            <Button onClick={() => { }}>Manual choose 3 Students</Button>{" "}
             <span>&rarr;</span>
           </div>
           <div className="flex items-center">
@@ -83,7 +83,7 @@ export function AdminDashboard() {
           </div>
           <div className="flex flex-row items-center gap-2">
             <Button
-              onClick={!isStart ? handleFetchResult : () => {}}
+              onClick={!isStart ? handleFetchResult : () => { }}
               className={
                 isStart ? "bg-red-200 cursor-not-allowed opacity-50" : ""
               }
@@ -102,9 +102,9 @@ export function AdminDashboard() {
           {taskData.length === 0 && isProcess && <Loading />}
         </div>
         <div>
-   
+
           <InfoSidebar
-          infoHead="Verification"
+            infoHead="Verification"
             infoList={verifyTaskAllocation(taskData, assessorsList)}
             renderInfo={(info) => (
               <TaskContent info={info as { name: string; value: number }} />
@@ -117,8 +117,8 @@ export function AdminDashboard() {
 
         <hr />
         <DataTableUI
-    
-          taskData={taskData} 
+
+          taskData={taskData}
           fieldNames={["id", "userId", "trait", "startedTime", "rater1", "rater2"]}
         />
       </div>

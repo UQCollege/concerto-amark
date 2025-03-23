@@ -1,13 +1,7 @@
-import {createSlice, PayloadAction} from "@reduxjs/toolkit"
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { TD } from "../../utils/transformApiData"
 
-const initialState: TD[] =[]
-
-// interface UpdateTaskPayload {
-//     index: number;
-//     field: keyof TD;
-//     value: string;
-// }
+const initialState: TD[] = []
 
 const taskAllocationSlice = createSlice({
     name: "taskAllocation",
@@ -19,17 +13,17 @@ const taskAllocationSlice = createSlice({
         updateTasks: (state, action: PayloadAction<TD>) => {
             const updatedTask = action.payload;
             const index = state.findIndex(task => task.id === updatedTask.id);
-        
+
             if (index !== -1) {
                 state[index] = updatedTask; // Replace the existing record
             }
-        }, 
-        removeTasks: (state, action: PayloadAction<{id:number}>) => {
+        },
+        removeTasks: (state, action: PayloadAction<{ id: number }>) => {
             return state.filter(task => task.id !== action.payload.id);
-        
+
         }
     }
 });
 
-export const {setTasks, updateTasks, removeTasks} = taskAllocationSlice.actions
+export const { setTasks, updateTasks, removeTasks } = taskAllocationSlice.actions
 export default taskAllocationSlice.reducer
