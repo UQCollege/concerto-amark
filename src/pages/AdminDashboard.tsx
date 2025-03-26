@@ -13,14 +13,30 @@ import InfoSidebar from "../uis/InfoSidebar";
 import { TaskContent } from "../uis/InfoSidebar";
 import { setTasks } from "../features/data/taskAllocationSlice";
 import { verifyTaskAllocation } from "../utils/verifyTaskAllocation";
+import { Rating } from "../features/data/assessDataSlice";
 
+export interface TaskAssessData extends TD {
+  ratings: {
+    ta: Rating; // Rating for Task Assessment
+    gra: Rating; // Rating for Grammar
+    voc: Rating; // Rating for Vocabulary
+    coco: Rating; // Rating for Cohesion
+  };
+}
 export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
   const [isStart, setIsStart] = useState(false);
 
-  const dispatch = useAppDispatch()
-  const taskData = useAppSelector((state) => state.taskAllocation)
-  const assessorsList = useAppSelector((state) => state.ratersUpdate)
+  const dispatch = useAppDispatch();
+  const taskData = useAppSelector((state) => state.taskAllocation);
+  const assessorsList = useAppSelector((state) => state.ratersUpdate);
+  const assessData = useAppSelector((state) => state.assess).map(
+    (data) => data.ratings
+  );
+  const taskAssessData = {
+    ...taskData,
+    ...assessData,
+  };
 
   const handleFetchResult = async () => {
     setIsProcess(true);
@@ -33,13 +49,11 @@ export function AdminDashboard() {
       return Number(a.userId) - Number(b.userId);
     });
 
-
-    dispatch(setTasks(newTaskData))
+    dispatch(setTasks(newTaskData));
   };
   const handleDownloadExcel = () => {
     downloadExcel(taskData);
   };
-
 
   const updateRaterList = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,8 +62,8 @@ export function AdminDashboard() {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const rows = text.split(",").map((row) => row.trim());
-      const newrows = rows.map((row) => ({ prev: row, new: row }))
-      dispatch(setRaters(newrows))
+      const newrows = rows.map((row) => ({ prev: row, new: row }));
+      dispatch(setRaters(newrows));
     };
     reader.readAsText(file);
   };
@@ -59,11 +73,11 @@ export function AdminDashboard() {
       <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <div className="flex flex-row items-center gap-2">
-            <Button onClick={() => { }}>Data Migration</Button>{" "}
+            <Button onClick={() => {}}>Data Migration</Button>{" "}
             <span>&rarr;</span>
           </div>
           <div>
-            <Button onClick={() => { }}>Manual choose 3 Students</Button>{" "}
+            <Button onClick={() => {}}>Manual choose 3 Students</Button>{" "}
             <span>&rarr;</span>
           </div>
           <div className="flex items-center">
@@ -83,7 +97,7 @@ export function AdminDashboard() {
           </div>
           <div className="flex flex-row items-center gap-2">
             <Button
-              onClick={!isStart ? handleFetchResult : () => { }}
+              onClick={!isStart ? handleFetchResult : () => {}}
               className={
                 isStart ? "bg-red-200 cursor-not-allowed opacity-50" : ""
               }
@@ -102,7 +116,6 @@ export function AdminDashboard() {
           {taskData.length === 0 && isProcess && <Loading />}
         </div>
         <div>
-
           <InfoSidebar
             infoHead="Verification"
             infoList={verifyTaskAllocation(taskData, assessorsList)}
@@ -117,9 +130,16 @@ export function AdminDashboard() {
 
         <hr />
         <DataTableUI
-
-          taskData={taskData}
-          fieldNames={["id", "userId", "trait", "startedTime", "rater1", "rater2"]}
+          taskData={taskAssessData as TaskAssessData[]}
+          fieldNames={[
+            "id",
+            "userId",
+            "trait",
+            "startedTime",
+            "rater1",
+            "rater2",
+            "ratings",
+          ]}
         />
       </div>
     </div>

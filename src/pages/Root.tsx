@@ -2,13 +2,12 @@ import { Outlet } from "react-router";
 import Sidebar from "../uis/Sidebar";
 import { SidebarItem } from "../uis/Sidebar";
 import { Flag, Home, Layers, LayoutDashboard, LogOut } from "lucide-react";
-import { PrimeReactProvider } from 'primereact/api';
-
+import { PrimeReactProvider } from "primereact/api";
 
 const Root = () => {
+  const id = 0; //todo: implement login feature for userId
   return (
     <PrimeReactProvider>
-
       <div className="flex relative m-5">
         {/* <Nav show={show}></Nav> */}
         <Sidebar>
@@ -19,7 +18,11 @@ const Root = () => {
             active
             link="/admin"
           />
-          <SidebarItem icon={<Layers size={20} />} text="Tasks" link="/raters" />
+          <SidebarItem
+            icon={<Layers size={20} />}
+            text="Tasks"
+            link={`/raters/${id}`} //
+          />
           <SidebarItem icon={<Flag size={20} />} text="" link="" />
           <hr className="my-3" />
           <SidebarItem icon={<LogOut size={20} />} text="Log Out" link="" />

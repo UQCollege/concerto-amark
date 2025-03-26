@@ -1,24 +1,25 @@
 import React from "react";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { getUserTasks } from "../utils/apiService";
 import Button from "../uis/Button";
 
 import MarkOption from "../uis/MarkOption";
-import { type Mark, SelectOptionType } from "../uis/MarkOption";
+import { SelectOptionType } from "../uis/MarkOption";
 import InfoSidebar from "../uis/InfoSidebar";
 import { TaskContent } from "../uis/InfoSidebar";
 import { ChevronFirst, ChevronLast } from "lucide-react";
 import { sampleTaskData } from "../utils/data/sampledata";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { setRating, setComment, setCompleted, type AssessData, type Task, type TaskAPI, type Rating, initialRating } from "../features/data/assessDataSlice";
 import {
-  PDFViewer,
-  Page,
-  Text,
-  View,
-  Document,
-  StyleSheet,
-} from "@react-pdf/renderer";
+  setRating,
+  setComment,
+  setCompleted,
+  type AssessData,
+  type TaskAPI,
+  type Rating,
+  initialRating,
+} from "../features/data/assessDataSlice";
 
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
@@ -28,19 +29,26 @@ const markOptions = [
 ];
 
 export function UserDashboard() {
-  const [currentUser, setCurrentUser] = useState(81); //userId
+  const { id } = useParams<{ id: string | undefined }>();
+  const currentUser = Number(id);
   const [currentTaskId, setCurrentTaskId] = useState(0);
   const [expanded, setExpanded] = useState(true);
 
-  const assessData = useAppSelector((state) => state.assess)
+  const assessData = useAppSelector((state) => state.assess);
   const dispatch = useAppDispatch();
 
   const currentTask = assessData.find((task) => task.id === currentTaskId);
   const totalTasks = assessData.length;
   const completedTasks = assessData.filter((task) => task.completed).length;
   const allTasksCompleted = completedTasks === totalTasks;
-  const isLastTask = completedTasks === totalTasks - 1 && !currentTask?.completed;
-  const marks = currentTask?.ratings || { ta: undefined, gra: undefined, voc: undefined, coco: undefined };
+  const isLastTask =
+    completedTasks === totalTasks - 1 && !currentTask?.completed;
+  const marks = currentTask?.ratings || {
+    ta: undefined,
+    gra: undefined,
+    voc: undefined,
+    coco: undefined,
+  };
   const isAllSelected = markOptions.every(
     (opt) => marks[opt.name] && marks[opt.name] !== undefined
   );
@@ -52,13 +60,18 @@ export function UserDashboard() {
           ? sampleTaskData
           : await getUserTasks(currentUser);
       const tasks: AssessData[] = data
-        .map((task: any) => ({
+        .map((task: TaskAPI) => ({
           id: task.id,
           userId: task.userId,
           trait: task.trait,
           startedTime: task.startedTime,
           response: task.response,
-          ratings: { ta: task.ta, gra: task.gra, voc: task.voc, coco: task.coco },
+          ratings: {
+            ta: task.ta,
+            gra: task.gra,
+            voc: task.voc,
+            coco: task.coco,
+          },
           comments: "",
           completed: false,
         }))
@@ -67,12 +80,15 @@ export function UserDashboard() {
       dispatch(initialRating(tasks));
       setCurrentTaskId(tasks[0]?.id ?? 0);
     };
+    if (!currentUser) return;
     fetchTask();
   }, []);
-
+  if (!currentUser) return <div>Invalid user</div>;
   if (!currentTask) return <div>Loading task...</div>;
 
-  const handleMarkChange = (selected: Partial<Record<SelectOptionType, Rating>>) => {
+  const handleMarkChange = (
+    selected: Partial<Record<SelectOptionType, Rating>>
+  ) => {
     const key = Object.keys(selected)[0] as SelectOptionType;
     const val = selected[key] as Rating;
     dispatch(setRating({ id: currentTask.id, ratingType: key, value: val }));
@@ -105,31 +121,20 @@ export function UserDashboard() {
         All assessments completed. Great job!
         <br />
         would you like try more, please{" "}
-        <Button className="bg-white-200 text-gray-300" onClick={() => { }}>
+        <Button className="bg-white-200 text-gray-300" onClick={() => {}}>
           click here
         </Button>
       </div>
     );
   }
-  // Create styles
-  const styles = StyleSheet.create({
-    page: {
-      flexDirection: "row",
-      backgroundColor: "#E4E4E4",
-    },
-    section: {
-      margin: 10,
-      padding: 10,
-      flexGrow: 1,
-    },
-  });
 
   return (
     <div className="">
       <div className="flex items-center h-[100vh]">
         <div
-          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
-            }`}
+          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${
+            expanded ? "w-[25vw]" : "w-0 invisible"
+          }`}
         >
           {/* Sidbar info */}
           <div className="text-2xl">
@@ -172,7 +177,7 @@ export function UserDashboard() {
             <div>
               <Button onClick={handleRevert}> Last</Button>
               <Button
-                onClick={isAllSelected ? handleSubmit : () => { }}
+                onClick={isAllSelected ? handleSubmit : () => {}}
                 className={
                   !isAllSelected
                     ? "bg-red-200 cursor-not-allowed opacity-50"
@@ -198,24 +203,13 @@ export function UserDashboard() {
         >
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
-        {/* PDF view */}
+        {/*  ToDo:  PDF view */}
         <div className="w-[60vw] h-full">
-
           <h3 className="header">{currentTask.userId}</h3>
           <h3 className="header">{currentTask.trait}</h3>
           <h3 className="header">{currentTask.startedTime}</h3>
           <p className="card">{currentTask.response}</p>
-          {/* <PDFViewer>
-            <Document>
-              <Page size="A4" style={styles.page}>
-                <View style={styles.section}>
-                  <Text>{currentTask.response}</Text>
-                </View>
-              </Page>
-            </Document>
-          </PDFViewer> */}
         </div>
-
       </div>
     </div>
   );

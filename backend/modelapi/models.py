@@ -53,7 +53,7 @@ class WritingTasks(models.Model):
         available_raters = [r for r in available_raters if r not in  writing_task1_raters]  # Remove used raters
 
         # Assign Day 2 raters (different from Day 1)
-         writing_task2_raters  = available_raters[:2]
+        writing_task2_raters  = available_raters[:2]
         for rater in  writing_task2_raters :
             ReviewAssignment.objects.create(writing_task=self, rater=rater)
 
@@ -76,7 +76,7 @@ class ReviewAssignment(models.Model):
 
 
 
-
+    
     def __str__(self):
         return f"{self.writing_task.itemId} - {self.writing_task.trait} on {self.writing_task.startedTime} reviewed by {self.rater.name} "
     
