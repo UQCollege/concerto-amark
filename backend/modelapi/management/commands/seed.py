@@ -9,12 +9,12 @@ class Command(BaseCommand):
         self.seed_writing_tasks()
         self.stdout.write(self.style.SUCCESS('Database seeded successfully'))
 
-    def seed_raters(self):
-        raters_data = [{'name':f'Rater{i}', 'password':f'password{i}'} for i in range(10)]
+    # def seed_raters(self):
+    #     raters_data = [{'name':f'Rater{i}', 'password':f'password{i}'} for i in range(10)]
 
-        for rater_data in raters_data:
-            Raters.objects.get_or_create(**rater_data)
-        self.stdout.write(self.style.SUCCESS('Raters table seeded'))
+    #     for rater_data in raters_data:
+    #         Raters.objects.get_or_create(**rater_data)
+    #     self.stdout.write(self.style.SUCCESS('Raters table seeded'))
 
     def seed_writing_tasks(self):
         writing_tasks_data = [

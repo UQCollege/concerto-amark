@@ -39,7 +39,6 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
     const _data = [...taskData];
     const { newData, index } = e;
     _data[index] = newData as TD;
-    console.log("onRowEditComplete", _data[index]);
 
     dispatch(updateTasks(_data[index] as TD));
   };
@@ -51,7 +50,6 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
 
   const onDeleteConfirmed = () => {
     if (selectedRow) {
-      console.log("Deleting row:", selectedRow);
       dispatch(removeTasks({ id: selectedRow.id }));
     }
     setIsDialogVisible(false);

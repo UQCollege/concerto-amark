@@ -10,6 +10,17 @@ class Raters(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        """
+        Override the save method to check if a record already exists in the database.
+        The input is a string array like ["rater1", "rater1", "rater2", ...].
+        """
+        for rater_name in self.name:
+            if not Raters.objects.filter(name=rater_name).exists():
+            # Save only if the rater does not already exist
+              Raters(name=rater_name).save()
+        super().save(*args, **kwargs)
 
 class WritingTasks(models.Model):
     '''
