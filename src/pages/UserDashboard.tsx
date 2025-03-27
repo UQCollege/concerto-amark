@@ -80,10 +80,11 @@ export function UserDashboard() {
       dispatch(initialRating(tasks));
       setCurrentTaskId(tasks[0]?.id ?? 0);
     };
-    if (!currentUser) return;
+    if (currentUser===null || currentUser===undefined) return;
     fetchTask();
   }, []);
-  if (!currentUser) return <div>Invalid user</div>;
+
+  if (currentUser===undefined || currentUser===null) return <div>Invalid user</div>;
   if (!currentTask) return <div>Loading task...</div>;
 
   const handleMarkChange = (

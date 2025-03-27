@@ -19,4 +19,4 @@ class ReviewAssignmentSerializer(serializers.ModelSerializer):
     startedTime = serializers.CharField(source='writing_task.startedTime', read_only=True)
     class Meta:
         model = ReviewAssignment
-        fields = ['id', 'userId', 'trait', 'startedTime', 'raterName', 'day', 'ta', 'gra', 'voc', 'coco']
+        fields = ['id', 'userId', 'trait', 'startedTime', 'raterName',  'ta', 'gra', 'voc', 'coco', 'completed']

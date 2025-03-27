@@ -68,11 +68,14 @@ class ReviewAssignment(models.Model):
     id= models.IntegerField(unique=True, primary_key=True) 
     writing_task = models.ForeignKey(WritingTasks, on_delete=models.CASCADE, related_name="reviews")
     rater = models.ForeignKey(Raters, on_delete=models.CASCADE, related_name="assignments")
+
    
     ta = models.IntegerField(null=True)
     gra = models.IntegerField(null=True)
     voc = models.IntegerField(null=True)
     coco = models.IntegerField(null=True)
+
+    completed = models.BooleanField(default=False)
 
 
 

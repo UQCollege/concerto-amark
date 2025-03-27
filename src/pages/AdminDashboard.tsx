@@ -17,10 +17,10 @@ import { Rating } from "../features/data/assessDataSlice";
 
 export interface TaskAssessData extends TD {
   ratings: {
-    ta: Rating; // Rating for Task Assessment
-    gra: Rating; // Rating for Grammar
-    voc: Rating; // Rating for Vocabulary
-    coco: Rating; // Rating for Cohesion
+    ta: Rating;
+    gra: Rating; 
+    voc: Rating; 
+    coco: Rating; 
   };
 }
 export function AdminDashboard() {
@@ -30,13 +30,8 @@ export function AdminDashboard() {
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
   const assessorsList = useAppSelector((state) => state.ratersUpdate);
-  const assessData = useAppSelector((state) => state.assess).map(
-    (data) => data.ratings
-  );
-  const taskAssessData = {
-    ...taskData,
-    ...assessData,
-  };
+
+
 
   const handleFetchResult = async () => {
     setIsProcess(true);
@@ -126,11 +121,13 @@ export function AdminDashboard() {
           <span>
             At the end need to make sure all tasks been allocated correctly
           </span>
-        </div>
+        </div>Ta:
 
         <hr />
+        {
+taskData.length>0 &&
         <DataTableUI
-          taskData={taskAssessData as TaskAssessData[]}
+          taskData={taskData}
           fieldNames={[
             "id",
             "userId",
@@ -138,9 +135,10 @@ export function AdminDashboard() {
             "startedTime",
             "rater1",
             "rater2",
-            "ratings",
+            "completed",
           ]}
         />
+        }
       </div>
     </div>
   );

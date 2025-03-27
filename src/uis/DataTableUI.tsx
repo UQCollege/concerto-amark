@@ -12,6 +12,7 @@ import { updateTasks, removeTasks } from "../features/data/taskAllocationSlice";
 import { FilterMatchMode } from "primereact/api";
 import DialogUi from "./DialogUi";
 
+
 type DataTableUIProps = {
   taskData: TD[];
   fieldNames: string[];
@@ -34,7 +35,7 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
   const [isDialogVisible, setIsDialogVisible] = useState(false);
 
   const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
-    console.log("onRowEditComplete", e.data);
+
     const _data = [...taskData];
     const { newData, index } = e;
     _data[index] = newData as TD;
@@ -117,6 +118,7 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
         ))}
 
         <Column rowEditor={() => true} headerStyle={{ width: "5%", minWidth: "5rem" }} bodyStyle={{ textAlign: "center" }} hidden={taskData.length === 0} />
+        
         <Column body={actionBodyTemplate} headerStyle={{ width: "5%", minWidth: "5rem" }} style={{ textAlign: "center" }} hidden={taskData.length === 0} />
 
       </DataTable>

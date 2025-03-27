@@ -25,6 +25,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 1,
@@ -37,6 +38,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 2,
@@ -49,6 +51,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 3,
@@ -61,6 +64,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 4,
@@ -73,6 +77,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 5,
@@ -85,6 +90,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 6,
@@ -97,6 +103,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 7,
@@ -109,6 +116,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 8,
@@ -121,6 +129,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 9,
@@ -133,6 +142,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 10,
@@ -145,6 +155,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 11,
@@ -157,6 +168,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 12,
@@ -169,6 +181,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 13,
@@ -181,6 +194,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 14,
@@ -193,6 +207,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
   {
     id: 15,
@@ -205,6 +220,7 @@ export const sampleApiData = [
     gra: undefined,
     voc: undefined,
     coco: undefined,
+    completed: false,
   },
 
 ];

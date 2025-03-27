@@ -9,6 +9,7 @@ export type ApiData = {
   gra: number | null;
   voc: number | null;
   coco: number | null;
+  completed: boolean;
 };
 
 // TD: Task distribution
@@ -19,15 +20,16 @@ export interface TD {
   startedTime: string;
   rater1: string;
   rater2: string;
+  completed: boolean;
 }
 
 
 export function transformApiData(data: ApiData[]): TD[] {
-  return data.map(({ userId, startedTime, trait, id }) => {
+  return data.map(({ userId, startedTime, trait, id, completed }) => {
     const tRaters = data.filter(
       (entry) => entry.trait === trait && entry.userId === userId
     );
-
+    
     return {
       id,
       trait,
@@ -35,6 +37,7 @@ export function transformApiData(data: ApiData[]): TD[] {
       startedTime,
       rater1: tRaters[0]?.raterName ?? "Unknown", 
       rater2: tRaters[1]?.raterName ?? tRaters[0]?.raterName ?? "Unknown", 
+      completed
     };
   });
 }
