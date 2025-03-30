@@ -27,3 +27,4 @@ dist-ssr
 .amark_env
 *.pdf
 .env
+.concerto-amark_env

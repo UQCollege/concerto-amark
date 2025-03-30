@@ -5,7 +5,7 @@ import { Flag, Home, Layers, LayoutDashboard, LogOut } from "lucide-react";
 import { PrimeReactProvider } from "primereact/api";
 
 const Root = () => {
-  const id = 0; //todo: implement login feature for userId
+  const name = 'Alice2'; //todo: implement login feature for userId
   return (
     <PrimeReactProvider>
       <div className="flex relative m-5">
@@ -18,10 +18,11 @@ const Root = () => {
             active
             link="/admin"
           />
+
           <SidebarItem
             icon={<Layers size={20} />}
-            text="Tasks"
-            link={`/raters/${id}`} //
+            text={name}
+            link={`/raters/${name}`} //
           />
           <SidebarItem icon={<Flag size={20} />} text="" link="" />
           <hr className="my-3" />

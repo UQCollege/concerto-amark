@@ -5,22 +5,22 @@ from collections import Counter
 
 # Create your models here.
 class Raters(models.Model):
-    name = models.CharField(max_length=100)  # Rater's firstname_lastname 
-    password = models.CharField(max_length=100)  # Rater's password
+    name = models.CharField(max_length=100)  # Rater's firstname_lastname
+    rater_digital_id = models.CharField(max_length=100)
+    password = models.CharField(max_length=100, default="test123")  # Rater's password
 
     def __str__(self):
         return self.name
     
     def save(self, *args, **kwargs):
         """
-        Override the save method to check if a record already exists in the database.
-        The input is a string array like ["rater1", "rater1", "rater2", ...].
+        Override the save method to ensure a record only gets created if it doesn't already exist.
         """
-        for rater_name in self.name:
-            if not Raters.objects.filter(name=rater_name).exists():
-            # Save only if the rater does not already exist
-              Raters(name=rater_name).save()
-        super().save(*args, **kwargs)
+        # Check if a Rater with the same name already exists
+        if not Raters.objects.filter(name=self.name).exists():
+            super().save(*args, **kwargs)  # Save the rater only if it does not exist
+        else:
+            print(f"Rater with name '{self.name}' already exists.") 
 
 class WritingTasks(models.Model):
     '''
@@ -28,70 +28,79 @@ class WritingTasks(models.Model):
     The data is from Concerto database: assessResponse_Writingtask table.
     '''
 
-    # Todo: change schema to match data exported from Concerto database: startedTime, trait, userId, response
-    id= models.IntegerField(unique=True, primary_key=True) # writing task number
-    startedTime = models.DateTimeField()
+    # Todo: change schema to match data exported from Concerto database: startedTime, trait, student_name, response
+    # id= models.IntegerField(unique=True, primary_key=True) # writing task number
+    started_time = models.DateTimeField()
     trait = models.CharField(max_length=100)
-    userId = models.CharField(max_length=100)
+    student_name = models.CharField(max_length=100)
+    
     response = models.TextField()
 
     def __str__(self):
-        return f"{self.trait} in test on #{self.startedTime} by {self.userId}"
+        return f"{self.trait} in test on #{self.started_time} by {self.student_name}"
+
 
     def assign_raters(self, raters):
         """
-        Assigns two different raters for Day 1 and Day 2, ensuring no repetition.
+        Assigns two different raters for a writing task, ensuring:
+        - No repetition between 'writing task 1' and 'writing task 2' for the same user, if possible.
+        - Avoids assigning raters multiple times to the same task.
         """
         if len(raters) < 4:
             raise ValueError("At least 4 raters are required for unique assignments.")
 
-        available_raters = list(raters)
-        # Track the number of assignments each rater has
+        # Prevent duplicate assignment if this task already has raters
+        if ReviewAssignment.objects.filter(writing_task=self).exists():
+            print(f"Raters already assigned to writing task: {self.id}")
+            return {
+                "trait": self.trait,
+                "assigned_raters": list(
+                    ReviewAssignment.objects.filter(writing_task=self).values_list("rater__name", flat=True)
+                )
+            }
+
+        # Get other writing task for the same user
+        opposite_trait = "writing task 1" if self.trait == "writing task 2" else "writing task 2"
+        other_task = WritingTasks.objects.filter(student_name=self.student_name, trait=opposite_trait).first()
+
+        excluded_raters = set()
+        if other_task:
+            excluded_raters = set(
+                ReviewAssignment.objects.filter(writing_task=other_task).values_list("rater_id", flat=True)
+            )
+
         rater_assignments_count = Counter(
-            ReviewAssignment.objects.filter(rater__in=raters).values_list('rater', flat=True)
+            ReviewAssignment.objects.filter(rater__in=raters).values_list('rater_id', flat=True)
         )
 
-        # Sort raters by the number of tasks they have already been assigned (ascending order)
-        available_raters.sort(key=lambda rater: rater_assignments_count[rater.id])
+        sorted_raters = sorted(raters, key=lambda r: rater_assignments_count[r.id])
+        available_raters = [r for r in sorted_raters if r.id not in excluded_raters]
 
-        # Assign Day 1 raters
-        writing_task1_raters = available_raters[:2]
-        # Assign Day 1 raters
-        
-        for rater in writing_task1_raters:
-            ReviewAssignment.objects.create(writing_task=self, rater=rater)
-    
-        available_raters = [r for r in available_raters if r not in  writing_task1_raters]  # Remove used raters
+        if len(available_raters) < 2:
+            available_raters = sorted_raters
 
-        # Assign Day 2 raters (different from Day 1)
-        writing_task2_raters  = available_raters[:2]
-        for rater in  writing_task2_raters :
+        selected_raters = available_raters[:2]
+        for rater in selected_raters:
             ReviewAssignment.objects.create(writing_task=self, rater=rater)
 
         return {
-            "writing task 1": [r.name for r in writing_task1_raters],
-            "writing task 2": [r.name for r in writing_task2_raters],
+            "trait": self.trait,
+            "assigned_raters": [r.name for r in selected_raters]
         }
 
 
 class ReviewAssignment(models.Model):
     # todo:  Change columns
-    id= models.IntegerField(unique=True, primary_key=True) 
+
     writing_task = models.ForeignKey(WritingTasks, on_delete=models.CASCADE, related_name="reviews")
     rater = models.ForeignKey(Raters, on_delete=models.CASCADE, related_name="assignments")
-
-   
     ta = models.IntegerField(null=True)
     gra = models.IntegerField(null=True)
     voc = models.IntegerField(null=True)
     coco = models.IntegerField(null=True)
-
     completed = models.BooleanField(default=False)
-
-
-
     
     def __str__(self):
-        return f"{self.writing_task.itemId} - {self.writing_task.trait} on {self.writing_task.startedTime} reviewed by {self.rater.name} "
+        return f"{self.writing_task.id} - {self.writing_task.trait} on {self.writing_task.started_time} reviewed by {self.rater.name} "
     
     

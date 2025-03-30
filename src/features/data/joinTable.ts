@@ -1,5 +1,5 @@
-import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {Rating} from "./assessDataSlice";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Rating } from "../../apiTypes";
 
 export interface TableData {
     id: number;
@@ -13,7 +13,7 @@ export interface TableData {
         gra: Rating;
         voc: Rating;
         coco: Rating;
-      };
+    };
 }
 
 export const initialState: TableData[] = [
@@ -41,7 +41,7 @@ const assessTaskstatusSlice = createSlice({
             return action.payload;
         },
     },
-}); 
+});
 
 export const { setTableData } = assessTaskstatusSlice.actions;
 export default assessTaskstatusSlice.reducer;

@@ -11,13 +11,14 @@ import { TaskContent } from "../uis/InfoSidebar";
 import { ChevronFirst, ChevronLast } from "lucide-react";
 import { sampleTaskData } from "../utils/data/sampledata";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { Rating, TaskAPI } from "../apiTypes";
 import {
   setRating,
   setComment,
   setCompleted,
   type AssessData,
-  type TaskAPI,
-  type Rating,
+
+
   initialRating,
 } from "../features/data/assessDataSlice";
 
@@ -29,8 +30,8 @@ const markOptions = [
 ];
 
 export function UserDashboard() {
-  const { id } = useParams<{ id: string | undefined }>();
-  const currentUser = Number(id);
+  const { name } = useParams<{ name: string | undefined }>();
+  const currentUser = name ? name : ""
   const [currentTaskId, setCurrentTaskId] = useState(0);
   const [expanded, setExpanded] = useState(true);
 
@@ -59,10 +60,12 @@ export function UserDashboard() {
         import.meta.env.VITE_MODE === "DEMO"
           ? sampleTaskData
           : await getUserTasks(currentUser);
+      console.log(data)
       const tasks: AssessData[] = data
         .map((task: TaskAPI) => ({
           id: task.id,
-          userId: task.userId,
+          studentName: task.studentName,
+          raterDigitalId: task.raterDigitalId,
           trait: task.trait,
           startedTime: task.startedTime,
           response: task.response,
@@ -73,18 +76,18 @@ export function UserDashboard() {
             coco: task.coco,
           },
           comments: "",
-          completed: false,
+          completed: task.completed,
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
-
+      console.log(tasks[0])
       dispatch(initialRating(tasks));
       setCurrentTaskId(tasks[0]?.id ?? 0);
     };
-    if (currentUser===null || currentUser===undefined) return;
+    if (currentUser === null || currentUser === undefined) return;
     fetchTask();
   }, []);
 
-  if (currentUser===undefined || currentUser===null) return <div>Invalid user</div>;
+  if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
   if (!currentTask) return <div>Loading task...</div>;
 
   const handleMarkChange = (
@@ -122,7 +125,7 @@ export function UserDashboard() {
         All assessments completed. Great job!
         <br />
         would you like try more, please{" "}
-        <Button className="bg-white-200 text-gray-300" onClick={() => {}}>
+        <Button className="bg-white-200 text-gray-300" onClick={() => { }}>
           click here
         </Button>
       </div>
@@ -133,9 +136,8 @@ export function UserDashboard() {
     <div className="">
       <div className="flex items-center h-[100vh]">
         <div
-          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${
-            expanded ? "w-[25vw]" : "w-0 invisible"
-          }`}
+          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
+            }`}
         >
           {/* Sidbar info */}
           <div className="text-2xl">
@@ -178,7 +180,7 @@ export function UserDashboard() {
             <div>
               <Button onClick={handleRevert}> Last</Button>
               <Button
-                onClick={isAllSelected ? handleSubmit : () => {}}
+                onClick={isAllSelected ? handleSubmit : () => { }}
                 className={
                   !isAllSelected
                     ? "bg-red-200 cursor-not-allowed opacity-50"
@@ -205,11 +207,12 @@ export function UserDashboard() {
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
         {/*  ToDo:  PDF view */}
-        <div className="w-[60vw] h-full">
-          <h3 className="header">{currentTask.userId}</h3>
-          <h3 className="header">{currentTask.trait}</h3>
-          <h3 className="header">{currentTask.startedTime}</h3>
-          <p className="card">{currentTask.response}</p>
+        <div className="w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] bg-gray-100 text-black line-height-3 shadow-2">
+          <h3 className="text-left mb-2">{currentTask.userId}</h3>
+          <h3 className="text-left mb-2">{currentTask.trait}</h3>
+          <h3 className="text-left mb-2">{currentTask.startedTime}</h3>
+          <hr />
+          <p className="block w-full text-left whitespace-pre-line leading-5 mt-2 text-lg">{currentTask.response}</p>
         </div>
       </div>
     </div>

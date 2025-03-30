@@ -15,7 +15,7 @@ function App() {
       children: [
         { path: "/", element: <Home /> },
         { path: "/admin", element: <AdminDashboard /> },
-        { path: "/raters/:id", element: <UserDashboard /> },
+        { path: "/raters/:name", element: <UserDashboard /> },
       ],
     },
   ]);

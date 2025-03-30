@@ -41,7 +41,7 @@ const Sidebar = ({ children }: SidebarProps) => {
             </button>
           </div>
           <SidebarContext.Provider value={{ expanded }}>
-            <ul className="flex-1 px-3">{children} </ul>
+            <ul className="flex-1 px-3">{children}</ul>
           </SidebarContext.Provider>
 
         </nav>
@@ -66,8 +66,8 @@ export const SidebarItem = ({
     <Link to={link} className="hover: bg-indigo-50 text-gray-600">
       <li
         className={`relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${active
-            ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-            : "bg-indigo-100 hover:bg-indigo-50 text-gray-600"
+          ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
+          : "bg-indigo-100 hover:bg-indigo-50 text-gray-600"
           }`}
       >
         {icon}

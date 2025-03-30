@@ -34,17 +34,17 @@ class WritingTasksViewSet(viewsets.ModelViewSet):
     queryset = WritingTasks.objects.all().order_by('id')
     serializer_class = WritingTasksSerializer
 
-    def list(self, request):
-        pass
+    # def list(self, request):
+    #     pass
 
-    def create(self, request):
-        pass
+    # def create(self, request):
+    #     pass
 
-    def retrieve(self, request, pk=None):
-        pass
+    # def retrieve(self, request, pk=None):
+    #     pass
 
-    def update(self, request, pk=None):
-        pass
+    # def update(self, request, pk=None):
+    #     pass
 
 
 
@@ -61,12 +61,12 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
         Allows filtering by rater_id via a query parameter
         Example: GET /api/review-assignments/?rater=Rater1
         """
-        rater_id = request.GET.get('rater_id')
+        queryset = ReviewAssignment.objects.all().order_by('id') # Cannot use self.queryset whay?
+        rater_name = request.GET.get('rater_name', None)
 
-        queryset = self.queryset
-        if rater_id:
-            queryset = queryset.filter(rater_id=int(rater_id))
-
+        if rater_name:
+            queryset = queryset.filter(rater__name=rater_name)
+        
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

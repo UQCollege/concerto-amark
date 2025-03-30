@@ -5,20 +5,29 @@ class Command(BaseCommand):
     help = 'Seed the database with initial data'
 
     def handle(self, *args, **kwargs):
-        self.seed_raters()
         self.seed_writing_tasks()
         self.stdout.write(self.style.SUCCESS('Database seeded successfully'))
 
-    # def seed_raters(self):
-    #     raters_data = [{'name':f'Rater{i}', 'password':f'password{i}'} for i in range(10)]
-
-    #     for rater_data in raters_data:
-    #         Raters.objects.get_or_create(**rater_data)
-    #     self.stdout.write(self.style.SUCCESS('Raters table seeded'))
-
     def seed_writing_tasks(self):
-        writing_tasks_data = [
-            {'itemId': f'{i}', 'testId': '54', 'content': f'Content for writing task by User {i}'} for i in range(25)]
+        students = [str(i) for i in range(501) ]  # Add more users as needed
+        start_date = "2025-02-27"
+        end_date = "2025-02-28"
+        writing_tasks_data = []
+
+        # Generate tasks for each user
+        for student in students:
+            for i in range(2):  # Each user has 2 tasks
+                task_trait = f"Writing {i + 1}"  # Writing 1, Writing 2
+                started_time = start_date if i == 0 else end_date  # Alternate the start date
+                response = f"This is test example {i + 1} for User {student}"
+
+                writing_tasks_data.append({
+                    'student_name': student,
+                    'trait': task_trait,
+                    'started_time': started_time,
+                    'response': response
+                })
+
 
         for writing_task_data in writing_tasks_data:
             WritingTasks.objects.get_or_create(**writing_task_data)

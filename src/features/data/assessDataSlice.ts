@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-export type Rating = 1 | 2 | 3 | 4 | 5 | undefined;
+import { Rating } from "../../apiTypes";
+// export type Rating = 1 | 2 | 3 | 4 | 5 | undefined;
 export type Task = {
   id: number;
 
@@ -15,19 +16,19 @@ export type Task = {
   comment: string;
 };
 
-export type TaskAPI = {
-  id: number;
-  userId: string;
-  trait: string;
-  raterName: string;
-  startedTime: string;
-  response: string;
+// export type TaskAPI = {
+//   id: number;
+//   userId: string;
+//   trait: string;
+//   raterName: string;
+//   startedTime: string;
+//   response: string;
 
-  ta: Rating | undefined;
-  gra: Rating | undefined;
-  voc: Rating | undefined;
-  coco: Rating | undefined;
-};
+//   ta: Rating | undefined;
+//   gra: Rating | undefined;
+//   voc: Rating | undefined;
+//   coco: Rating | undefined;
+// };
 
 export interface AssessData {
   id: number;

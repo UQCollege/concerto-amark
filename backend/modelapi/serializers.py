@@ -12,11 +12,12 @@ class WritingTasksSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ReviewAssignmentSerializer(serializers.ModelSerializer):
-    userId = serializers.CharField(source='writing_task.userId', read_only=True)
-    raterName = serializers.CharField(source='rater.name', read_only=True)
+    student_name = serializers.CharField(source='writing_task.student_name', read_only=True)
+    rater_name = serializers.CharField(source='rater.name', read_only=True)
+    rater_digital_id = serializers.CharField(source='rater.rater_digital_id', read_only=True)
     trait = serializers.CharField(source='writing_task.trait', read_only=True)
     response = serializers.CharField(source='writing_task.response', read_only=True)
-    startedTime = serializers.CharField(source='writing_task.startedTime', read_only=True)
+    started_time = serializers.CharField(source='writing_task.started_time', read_only=True)
     class Meta:
         model = ReviewAssignment
-        fields = ['id', 'userId', 'trait', 'startedTime', 'raterName',  'ta', 'gra', 'voc', 'coco', 'completed']
+        fields = ['id', 'student_name', 'trait', 'started_time', 'rater_name', 'rater_digital_id', 'response', 'ta', 'gra', 'voc', 'coco', 'completed']

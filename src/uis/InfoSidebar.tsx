@@ -23,7 +23,7 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
         visible={visibleRight}
         position="right"
         onHide={() => setVisibleRight(false)}
-        className="card w-[25vw] bg-gray-800 text-white"
+        className="card w-[30vw] bg-gray-800 text-white"
       >
         <Panel header="Task List">
           {infoList.map((info, index) => {
@@ -31,7 +31,7 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
               // Case: Original format
               return (
                 <div key={index}>
-                  <p className="p-2">{renderInfo(info as AssessData)}</p>
+                  <p className="p-1">{renderInfo(info as AssessData)}</p>
                 </div>
               );
             } else {
@@ -60,15 +60,16 @@ export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
     return (
       <>
         <span>
-          {info.userId} - {info.trait}: {info.ratings.ta}{" "}
+          {info.userId} - {info.trait} Score: {info.ratings.ta}-
         </span>
-        <span>{info.ratings.gra}</span>
-        <span>{info.ratings.voc}</span>
+        <span>{info.ratings.gra}-</span>
+        <span>{info.ratings.voc}-</span>
         <span>{info.ratings.coco}</span>
-        <span> Note: {info.comments}</span>
+        <span> {info.comments ? info.comments : "NC"} </span>
 
         {/* Render a checkbox */}
-        <input type="checkbox" checked={info.completed} />
+
+        <input type="checkbox" checked={info.completed} onChange={() => { }} />
       </>
     );
   } else {

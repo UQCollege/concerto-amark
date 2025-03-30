@@ -1,5 +1,5 @@
 import { RadioButton } from "primereact/radiobutton";
-import { type Rating } from "../features/data/assessDataSlice";
+import { Rating } from "../apiTypes";
 
 export type SelectOptionType = "ta" | "gra" | "voc" | "coco"
 export type Mark = "" | "1" | "2" | "3" | "4" | "5"

@@ -1,5 +1,6 @@
 import { DataTable, DataTableRowEditCompleteEvent } from "primereact/datatable";
 import { Column, ColumnEditorOptions } from "primereact/column";
+import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
 import React, { useState } from "react";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
@@ -13,6 +14,11 @@ import { FilterMatchMode } from "primereact/api";
 import DialogUi from "./DialogUi";
 
 
+interface ColumnMeta {
+  field: string;
+  header: string;
+}
+
 type DataTableUIProps = {
   taskData: TD[];
   fieldNames: string[];
@@ -20,6 +26,9 @@ type DataTableUIProps = {
 
 export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) {
   const dispatch = useAppDispatch();
+
+  // DataTable functions
+  // Filter
   const [filters, setFilters] = useState(() =>
     fieldNames.reduce(
       (acc, field) => ({
@@ -34,8 +43,18 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
   const [selectedRow, setSelectedRow] = useState<TD | null>(null);
   const [isDialogVisible, setIsDialogVisible] = useState(false);
 
-  const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
+  // Toggle columns option
+  const columns: ColumnMeta[] = fieldNames.map((stringItem) => ({ field: stringItem, header: stringItem }))
+  const [visibleColumn, setVisibleColumn] = useState<ColumnMeta[]>(columns)
+  const onColumnToggle = (event: MultiSelectChangeEvent) => {
+    const selectedColumns = event.value
+    const orderedSelectedColumns = columns.filter((col) => selectedColumns.some((sCol: ColumnMeta) => sCol.field === col.field));
+    setVisibleColumn(orderedSelectedColumns)
+  }
+  const header = <MultiSelect value={visibleColumn} options={columns} optionLabel="header" onChange={onColumnToggle} className="w-full sm:w-20rem" display="chip" />
 
+  // Edit Row
+  const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
     const _data = [...taskData];
     const { newData, index } = e;
     _data[index] = newData as TD;
@@ -91,32 +110,33 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
 
       <DataTable
         value={taskData}
+        header={header}
         editMode="row"
         dataKey="id"
         onRowEditComplete={onRowEditComplete}
         filters={filters}
         paginator
-        rows={5}
-        rowsPerPageOptions={[5, 10, 25, 50]}
+        rows={10}
+        rowsPerPageOptions={[10, 20, 50]}
         tableStyle={{ minWidth: "50rem" }}
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
       >
-        {fieldNames.map((field, idx) => (
+        {visibleColumn.map((col, idx) => (
           <Column
-            key={`col-${field}-${idx}`}
-            field={field}
-            header={field}
+            key={`col-${col.field}-${idx}`}
+            field={col.field}
+            header={col.field}
             sortable
             filter
-            filterElement={columnFilterTemplate(field)}
-            editor={textEditor}
-            style={{ width: "10%", padding: "0", margin: "0" }}
+            filterElement={columnFilterTemplate(col.field)}
+            {...(col.field === "rater1" || col.field === "rater2" ? { editor: textEditor } : {})}
+            style={{ width: "5%", padding: "0", margin: "0" }}
           />
         ))}
 
         <Column rowEditor={() => true} headerStyle={{ width: "5%", minWidth: "5rem" }} bodyStyle={{ textAlign: "center" }} hidden={taskData.length === 0} />
-        
+
         <Column body={actionBodyTemplate} headerStyle={{ width: "5%", minWidth: "5rem" }} style={{ textAlign: "center" }} hidden={taskData.length === 0} />
 
       </DataTable>
