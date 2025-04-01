@@ -3,7 +3,8 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchRaters, createRaters } from "../features/data/ratersUpdateSlice";
 
 import Loading from "../uis/Loading";
-import Button from "../uis/Button";
+// import Button from "../uis/Button";
+import { Button } from "primereact/button";
 import { transformApiData, type TD } from "../utils/transformApiData";
 import { downloadExcel } from "../utils/downloadExcel";
 import DataTableUI from "../uis/DataTableUI";
@@ -27,8 +28,7 @@ export function AdminDashboard() {
   useEffect(() => {
     const getInitialData = async () => {
       const result = await getInitialAssessmentData()
-      console.log("resutl", result)
-      if (result.length === 0) return
+         if (result.length === 0) return
       const newTaskData = transformApiData(result).sort((a: TD, b: TD) => {
         return Number(a.studentName) - Number(b.studentName);
       });
@@ -86,7 +86,8 @@ export function AdminDashboard() {
       <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
         <div className="flex items-start gap-3">
           <div className="flex flex-row items-center gap-2">
-            <Button onClick={() => { }}>Data Migration</Button>{" "}
+            <Button onClick={() => { }}>Data Migration</Button>
+            (todo: choose table to migrate)
             <span>&rarr;</span>
           </div>
           <div>
@@ -150,18 +151,13 @@ export function AdminDashboard() {
               "studentName",
               "trait",
               "startedTime",
-              "rater1",
-              "rater2",
-              "rater1Name",
-              "rater2Name",
-
+              "rater",
+              "raterName",
               "completed",
-              // "ta",
-              // "gra",
-              // "vo",
-              // "coco",
-
-
+              "ta",
+              "gra",
+              "voc",
+              "coco",
             ]}
           />
         }

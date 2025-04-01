@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getUserTasks } from "../utils/apiService";
+import { getUserTasks, updateRatingInTable } from "../utils/apiService";
 import Button from "../uis/Button";
 
 import MarkOption from "../uis/MarkOption";
@@ -11,7 +11,7 @@ import { TaskContent } from "../uis/InfoSidebar";
 import { ChevronFirst, ChevronLast } from "lucide-react";
 import { sampleTaskData } from "../utils/data/sampledata";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { Rating, TaskAPI } from "../apiTypes";
+import { Rating } from "../apiTypes";
 import {
   setRating,
   setComment,
@@ -21,6 +21,7 @@ import {
 
   initialRating,
 } from "../features/data/assessDataSlice";
+import { ApiData } from "../utils/transformApiData";
 
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
@@ -32,13 +33,51 @@ const markOptions = [
 export function UserDashboard() {
   const { name } = useParams<{ name: string | undefined }>();
   const currentUser = name ? name : ""
-  const [currentTaskId, setCurrentTaskId] = useState(0);
+  const [currentTaskId, setCurrentTaskId] = useState<number | undefined>();
   const [expanded, setExpanded] = useState(true);
 
   const assessData = useAppSelector((state) => state.assess);
   const dispatch = useAppDispatch();
 
   const currentTask = assessData.find((task) => task.id === currentTaskId);
+
+
+
+  useEffect(() => {
+    const fetchTask = async () => {
+      const data =
+        import.meta.env.VITE_MODE === "DEMO"
+          ? sampleTaskData
+          : await getUserTasks(currentUser);
+      const tasks: AssessData[] = data
+        .map((task: ApiData) =>({
+          id: task.id,
+          studentName: task.student_name,
+          trait: task.trait,
+          startedTime: task.started_time,
+          response: task.response,
+          ratings: {
+            ta: task.ta,
+            gra: task.gra,
+            voc: task.voc,
+            coco: task.coco,
+          },
+          comments: "",
+          completed: task.completed
+        }))
+        .sort((a: AssessData, b: AssessData) => a.id - b.id);
+    
+      dispatch(initialRating(tasks));
+      setCurrentTaskId(tasks[0]?.id ?? 0);
+    };
+    if (currentUser === null || currentUser === undefined) return;
+    fetchTask();
+  }, [currentUser, dispatch]);
+
+  if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
+
+  if (!currentTask) return <div>Loading task...</div>;
+
   const totalTasks = assessData.length;
   const completedTasks = assessData.filter((task) => task.completed).length;
   const allTasksCompleted = completedTasks === totalTasks;
@@ -53,42 +92,6 @@ export function UserDashboard() {
   const isAllSelected = markOptions.every(
     (opt) => marks[opt.name] && marks[opt.name] !== undefined
   );
-
-  useEffect(() => {
-    const fetchTask = async () => {
-      const data =
-        import.meta.env.VITE_MODE === "DEMO"
-          ? sampleTaskData
-          : await getUserTasks(currentUser);
-      console.log(data)
-      const tasks: AssessData[] = data
-        .map((task: TaskAPI) => ({
-          id: task.id,
-          studentName: task.studentName,
-          raterDigitalId: task.raterDigitalId,
-          trait: task.trait,
-          startedTime: task.startedTime,
-          response: task.response,
-          ratings: {
-            ta: task.ta,
-            gra: task.gra,
-            voc: task.voc,
-            coco: task.coco,
-          },
-          comments: "",
-          completed: task.completed,
-        }))
-        .sort((a: AssessData, b: AssessData) => a.id - b.id);
-      console.log(tasks[0])
-      dispatch(initialRating(tasks));
-      setCurrentTaskId(tasks[0]?.id ?? 0);
-    };
-    if (currentUser === null || currentUser === undefined) return;
-    fetchTask();
-  }, []);
-
-  if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
-  if (!currentTask) return <div>Loading task...</div>;
 
   const handleMarkChange = (
     selected: Partial<Record<SelectOptionType, Rating>>
@@ -130,6 +133,18 @@ export function UserDashboard() {
         </Button>
       </div>
     );
+  }
+
+  const saveRatings= async (assessData: AssessData[])=>{
+    
+    const updateData = assessData.filter((el)=>el.completed===true).map((el)=>({
+      id:el.id,
+      ratings: el.ratings,
+      completed:el.completed
+
+    }))
+
+    await updateRatingInTable(updateData)
   }
 
   return (
@@ -190,6 +205,7 @@ export function UserDashboard() {
               >
                 {isLastTask ? "Submit Final Assessment" : "Next"}
               </Button>
+              <Button onClick={()=>saveRatings(assessData)}>Save</Button>
             </div>
           </div>
 
@@ -208,7 +224,7 @@ export function UserDashboard() {
         </button>
         {/*  ToDo:  PDF view */}
         <div className="w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] bg-gray-100 text-black line-height-3 shadow-2">
-          <h3 className="text-left mb-2">{currentTask.userId}</h3>
+          <h3 className="text-left mb-2">{currentTask.studentName}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
           <h3 className="text-left mb-2">{currentTask.startedTime}</h3>
           <hr />

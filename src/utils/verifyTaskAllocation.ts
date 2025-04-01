@@ -7,10 +7,8 @@ export const verifyTaskAllocation = (taskData: TD[], assessorsList: string[]) =>
     const obj = {} as { [key: string]: number };
 
     const number = taskData.reduce((count, task) => {
-      if (rater === task.rater1 && rater === task.rater2) {
-        return count + 2;
-      }
-      if (rater === task.rater1 || rater === task.rater2) {
+     
+      if (rater === task.rater) {
         return (count + 1);
       }
       return count;

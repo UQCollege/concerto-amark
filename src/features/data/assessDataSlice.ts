@@ -4,7 +4,7 @@ import { Rating } from "../../apiTypes";
 export type Task = {
   id: number;
 
-  userId: string;
+  studentName: string;
   trait: string;
   startedTime: string;
   response: string;
@@ -30,40 +30,25 @@ export type Task = {
 //   coco: Rating | undefined;
 // };
 
-export interface AssessData {
-  id: number;
-  userId: string;
-  trait: string;
-  startedTime: string;
-  response: string;
-  ratings: {
-    ta: Rating;
+export interface RatingAspects {
+  ta: Rating;
     gra: Rating;
     voc: Rating;
     coco: Rating;
-  };
+}
+
+export interface AssessData {
+  id: number;
+  studentName: string;
+  trait: string;
+  startedTime: string;
+  response: string;
+  ratings: RatingAspects;
   comments: string;
   completed: boolean;
 }
 
-export const initialState: AssessData[] = [
-
-  {
-    id: 0,
-    userId: "",
-    trait: "",
-    startedTime: "",
-    response: "",
-    ratings: {
-      ta: undefined,
-      gra: undefined,
-      voc: undefined,
-      coco: undefined,
-    },
-    comments: "",
-    completed: false,
-  },
-];
+export const initialState: AssessData[] = [];
 
 interface UpdateRatingPayload {
   id: number;

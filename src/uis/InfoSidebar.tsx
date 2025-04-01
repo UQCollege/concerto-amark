@@ -27,7 +27,7 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
       >
         <Panel header="Task List">
           {infoList.map((info, index) => {
-            if ("userId" in info) {
+            if ("studentName" in info) {
               // Case: Original format
               return (
                 <div key={index}>
@@ -55,12 +55,12 @@ export interface TaskContentProps {
 }
 
 export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
-  if ("userId" in info) {
+  if ("studentName" in info) {
     // Case: Original format
     return (
       <>
         <span>
-          {info.userId} - {info.trait} Score: {info.ratings.ta}-
+          {info.studentName} - {info.trait} Score: {info.ratings.ta}-
         </span>
         <span>{info.ratings.gra}-</span>
         <span>{info.ratings.voc}-</span>

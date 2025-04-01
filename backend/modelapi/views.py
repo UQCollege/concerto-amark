@@ -56,7 +56,7 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
     queryset = ReviewAssignment.objects.all().order_by('id')
     serializer_class = ReviewAssignmentSerializer
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
         """
         Allows filtering by rater_id via a query parameter
         Example: GET /api/review-assignments/?rater=Rater1
@@ -69,6 +69,33 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    def update(self, request):
+        """
+        Update assignedTasks for each allocated writing task.
+        """
+        update_data = request.data
+
+        if update_data:
+            for item in update_data:
+                allocatedTask = ReviewAssignment.objects.get(id=item['id']) 
+                if 'ratings' in item:
+                    allocatedTask.ta, allocatedTask.gra, allocatedTask.voc, allocatedTask.coco = item.get('ratings', {}).get('ta'), item.get('ratings', {}).get('gra'), item.get('ratings', {}).get('voc'), item.get('ratings', {}).get('coco')
+                    allocatedTask.completed = item.get('completed')
+                    allocatedTask.save()
+                else:
+                    rater_name = item.get('raterName')
+                    if rater_name:
+                        rater = Raters.objects.filter(name=rater_name).first()
+                        if rater:
+                            allocatedTask.rater = rater
+                        else:
+                            return Response({"message": f"Rater '{rater_name}' not found", "Code": 404})
+                    allocatedTask.save()
+            return Response({"message": "Update successful", "Code": 200})
+        return Response({"message": "No data provided", "Code": 400})
+
+        
 
     
 def assign_raters_view(request):

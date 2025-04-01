@@ -1,7 +1,9 @@
 import axios from "axios";
 import { RaterList } from "../features/data/ratersUpdateSlice";
+import { TD } from "./transformApiData";
+import { RatingAspects } from "../features/data/assessDataSlice";
 
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const apiService = axios.create({
     baseURL: API_BASE_URL,
@@ -24,7 +26,6 @@ export const getInitialAssessmentData = async () => {
 
 export const getAssessmentData = async () => {
     try {
-        console.log("Fetching data...", import.meta.env.VITE_API_URL);
         await apiService.get("/clear-tasks");
         await apiService.get("/assign-tasks");
         const response = await
@@ -98,5 +99,25 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
 }
 
 // Put Method
+
+export const updateTasksTable = async(task: TD)=>{
+    try{
+       const {id, raterName} = task
+       console.log("update allocated rateres: ", id, raterName)
+       const data =[]
+       data.push({id, raterName})
+       await apiService.put("/raters-assignment/",data)
+    }catch(error){
+        console.error(error)
+    }
+}
+
+export const updateRatingInTable = async( data:{id:number; ratings:RatingAspects; completed:boolean}[])=>{
+    try{
+      await apiService.put("/raters-assignment/", data)
+    }catch(error){
+        console.error(error)
+    }
+}
 
 // Delete Method

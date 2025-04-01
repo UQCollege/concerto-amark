@@ -17,7 +17,7 @@ RUN mkdir -p /app/db && \
     python manage.py collectstatic --noinput
 
 # Expose the port Django will run on
-EXPOSE 8000
+EXPOSE 8080
 
 # Set Python to be unbuffered (for logging)
 ENV PYTHONUNBUFFERED=1

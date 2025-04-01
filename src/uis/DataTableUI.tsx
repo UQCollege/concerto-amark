@@ -4,6 +4,8 @@ import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
 import React, { useState } from "react";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
+import { Toolbar } from "primereact/toolbar";
 import { type TD } from "../utils/transformApiData";
 import { useAppDispatch } from "../store/hooks";
 import "primereact/resources/primereact.min.css";
@@ -28,7 +30,47 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
   const dispatch = useAppDispatch();
 
   // DataTable functions
-  // Filter
+  // createnew, Select, bulk edit
+  const [selected, setSelected] = useState(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onSelectionChange = (event : any) => {
+    const value = event.value;
+     console.log("selected value: ",value)
+    setSelected(value);
+  
+};
+
+const leftToolbarTemplate = () => {
+  return (
+    <div className="flex flex-row gap-2">
+          <Button label="New" icon="pi pi-plus" severity="success" onClick={createNew} size="small" />
+          <Button label="Bulk Edit" icon="pi pi-file-edit" severity="info" onClick={updateBulk} disabled={!selected}  size="small" />
+          <Button label="Run SQL" icon="pi pi-file-edit" severity="info" onClick={OnRunSQL} size="small" /> 
+    </div>
+  );
+};
+const [isBulkDialogVisible, setisBulkDialogVisible] = useState(false);
+
+const createNew = ()=>{console.log("createNew")}
+const updateBulk =()=>{
+setisBulkDialogVisible(true)
+}
+
+const onBulkUpdate =()=>{
+  if (!selected) return
+  console.log("BulkEdit", selected)
+  for (const item of selected as TD[]){
+  dispatch(updateTasks( item)) 
+  }
+  
+}
+
+// SQL dialog
+const [isSQLDialogVisible, setisSQLDialogVisible]= useState(false)
+const OnRunSQL = ()=>{
+  setisSQLDialogVisible(true)
+}
+// Filter
   const [filters, setFilters] = useState(() =>
     fieldNames.reduce(
       (acc, field) => ({
@@ -41,7 +83,7 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
 
   // Dialog state
   const [selectedRow, setSelectedRow] = useState<TD | null>(null);
-  const [isDialogVisible, setIsDialogVisible] = useState(false);
+  const [isDelDialogVisible, setisDelDialogVisible] = useState(false);
 
   // Toggle columns option
   const columns: ColumnMeta[] = fieldNames.map((stringItem) => ({ field: stringItem, header: stringItem }))
@@ -58,20 +100,20 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
     const _data = [...taskData];
     const { newData, index } = e;
     _data[index] = newData as TD;
-
+    
     dispatch(updateTasks(_data[index] as TD));
   };
 
   const confirmDelete = (rowData: TD) => {
     setSelectedRow(rowData);
-    setIsDialogVisible(true);
+    setisDelDialogVisible(true);
   };
 
   const onDeleteConfirmed = () => {
     if (selectedRow) {
       dispatch(removeTasks({ id: selectedRow.id }));
     }
-    setIsDialogVisible(false);
+    setisDelDialogVisible(false);
     setSelectedRow(null);
   };
 
@@ -107,7 +149,7 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
 
   return (
     <div className="card p-fluid">
-
+<Toolbar left={leftToolbarTemplate} />
       <DataTable
         value={taskData}
         header={header}
@@ -121,7 +163,10 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
         tableStyle={{ minWidth: "50rem" }}
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        selection={selected}
+        onSelectionChange={onSelectionChange}
       >
+ <Column selectionMode="multiple" headerStyle={{ width: "1%", minWidth: "1rem" }} />
         {visibleColumn.map((col, idx) => (
           <Column
             key={`col-${col.field}-${idx}`}
@@ -130,7 +175,7 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
             sortable
             filter
             filterElement={columnFilterTemplate(col.field)}
-            {...(col.field === "rater1" || col.field === "rater2" ? { editor: textEditor } : {})}
+            {...(col.field === "raterName" ? { editor: textEditor } : {})}
             style={{ width: "5%", padding: "0", margin: "0" }}
           />
         ))}
@@ -142,11 +187,47 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
       </DataTable>
 
       <DialogUi
-        visible={isDialogVisible}
+        visible={isDelDialogVisible}
         message="Are you sure you want to delete this record?"
-        onHide={() => setIsDialogVisible(false)}
+        onHide={() => setisDelDialogVisible(false)}
         onConfirm={onDeleteConfirmed}
       />
+  
+      <Dialog
+        visible={isBulkDialogVisible}
+        onHide={() =>{ if (!isBulkDialogVisible) return; setisBulkDialogVisible(false)}}
+        className="flex flex-column"
+      >
+       <div className="flex flex-column">
+        <div>
+
+       <label htmlFor="rater1">Change Rater 1 Name</label>
+       <InputText id="rater1" aria-describedby="rater1-help" />
+        </div>
+        <div>
+
+       <label htmlFor="rater2">Change Rater 2 Name</label>
+       <InputText id="rater2" aria-describedby="rater2-help" />
+        </div>
+     
+      <Button label="Bulk Update!" onClick={onBulkUpdate} />
+      <Button label="Cancel" onClick={()=>setisBulkDialogVisible(false)} />
+       </div>
+      </Dialog>
+      <Dialog
+        visible={isSQLDialogVisible}
+        onHide={() =>{ if (!isSQLDialogVisible) return; setisSQLDialogVisible(false)}}
+      >
+
+       <label htmlFor="">select a SQL options to run
+      <select name="" id="">
+
+      <option value="">Find smallest on </option>
+      <option value="">2</option>
+      </select>
+       </label>
+    
+      </Dialog>
     </div>
   );
 }

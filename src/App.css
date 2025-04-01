@@ -36,6 +36,7 @@
   }
 }
 
+/* override prime react css */
 .card {
   padding: 2em;
 }
@@ -68,4 +69,10 @@ td {
 .p-column-header-content {
   text-align: center;
   padding: 0 0.1em 0 0.1em;
+}
+
+.p-toolbar{
+  background: none;
+  padding: 1px;
+  border: none;
 }
