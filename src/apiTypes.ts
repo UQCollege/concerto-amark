@@ -8,6 +8,7 @@ export type TaskAPI = {
     raterName: string;
     startedTime: string;
     response: string;
+    wordsCount: number;
 
     ta: Rating | undefined;
     gra: Rating | undefined;

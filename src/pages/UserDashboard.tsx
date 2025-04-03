@@ -56,6 +56,7 @@ export function UserDashboard() {
           trait: task.trait,
           startedTime: task.started_time,
           response: task.response,
+          wordsCount: task.words_count,
           ratings: {
             ta: task.ta,
             gra: task.gra,
@@ -226,6 +227,7 @@ export function UserDashboard() {
         <div className="w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] bg-gray-100 text-black line-height-3 shadow-2">
           <h3 className="text-left mb-2">{currentTask.studentName}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
+          <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3>
           <h3 className="text-left mb-2">{currentTask.startedTime}</h3>
           <hr />
           <p className="block w-full text-left whitespace-pre-line leading-5 mt-2 text-lg">{currentTask.response}</p>

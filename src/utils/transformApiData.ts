@@ -1,6 +1,7 @@
 export type ApiData = {
   id: number;
   response: string;
+  words_count:number;
   started_time: string;
   trait: string;
   student_name: string;
@@ -19,10 +20,8 @@ export interface TD {
   trait: string;
   studentName: string;
   startedTime: string;
-  // rater1: string;
   rater: string;
   raterName: string;
-  // rater2Name: string;
   completed: boolean;
   ta: number | null;
   gra: number | null;
@@ -32,7 +31,6 @@ export interface TD {
 
 export function transformApiData(data: ApiData[]): TD[] {
   return data.map((entry)=>({
-
         id: entry.id,
         trait: entry.trait,
         studentName: entry.student_name,
@@ -44,7 +42,6 @@ export function transformApiData(data: ApiData[]): TD[] {
         gra: entry.gra,
         voc: entry.voc,
         coco: entry.coco,
-  
   }))
  
 }

@@ -26,14 +26,18 @@ export function AdminDashboard() {
   const assessorsList = useAppSelector((state) => state.ratersUpdate).map((rater) => rater.raterDigitalId);
 
   useEffect(() => {
+    // setIsStart(true)
+    setIsProcess(true)
     const getInitialData = async () => {
       const result = await getInitialAssessmentData()
-         if (result.length === 0) return
+         if (result.length === 0) {
+          setIsProcess(false)    
+          return}
       const newTaskData = transformApiData(result).sort((a: TD, b: TD) => {
         return Number(a.studentName) - Number(b.studentName);
       });
-      setIsStart(true)
       dispatch(setTasks(newTaskData));
+      setIsProcess(false)
     }
 
     getInitialData()
@@ -133,7 +137,7 @@ export function AdminDashboard() {
 
           </div>
           <Button onClick={handleDownloadExcel}>Download as Excel</Button>{" "}
-
+     
           {taskData.length === 0 && isProcess && <Loading />}
         </div>
         <div>
