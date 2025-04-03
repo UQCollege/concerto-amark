@@ -35,6 +35,7 @@ class WritingTasks(models.Model):
     student_name = models.CharField(max_length=100)
     
     response = models.TextField()
+    words_count= models.IntegerField(null=True)
 
     def __str__(self):
         return f"{self.trait} in test on #{self.started_time} by {self.student_name}"

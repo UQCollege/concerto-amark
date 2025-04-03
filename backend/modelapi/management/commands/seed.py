@@ -25,7 +25,8 @@ class Command(BaseCommand):
                     'student_name': student,
                     'trait': task_trait,
                     'started_time': started_time,
-                    'response': response
+                    'response': response,
+                    'words_count':100
                 })
 
 

@@ -36,6 +36,8 @@ celerybeat-schedule
 instance/
 *.log
 
+.amark_env/
+
 # Virtual Environment
 venv/
 env/
