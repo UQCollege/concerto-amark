@@ -78,20 +78,23 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
 
         if update_data:
             for item in update_data:
-                allocatedTask = ReviewAssignment.objects.get(id=item['id']) 
                 if 'ratings' in item:
+                    allocatedTask = ReviewAssignment.objects.get(id=item['id']) 
                     allocatedTask.ta, allocatedTask.gra, allocatedTask.voc, allocatedTask.coco = item.get('ratings', {}).get('ta'), item.get('ratings', {}).get('gra'), item.get('ratings', {}).get('voc'), item.get('ratings', {}).get('coco')
                     allocatedTask.completed = item.get('completed')
                     allocatedTask.save()
-                else:
+                if 'idList' in item:
                     rater_name = item.get('raterName')
-                    if rater_name:
-                        rater = Raters.objects.filter(name=rater_name).first()
-                        if rater:
-                            allocatedTask.rater = rater
-                        else:
-                            return Response({"message": f"Rater '{rater_name}' not found", "Code": 404})
-                    allocatedTask.save()
+                    idList = item.get('idList')
+                    for id in idList:
+                        allocatedTask = ReviewAssignment.objects.get(id=id)
+                        if rater_name:
+                            rater = Raters.objects.filter(name=rater_name).first()
+                            if rater:
+                                allocatedTask.rater = rater
+                            else:
+                                return Response({"message": f"Rater '{rater_name}' not found", "Code": 404})
+                        allocatedTask.save()
             return Response({"message": "Update successful", "Code": 200})
         return Response({"message": "No data provided", "Code": 400})
 

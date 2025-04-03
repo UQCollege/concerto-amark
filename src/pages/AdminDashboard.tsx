@@ -30,9 +30,10 @@ export function AdminDashboard() {
     setIsProcess(true)
     const getInitialData = async () => {
       const result = await getInitialAssessmentData()
-         if (result.length === 0) {
-          setIsProcess(false)    
-          return}
+      if (result.length === 0) {
+        setIsProcess(false)
+        return
+      }
       const newTaskData = transformApiData(result).sort((a: TD, b: TD) => {
         return Number(a.studentName) - Number(b.studentName);
       });
@@ -63,13 +64,13 @@ export function AdminDashboard() {
   };
 
   const createRaterList = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // todo: test setIsProcess(true) in order to show the process
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
       const rows = text.split("\n").filter((row) => row.trim() !== ""); // Filter out empty rows
-      console.log(rows)
       const headerIndex = 1; // Skip the header row
       const maxRows = rows.length - headerIndex; // Dynamically determine the limit based on the actual data
       const records = rows.slice(headerIndex, headerIndex + maxRows).map((row) => {
@@ -79,6 +80,7 @@ export function AdminDashboard() {
       });
 
       dispatch(createRaters(records));
+      // todo: setIsProcess(false)
     };
     reader.readAsText(file);
   };
@@ -137,7 +139,7 @@ export function AdminDashboard() {
 
           </div>
           <Button onClick={handleDownloadExcel}>Download as Excel</Button>{" "}
-     
+
           {taskData.length === 0 && isProcess && <Loading />}
         </div>
         <div>

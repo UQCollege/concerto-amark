@@ -1,27 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Rating } from "../../apiTypes";
-// export type Rating = 1 | 2 | 3 | 4 | 5 | undefined;
-// export type Task = {
-//   id: number;
-
-//   studentName: string;
-//   trait: string;
-//   startedTime: string;
-//   response: string;
-//   wordsCount:number;
-//   completed: boolean;
-//   ta: Rating;
-//   gra: Rating;
-//   voc: Rating;
-//   coco: Rating;
-//   comment: string;
-// };
 
 export interface RatingAspects {
   ta: Rating;
-    gra: Rating;
-    voc: Rating;
-    coco: Rating;
+  gra: Rating;
+  voc: Rating;
+  coco: Rating;
 }
 
 export interface AssessData {

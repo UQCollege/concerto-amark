@@ -100,22 +100,22 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
 
 // Put Method
 
-export const updateTasksTable = async(task: TD)=>{
-    try{
-       const {id, raterName} = task
-       console.log("update allocated rateres: ", id, raterName)
-       const data =[]
-       data.push({id, raterName})
-       await apiService.put("/raters-assignment/",data)
-    }catch(error){
+export const updateTasksTable = async (task: { idList: number[], raterName: string }) => {
+    try {
+        const { idList, raterName } = task
+        console.log("update allocated rateres: ", idList, raterName)
+        const data = []
+        data.push({ idList, raterName })
+        await apiService.put("/raters-assignment/", data)
+    } catch (error) {
         console.error(error)
     }
 }
 
-export const updateRatingInTable = async( data:{id:number; ratings:RatingAspects; completed:boolean}[])=>{
-    try{
-      await apiService.put("/raters-assignment/", data)
-    }catch(error){
+export const updateRatingInTable = async (data: { id: number; ratings: RatingAspects; completed: boolean }[]) => {
+    try {
+        await apiService.put("/raters-assignment/", data)
+    } catch (error) {
         console.error(error)
     }
 }

@@ -11,7 +11,7 @@ import { useAppDispatch } from "../store/hooks";
 import "primereact/resources/primereact.min.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
-import { updateTasks, removeTasks } from "../features/data/taskAllocationSlice";
+import { updateTasks, removeTasks, selectedTasks } from "../features/data/taskAllocationSlice";
 import { FilterMatchMode } from "primereact/api";
 import DialogUi from "./DialogUi";
 
@@ -31,46 +31,38 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
 
   // DataTable functions
   // createnew, Select, bulk edit
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<TD[] | null>();
+  const [displaySelected, setDisplaySelected] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onSelectionChange = (event : any) => {
-    const value = event.value;
-     console.log("selected value: ",value)
-    setSelected(value);
-  
-};
+  const onSelectionChange = (event: any) => {
+    const selectedItems = event.value
 
-const leftToolbarTemplate = () => {
-  return (
-    <div className="flex flex-row gap-2">
-          <Button label="New" icon="pi pi-plus" severity="success" onClick={createNew} size="small" />
-          <Button label="Bulk Edit" icon="pi pi-file-edit" severity="info" onClick={updateBulk} disabled={!selected}  size="small" />
-          <Button label="Run SQL" icon="pi pi-file-edit" severity="info" onClick={OnRunSQL} size="small" /> 
-    </div>
-  );
-};
-const [isBulkDialogVisible, setisBulkDialogVisible] = useState(false);
+    dispatch(selectedTasks(selectedItems.map((item: TD) => item.id)))
 
-const createNew = ()=>{console.log("createNew")}
-const updateBulk =()=>{
-setisBulkDialogVisible(true)
-}
 
-const onBulkUpdate =()=>{
-  if (!selected) return
-  console.log("BulkEdit", selected)
-  for (const item of selected as TD[]){
-  dispatch(updateTasks( item)) 
+    setSelected(selectedItems);
+
+  };
+
+  const leftToolbarTemplate = () => {
+    return (
+      <div className="flex flex-row gap-2">
+        <Button label="New" icon="pi pi-plus" severity="success" onClick={createNew} size="small" />
+        <Button label="Bulk Edit" icon="pi pi-file-edit" severity={displaySelected ? "warning" : "info"} onClick={updateBulk} size="small" />
+        <Button label="Run SQL" icon="pi pi-file-edit" severity="info" onClick={OnRunSQL} size="small" />
+      </div>
+    );
+  };
+
+  const createNew = () => { console.log("createNew") }
+  const updateBulk = () => setDisplaySelected((state) => !state)
+
+  // SQL dialog
+  const [isSQLDialogVisible, setisSQLDialogVisible] = useState(false)
+  const OnRunSQL = () => {
+    setisSQLDialogVisible(true)
   }
-  
-}
-
-// SQL dialog
-const [isSQLDialogVisible, setisSQLDialogVisible]= useState(false)
-const OnRunSQL = ()=>{
-  setisSQLDialogVisible(true)
-}
-// Filter
+  // Filter
   const [filters, setFilters] = useState(() =>
     fieldNames.reduce(
       (acc, field) => ({
@@ -95,12 +87,13 @@ const OnRunSQL = ()=>{
   }
   const header = <MultiSelect value={visibleColumn} options={columns} optionLabel="header" onChange={onColumnToggle} className="w-full sm:w-20rem" display="chip" />
 
-  // Edit Row
+  // Edit Row and Bulk edit rows
   const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
     const _data = [...taskData];
     const { newData, index } = e;
     _data[index] = newData as TD;
-    
+    setSelected(null)
+    setDisplaySelected(false)
     dispatch(updateTasks(_data[index] as TD));
   };
 
@@ -149,7 +142,8 @@ const OnRunSQL = ()=>{
 
   return (
     <div className="card p-fluid">
-<Toolbar left={leftToolbarTemplate} />
+
+      <Toolbar left={leftToolbarTemplate} />
       <DataTable
         value={taskData}
         header={header}
@@ -166,7 +160,7 @@ const OnRunSQL = ()=>{
         selection={selected}
         onSelectionChange={onSelectionChange}
       >
- <Column selectionMode="multiple" headerStyle={{ width: "1%", minWidth: "1rem" }} />
+        <Column selectionMode="multiple" headerStyle={{ width: "1%", minWidth: "1rem" }} hidden={!displaySelected} />
         {visibleColumn.map((col, idx) => (
           <Column
             key={`col-${col.field}-${idx}`}
@@ -192,41 +186,20 @@ const OnRunSQL = ()=>{
         onHide={() => setisDelDialogVisible(false)}
         onConfirm={onDeleteConfirmed}
       />
-  
-      <Dialog
-        visible={isBulkDialogVisible}
-        onHide={() =>{ if (!isBulkDialogVisible) return; setisBulkDialogVisible(false)}}
-        className="flex flex-column"
-      >
-       <div className="flex flex-column">
-        <div>
 
-       <label htmlFor="rater1">Change Rater 1 Name</label>
-       <InputText id="rater1" aria-describedby="rater1-help" />
-        </div>
-        <div>
-
-       <label htmlFor="rater2">Change Rater 2 Name</label>
-       <InputText id="rater2" aria-describedby="rater2-help" />
-        </div>
-     
-      <Button label="Bulk Update!" onClick={onBulkUpdate} />
-      <Button label="Cancel" onClick={()=>setisBulkDialogVisible(false)} />
-       </div>
-      </Dialog>
       <Dialog
         visible={isSQLDialogVisible}
-        onHide={() =>{ if (!isSQLDialogVisible) return; setisSQLDialogVisible(false)}}
+        onHide={() => { if (!isSQLDialogVisible) return; setisSQLDialogVisible(false) }}
       >
 
-       <label htmlFor="">select a SQL options to run
-      <select name="" id="">
+        <label htmlFor="">select a SQL options to run
+          <select name="" id="">
 
-      <option value="">Find smallest on </option>
-      <option value="">2</option>
-      </select>
-       </label>
-    
+            <option value="">Find smallest on </option>
+            <option value="">2</option>
+          </select>
+        </label>
+
       </Dialog>
     </div>
   );
