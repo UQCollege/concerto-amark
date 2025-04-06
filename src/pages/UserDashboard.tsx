@@ -50,7 +50,7 @@ export function UserDashboard() {
           ? sampleTaskData
           : await getUserTasks(currentUser);
       const tasks: AssessData[] = data
-        .map((task: ApiData) =>({
+        .map((task: ApiData) => ({
           id: task.id,
           studentName: task.student_name,
           trait: task.trait,
@@ -67,7 +67,7 @@ export function UserDashboard() {
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
-    
+
       dispatch(initialRating(tasks));
       setCurrentTaskId(tasks[0]?.id ?? 0);
     };
@@ -105,7 +105,9 @@ export function UserDashboard() {
   const handleCommentChange = (comment: string) => {
     dispatch(setComment({ id: currentTask.id, comment }));
   };
-
+  const currentTaskIndex = assessData.findIndex(
+    (task) => task.id === currentTaskId
+  );
   const handleSubmit = () => {
     dispatch(setCompleted({ id: currentTask.id, completed: true }));
     const index = assessData.findIndex((t) => t.id === currentTaskId);
@@ -136,12 +138,12 @@ export function UserDashboard() {
     );
   }
 
-  const saveRatings= async (assessData: AssessData[])=>{
-    
-    const updateData = assessData.filter((el)=>el.completed===true).map((el)=>({
-      id:el.id,
+  const saveRatings = async (assessData: AssessData[]) => {
+
+    const updateData = assessData.filter((el) => el.completed === true).map((el) => ({
+      id: el.id,
       ratings: el.ratings,
-      completed:el.completed
+      completed: el.completed
 
     }))
 
@@ -150,6 +152,7 @@ export function UserDashboard() {
 
   return (
     <div className="">
+
       <div className="flex items-center h-[100vh]">
         <div
           className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
@@ -157,7 +160,13 @@ export function UserDashboard() {
         >
           {/* Sidbar info */}
           <div className="text-2xl">
-            {completedTasks} of {totalTasks} tasks completed
+            <p>Current is Task {currentTaskIndex + 1}  of {totalTasks} tasks</p>
+            {completedTasks > 0 && !allTasksCompleted && (
+              <div>
+                (  {completedTasks} completed out of {totalTasks} tasks)
+              </div>
+            )}
+
             <span>
               <InfoSidebar
                 infoHead="Review Task List"
@@ -206,16 +215,11 @@ export function UserDashboard() {
               >
                 {isLastTask ? "Submit Final Assessment" : "Next"}
               </Button>
-              <Button onClick={()=>saveRatings(assessData)}>Save</Button>
+              <Button onClick={() => saveRatings(assessData)}>Save</Button>
             </div>
           </div>
 
-          {completedTasks > 0 && !allTasksCompleted && (
-            <div>
-              Previously completed: {completedTasks}/{totalTasks}{" "}
-              {completedTasks === 1 ? "assessment" : "assessments"}
-            </div>
-          )}
+
         </div>
         <button
           onClick={() => setExpanded(!expanded)}

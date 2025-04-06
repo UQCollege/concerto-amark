@@ -49,6 +49,13 @@ const taskAllocationSlice = createSlice({
                 const selectedTask = state.filter((task) => task.id === num)[0]
                 selectedTask.selected = true
             }
+        },
+        cancelSelectedTasks: (state) => {
+            for (const task of state) {
+                if (task.selected === true) {
+                    task.selected = false
+                }
+            }
         }
         ,
         removeTasks: (state, action: PayloadAction<{ id: number }>) => {
@@ -58,5 +65,5 @@ const taskAllocationSlice = createSlice({
     }
 });
 
-export const { setTasks, updateTasks, selectedTasks, removeTasks } = taskAllocationSlice.actions
+export const { setTasks, updateTasks, selectedTasks, cancelSelectedTasks, removeTasks } = taskAllocationSlice.actions
 export default taskAllocationSlice.reducer

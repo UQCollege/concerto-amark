@@ -11,7 +11,7 @@ import { useAppDispatch } from "../store/hooks";
 import "primereact/resources/primereact.min.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
-import { updateTasks, removeTasks, selectedTasks } from "../features/data/taskAllocationSlice";
+import { updateTasks, removeTasks, selectedTasks, cancelSelectedTasks } from "../features/data/taskAllocationSlice";
 import { FilterMatchMode } from "primereact/api";
 import DialogUi from "./DialogUi";
 
@@ -48,14 +48,21 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
     return (
       <div className="flex flex-row gap-2">
         <Button label="New" icon="pi pi-plus" severity="success" onClick={createNew} size="small" />
-        <Button label="Bulk Edit" icon="pi pi-file-edit" severity={displaySelected ? "warning" : "info"} onClick={updateBulk} size="small" />
+        <Button label={displaySelected ? "Cancel / Done" : "Select to Bulk Edit"} icon="pi pi-file-edit" severity={displaySelected ? "warning" : "info"} onClick={updateBulk} size="small" />
         <Button label="Run SQL" icon="pi pi-file-edit" severity="info" onClick={OnRunSQL} size="small" />
       </div>
     );
   };
 
   const createNew = () => { console.log("createNew") }
-  const updateBulk = () => setDisplaySelected((state) => !state)
+  const updateBulk = () => {
+
+    if (displaySelected) {
+      dispatch(cancelSelectedTasks())
+      setSelected(null)
+    }
+    setDisplaySelected((state) => !state)
+  }
 
   // SQL dialog
   const [isSQLDialogVisible, setisSQLDialogVisible] = useState(false)
@@ -160,7 +167,7 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
         selection={selected}
         onSelectionChange={onSelectionChange}
       >
-        <Column selectionMode="multiple" headerStyle={{ width: "1%", minWidth: "1rem" }} hidden={!displaySelected} />
+        {displaySelected ? <Column selectionMode="multiple" headerStyle={{ width: "1%", minWidth: "1rem" }} /> : null}
         {visibleColumn.map((col, idx) => (
           <Column
             key={`col-${col.field}-${idx}`}
