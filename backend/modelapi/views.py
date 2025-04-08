@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from rest_framework import viewsets
 from rest_framework.response import Response
 from .serializers import RatersSerializer, ReviewAssignmentSerializer, WritingTasksSerializer
+from rest_framework import status
 from .models import Raters, WritingTasks, ReviewAssignment
 
 class RatersViewSet(viewsets.ModelViewSet):
@@ -17,8 +18,33 @@ class RatersViewSet(viewsets.ModelViewSet):
     # def list(self, request):
     #     pass
 
-    # def create(self, request):
-    #     pass    
+    def create(self, request):
+        raters = request.data.get('raters', []) # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
+        existed_raters = Raters.objects.values_list('rater_digital_id', flat=True)
+        new_raters = [rater for rater in raters if rater['rater_digital_id'] not in existed_raters]
+        if new_raters:
+            print(f"Creating new raters: {new_raters}")
+            for rater in new_raters:
+                Raters.objects.create(name=rater['name'], rater_digital_id=rater['rater_digital_id'], password=rater['password'])
+        objects_raters = Raters.objects.all()
+        print(f"All raters: {objects_raters}")
+        return Response({"message": "Raters created successfully", "Code": 200, "data": RatersSerializer(objects_raters, many=True).data})
+    
+    def destroy(self, request):
+        """
+        Delete a rater by digital Id.
+        """
+        rater_digital_id = request.data.get('rater_digital_id')
+
+      
+        rater = get_object_or_404(Raters, rater_digital_id=rater_digital_id)
+        rater.active = False
+        print(f"Deactivating rater with name '{rater.name}' instead of deleting.")
+        rater.save()
+        return Response({"message": "Rater deleted successfully", "Code": 200}, status=status.HTTP_204_NO_CONTENT)
+
+
+
 
     # def retrieve(self, request, pk=None):
     #     pass
@@ -69,6 +95,36 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+    
+    def create(self, request):
+        """
+        Create a new review assignment.
+        """
+        student_name = request.data.get('student_name')
+        trait = request.data.get('trait')
+        rater_name = request.data.get('rater_name')
+
+        if student_name and trait and rater_name:
+            try:
+                writing_task = get_object_or_404(WritingTasks, trait=trait, student_name=student_name)
+                rater = get_object_or_404(Raters, name=rater_name)
+
+                # Check if the assignment already exists
+                ReviewAssignment.objects.create(
+                    writing_task=writing_task,
+                    rater=rater,
+                    completed=False,
+                    ta=None,
+                    gra=None,
+                    voc=None,
+                    coco=None)
+                serializer = self.get_serializer(writing_task)
+                print(f"successfully create the Writing task {writing_task.id} assigned to rater {rater.name}")
+                return Response(serializer.data, status=201)
+            except Exception as e:
+                print(f"Error creating review assignment: {e}")
+                return Response({"message": "Error creating review assignment", "Code": 500})        
+        return Response({"message": "Invalid data", "Code": 400})
     
     def update(self, request):
         """

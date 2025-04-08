@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
 // Types
-export type RaterList = { raterName: string; raterDigitalId: string };
+export type RaterList = { raterName: string; raterDigitalId: string; active: boolean; };
 
 export interface RaterListUpdatePayLoad {
     prev: RaterList;
@@ -9,7 +9,7 @@ export interface RaterListUpdatePayLoad {
 }
 
 // Async functions (these should come from your DB module)
-import { getRatersFromDB, writeRatersToDatabase } from "../../utils/apiService";
+import { deleteRaterInTable, getRatersFromDB, writeRatersToDatabase } from "../../utils/apiService";
 
 // Initial state
 const initialState: RaterList[] = [];
@@ -31,6 +31,15 @@ export const createRaters = createAsyncThunk<RaterList[], RaterList[]>(
     }
 );
 
+// Async thunk: Delete from DB and store
+export const deleteRater = createAsyncThunk<string, string>(
+    "ratersUpdate/deleteRaters",
+    async (payload:string) => {
+        await deleteRaterInTable(payload);
+        return payload;
+    }
+);
+
 const ratersUpdateSlice = createSlice({
     name: "ratersUpdate",
     initialState,
@@ -38,10 +47,18 @@ const ratersUpdateSlice = createSlice({
     extraReducers: builder => {
         builder
             .addCase(fetchRaters.fulfilled, (state, action: PayloadAction<RaterList[]>) => {
+                console.log("Fetched raters:", action.payload);
                 return action.payload;
             })
             .addCase(createRaters.fulfilled, (state, action: PayloadAction<RaterList[]>) => {
                 return action.payload;
+            })
+            .addCase(deleteRater.fulfilled, (state, action: PayloadAction<string>) => {
+                // Remove the deleted rater from the state using the id returned by the async thunk
+                console.log("Deleted rater ID:", action.payload);
+                // const deleteRater = state.filter(rater => rater.raterDigitalId === action.payload);
+                // deleteRater[0].active = false;
+                return state
             });
     }
 });

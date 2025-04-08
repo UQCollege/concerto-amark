@@ -8,19 +8,12 @@ class Raters(models.Model):
     name = models.CharField(max_length=100)  # Rater's firstname_lastname
     rater_digital_id = models.CharField(max_length=100)
     password = models.CharField(max_length=100, default="test123")  # Rater's password
+    active = models.BooleanField()  # Rater's status
 
     def __str__(self):
         return self.name
     
-    def save(self, *args, **kwargs):
-        """
-        Override the save method to ensure a record only gets created if it doesn't already exist.
-        """
-        # Check if a Rater with the same name already exists
-        if not Raters.objects.filter(name=self.name).exists():
-            super().save(*args, **kwargs)  # Save the rater only if it does not exist
-        else:
-            print(f"Rater with name '{self.name}' already exists.") 
+
 
 class WritingTasks(models.Model):
     '''

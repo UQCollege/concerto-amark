@@ -1,6 +1,5 @@
 import axios from "axios";
-import { RaterList } from "../features/data/ratersUpdateSlice";
-import { TD } from "./transformApiData";
+import {  RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -51,7 +50,7 @@ export const getRatersFromDB = async () => {
     try {
         const response = await apiService.get("/raters/");
 
-        const result = response.data.map((item: { name: string; rater_digital_id: string }) => ({ raterName: item.name, raterDigitalId: item.rater_digital_id }))
+        const result = response.data.map((item: { name: string; rater_digital_id: string; active:boolean }) => ({raterName: item.name, raterDigitalId: item.rater_digital_id, active: item.active}));
         return result
     } catch (error) {
         console.error("Error fetching data: ", error);
@@ -59,42 +58,38 @@ export const getRatersFromDB = async () => {
 }
 
 // Post Method
+export const createTaskInTable = async (data: { student_name: string; trait: string; rater_name: string }) => {
+    try {
+        const response = await apiService.post("/raters-assignment/", data);
+        console.log("Task created successfully: ", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error creating task: ", error);
+    }
+}
 export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> => {
-
+    const ratersData=[]
     try {
 
         for (const rater of raters) {
             const raterData = {
                 name: rater.raterName,
                 rater_digital_id: rater.raterDigitalId,
+                active: true,
                 password: 'test123', // Default password
             };
-            console.log(raterData)
-            await apiService.post("/raters/", raterData);
+            
+            ratersData.push(raterData)
         }
+        const response = await apiService.post("/raters/", {raters: ratersData});
+ 
+        if (response.data.Code===409) {
+           console.log(response.data.message);
+        }
+        
     } catch (error) {
-
-        if (axios.isAxiosError(error)) {
-            if (error.response) {
-
-                console.error("Error response from server:", error.response.data);
-
-                // Show the error message if available from the backend
-                alert(`Error: ${error.response.data.detail || "An error occurred while saving raters."}`);
-            } else if (error.request) {
-                // The request was made but no response was received
-                console.error("Error request:", error.request);
-                alert("Error: No response from server.");
-            } else {
-
-                console.error("Error message:", error.message);
-                alert(`Error: ${error.message}`);
-            }
-        } else {
-
-            console.error("Unknown error:", error);
-            alert("An unexpected error occurred.");
-        }
+        console.error("Error creating raters: ", error);
+   
     }
 }
 
@@ -121,3 +116,22 @@ export const updateRatingInTable = async (data: { id: number; ratings: RatingAsp
 }
 
 // Delete Method
+export const deleteTaskInTable = async (id: number) => {
+    try {
+        console.log("deleltes via api", id)
+        console.log(`/raters-assignment/${id}/`)
+        await apiService.delete(`/raters-assignment/${id}/`);
+    } catch (error) {
+        console.error("Error deleting task: ", error);
+    }
+}
+
+export const deleteRaterInTable = async (rater_digital_id: string) => {  
+    try {
+        console.log("deleltes via api", rater_digital_id)
+        console.log(`/raters/`)
+        await apiService.delete(`/raters/`, { data: { rater_digital_id } });
+    } catch (error) {
+        console.error("Error deleting task: ", error);
+    }
+}

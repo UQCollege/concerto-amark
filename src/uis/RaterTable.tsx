@@ -1,0 +1,139 @@
+import {  useEffect, useState } from "react";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
+import { deleteRater,fetchRaters, type RaterList } from "../features/data/ratersUpdateSlice";
+import { FilterMatchMode } from "primereact/api";
+import { Button } from "primereact/button";
+import {InputText} from "primereact/inputtext";
+import { ColumnMeta } from "./DataTableUI";
+import { useAppDispatch, useAppSelector } from "../store/hooks"; //useAppDispatch
+import DialogUi from "./DialogUi";
+
+
+
+const fieldNames = ["raterName", "raterDigitalId", "active"];
+
+export default function RatersTableUI() {
+
+
+  useEffect(() => {
+    console.log("RaterTableUI mounted");
+    dispatch(fetchRaters());
+  },[])
+  const raterList = useAppSelector((state) => state.ratersUpdate);
+  const [filters, setFilters] = useState(() =>
+    fieldNames.reduce(
+      (acc, field) => ({
+        ...acc,
+        [field]: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      }),
+      {}
+    )
+  );
+  const columns: ColumnMeta[] = fieldNames.map((stringItem) => ({ field: stringItem, header: stringItem }))
+    const [visibleColumn, setVisibleColumn] = useState<ColumnMeta[]>(columns)
+
+
+
+
+const dispatch = useAppDispatch();
+const onColumnToggle = (event: MultiSelectChangeEvent) => {
+    const selectedColumns = event.value
+    const orderedSelectedColumns = columns.filter((col) => selectedColumns.some((sCol: ColumnMeta) => sCol.field === col.field));
+    setVisibleColumn(orderedSelectedColumns)
+  }
+  const header = <MultiSelect value={visibleColumn} options={columns} optionLabel="header" onChange={onColumnToggle} className="w-full sm:w-20rem" display="chip" />
+
+  const [selectedRow, setSelectedRow] = useState<RaterList | null>(null);
+  const [isDelDialogVisible, setisDelDialogVisible] = useState(false);
+
+  const actionBodyTemplate = (rowData: RaterList) => (
+    <Button
+      icon="pi pi-trash"
+      className="p-button-rounded p-button-danger"
+      onClick={() => confirmDelete(rowData)}
+    />
+);
+const confirmDelete = (rowData: RaterList) => {
+  setSelectedRow(rowData);
+  setisDelDialogVisible(true);
+};
+  const onDeleteConfirmed = () => {
+    if (selectedRow) {
+      console.log("Deleting row with ID:", selectedRow.raterDigitalId);
+      dispatch(deleteRater( selectedRow.raterDigitalId ));
+    }
+    setisDelDialogVisible(false);
+    setSelectedRow(null);
+  };
+
+
+  const columnFilterTemplate = (field: string) => (
+    <InputText
+      onInput={(e) =>
+        setFilters({
+          ...filters,
+          [field]: { value: e.currentTarget.value, matchMode: FilterMatchMode.CONTAINS },
+        })
+      }
+      placeholder={`Search ${field}...`}
+    />
+  );
+
+  const tableData = raterList.map((item, index) => ({
+    id: index,
+    raterName: item.raterName,
+    raterDigitalId: item.raterDigitalId,
+    active: item.active.toString(),
+  }));
+  
+    return (
+      <div className="card p-fluid">
+  
+
+        <DataTable
+          value={tableData}
+          header={header}
+          editMode="row"
+          dataKey="id"
+          filters={filters}
+          paginator
+          rows={10}
+          rowsPerPageOptions={[10, 20, 50]}
+          tableStyle={{ minWidth: "50rem" }}
+          currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+
+        >
+          
+          {visibleColumn.map((col, idx) => (
+            <Column
+              key={`col-${col.field}-${idx}`}
+              field={col.field}
+              header={col.field}
+              sortable
+              filter
+              filterElement={columnFilterTemplate(col.field)}
+             
+              style={{ width: "5%", padding: "0", margin: "0" }}
+            />
+          ))}
+  
+
+  
+          <Column body={actionBodyTemplate} headerStyle={{ width: "5%", minWidth: "5rem" }} style={{ textAlign: "center" }} hidden={raterList.length === 0} />
+  
+        </DataTable>
+  
+        <DialogUi
+          visible={isDelDialogVisible}
+          message="Are you sure you want to delete this record?"
+          onHide={() => setisDelDialogVisible(false)}
+          onConfirm={onDeleteConfirmed}
+        />
+  
+  
+      </div>
+    );
+  }

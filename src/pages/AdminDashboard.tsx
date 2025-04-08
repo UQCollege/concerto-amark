@@ -14,6 +14,8 @@ import InfoSidebar from "../uis/InfoSidebar";
 import { TaskContent } from "../uis/InfoSidebar";
 import { setTasks } from "../features/data/taskAllocationSlice";
 import { verifyTaskAllocation } from "../utils/verifyTaskAllocation";
+import { TabPanel, TabView } from "primereact/tabview";
+import RatersTableUI from "../uis/RaterTable";
 
 
 
@@ -76,7 +78,7 @@ export function AdminDashboard() {
       const records = rows.slice(headerIndex, headerIndex + maxRows).map((row) => {
         console.log(row)
         const [name, rater_digital_id] = row.split(",").map((col) => col.trim());
-        return { raterName: name, raterDigitalId: rater_digital_id };
+        return { raterName: name, raterDigitalId: rater_digital_id, active: true };
       });
 
       dispatch(createRaters(records));
@@ -148,6 +150,9 @@ export function AdminDashboard() {
           </span>
         </div>
         <hr />
+        <TabView>
+        <TabPanel header="Task Allocation">
+
         {
           taskData.length > 0 &&
           <DataTableUI
@@ -167,6 +172,15 @@ export function AdminDashboard() {
             ]}
           />
         }
+        </TabPanel>
+        <TabPanel header="Rater List">
+        <RatersTableUI />
+        
+        </TabPanel>
+        
+        </TabView> 
+
+        
       </div>
     </div>
   );
