@@ -178,3 +178,27 @@ def clear_tasks_view(request):
 
 
 
+# def login_user(req):
+#     if req.user.is_authenticated:
+#         return redirect("index")
+#     else:
+#         if req.method=='POST':
+#             form=Login_Form(data=req.POST)
+#             username_ldap=req.POST.get('username')
+#         # print(user)
+#             if form.is_valid():
+#                 user=form.get_user()
+#                 login(req, user, backend="django_auth_ldap.backend.LDAPBackend",)
+#                 return redirect("index")
+        
+#             else:
+#                 messages.warning(req, ' no permission for this application, please contact Admin!')
+#                 return redirect("/")
+#         else:
+#             form = Login_Form()
+#         return render(req, 'registration/login.html', {'form': form})    
+
+# #-------------------------------------------------------------------------------------------------
+# def logout_user(req):
+#     logout(req)    
+#     return redirect("/")

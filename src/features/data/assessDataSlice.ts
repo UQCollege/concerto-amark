@@ -49,8 +49,9 @@ const assessSlice = createSlice({
     },
     setRating: (state, action: PayloadAction<UpdateRatingPayload>) => {
       const { id, ratingType, value } = action.payload;
-
+  
       const assessData = state.find((data) => data.id === id);
+    
       if (assessData) {
         assessData.ratings[ratingType] = value;
       }

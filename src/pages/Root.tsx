@@ -5,7 +5,7 @@ import { Flag, Home, Layers, LayoutDashboard, LogOut } from "lucide-react";
 import { PrimeReactProvider } from "primereact/api";
 
 const Root = () => {
-  const name = 'Alice2'; //todo: implement login feature for userId
+  const name = 'Alice10'; //todo: implement login feature for userId
   return (
     <PrimeReactProvider>
       <div className="flex relative m-5">

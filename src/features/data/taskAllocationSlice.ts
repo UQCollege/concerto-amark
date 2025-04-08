@@ -19,7 +19,7 @@ const taskAllocationSlice = createSlice({
             if (state.some((item) => item.selected === true)) {
                 // update multipla tasks
                 const taskIds = state.filter((item) => item.selected === true).map((item) => item.id)
-                console.log(taskIds)
+
                 for (const id of taskIds) {
                     const assessmentTaskItem = state.filter((item) => item.id === id)[0]
                     assessmentTaskItem.raterName = raterName
@@ -69,7 +69,7 @@ const taskAllocationSlice = createSlice({
         ,
         removeTasks: (state, action: PayloadAction<{ id: number }>) => {
             const { id } = action.payload
-            console.log("deleltes", id)
+
             deleteTaskInTable(id)
             return state.filter(task => task.id !== action.payload.id);
 

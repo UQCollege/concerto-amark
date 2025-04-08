@@ -103,7 +103,7 @@ const [newRecord, setNewRecord] = useState<{studentName?: string; trait?: string
 
   // Toggle columns option
   const columns: ColumnMeta[] = fieldNames.map((stringItem) => ({ field: stringItem, header: stringItem }))
-  const [visibleColumn, setVisibleColumn] = useState<ColumnMeta[]>(columns)
+  const [visibleColumn, setVisibleColumn] = useState<ColumnMeta[]>(columns.filter((col)=>col.field !== "id"))
   const onColumnToggle = (event: MultiSelectChangeEvent) => {
     const selectedColumns = event.value
     const orderedSelectedColumns = columns.filter((col) => selectedColumns.some((sCol: ColumnMeta) => sCol.field === col.field));
@@ -186,7 +186,7 @@ const [newRecord, setNewRecord] = useState<{studentName?: string; trait?: string
             filter
             filterElement={columnFilterTemplate(col.field)}
             {...(col.field === "raterName" ? { editor:  (options) => <OptionsEditor {...options} /> } : {})}
-            style={{ width: "5%", padding: "0", margin: "0" }}
+            style={{ width: "5%", padding: "0", margin: "0", textAlign: "center" }}
           />
         ))}
 

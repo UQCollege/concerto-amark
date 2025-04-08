@@ -61,7 +61,6 @@ export const getRatersFromDB = async () => {
 export const createTaskInTable = async (data: { student_name: string; trait: string; rater_name: string }) => {
     try {
         const response = await apiService.post("/raters-assignment/", data);
-        console.log("Task created successfully: ", response.data);
         return response.data;
     } catch (error) {
         console.error("Error creating task: ", error);
@@ -98,7 +97,6 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
 export const updateTasksTable = async (task: { idList: number[], raterName: string }) => {
     try {
         const { idList, raterName } = task
-        console.log("update allocated rateres: ", idList, raterName)
         const data = []
         data.push({ idList, raterName })
         await apiService.put("/raters-assignment/", data)
@@ -118,8 +116,6 @@ export const updateRatingInTable = async (data: { id: number; ratings: RatingAsp
 // Delete Method
 export const deleteTaskInTable = async (id: number) => {
     try {
-        console.log("deleltes via api", id)
-        console.log(`/raters-assignment/${id}/`)
         await apiService.delete(`/raters-assignment/${id}/`);
     } catch (error) {
         console.error("Error deleting task: ", error);
@@ -128,8 +124,7 @@ export const deleteTaskInTable = async (id: number) => {
 
 export const deleteRaterInTable = async (rater_digital_id: string) => {  
     try {
-        console.log("deleltes via api", rater_digital_id)
-        console.log(`/raters/`)
+
         await apiService.delete(`/raters/`, { data: { rater_digital_id } });
     } catch (error) {
         console.error("Error deleting task: ", error);

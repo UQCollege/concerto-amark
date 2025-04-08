@@ -47,7 +47,7 @@ const ratersUpdateSlice = createSlice({
     extraReducers: builder => {
         builder
             .addCase(fetchRaters.fulfilled, (state, action: PayloadAction<RaterList[]>) => {
-                console.log("Fetched raters:", action.payload);
+        
                 return action.payload;
             })
             .addCase(createRaters.fulfilled, (state, action: PayloadAction<RaterList[]>) => {
@@ -55,9 +55,9 @@ const ratersUpdateSlice = createSlice({
             })
             .addCase(deleteRater.fulfilled, (state, action: PayloadAction<string>) => {
                 // Remove the deleted rater from the state using the id returned by the async thunk
-                console.log("Deleted rater ID:", action.payload);
-                // const deleteRater = state.filter(rater => rater.raterDigitalId === action.payload);
-                // deleteRater[0].active = false;
+   
+                const deleteRater = state.filter(rater => rater.raterDigitalId === action.payload);
+                deleteRater[0].active = false;
                 return state
             });
     }

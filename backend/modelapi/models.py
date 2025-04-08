@@ -1,4 +1,3 @@
-import random
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from collections import Counter
@@ -96,5 +95,4 @@ class ReviewAssignment(models.Model):
     
     def __str__(self):
         return f"{self.writing_task.id} - {self.writing_task.trait} on {self.writing_task.started_time} reviewed by {self.rater.name} "
-    
     

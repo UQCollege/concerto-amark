@@ -18,7 +18,6 @@ export default function RatersTableUI() {
 
 
   useEffect(() => {
-    console.log("RaterTableUI mounted");
     dispatch(fetchRaters());
   },[])
   const raterList = useAppSelector((state) => state.ratersUpdate);
@@ -61,7 +60,6 @@ const confirmDelete = (rowData: RaterList) => {
 };
   const onDeleteConfirmed = () => {
     if (selectedRow) {
-      console.log("Deleting row with ID:", selectedRow.raterDigitalId);
       dispatch(deleteRater( selectedRow.raterDigitalId ));
     }
     setisDelDialogVisible(false);

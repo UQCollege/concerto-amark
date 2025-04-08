@@ -22,6 +22,7 @@ import {
   initialRating,
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../utils/transformApiData";
+import { SelectButton } from "primereact/selectbutton";
 
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
@@ -31,17 +32,17 @@ const markOptions = [
 ];
 
 export function UserDashboard() {
+  const[taskDay, setTaskDay] = useState<string>('Writing 1')
   const { name } = useParams<{ name: string | undefined }>();
   const currentUser = name ? name : ""
   const [currentTaskId, setCurrentTaskId] = useState<number | undefined>();
   const [expanded, setExpanded] = useState(true);
-
-  const assessData = useAppSelector((state) => state.assess);
+  
+  const assessData: AssessData[] = [...useAppSelector((state) => state.assess)];
+   
   const dispatch = useAppDispatch();
 
   const currentTask = assessData.find((task) => task.id === currentTaskId);
-
-
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -67,13 +68,18 @@ export function UserDashboard() {
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
-
-      dispatch(initialRating(tasks));
-      setCurrentTaskId(tasks[0]?.id ?? 0);
+      
+        
+      const filteredTasks = tasks.filter((task) => task.trait === taskDay);
+      dispatch(initialRating(filteredTasks));
+      const currentTaskId = filteredTasks[0]?.id;
+      setCurrentTaskId(currentTaskId);
     };
     if (currentUser === null || currentUser === undefined) return;
     fetchTask();
-  }, [currentUser, dispatch]);
+  }, [taskDay,currentUser, dispatch]);
+
+
 
   if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
 
@@ -99,6 +105,7 @@ export function UserDashboard() {
   ) => {
     const key = Object.keys(selected)[0] as SelectOptionType;
     const val = selected[key] as Rating;
+    console.log("handleMarkChange", key, val);
     dispatch(setRating({ id: currentTask.id, ratingType: key, value: val }));
   };
 
@@ -126,14 +133,8 @@ export function UserDashboard() {
   if (allTasksCompleted) {
     return (
       <div>
-        {completedTasks}
-        {totalTasks}
         All assessments completed. Great job!
-        <br />
-        would you like try more, please{" "}
-        <Button className="bg-white-200 text-gray-300" onClick={() => { }}>
-          click here
-        </Button>
+       
       </div>
     );
   }
@@ -150,6 +151,12 @@ export function UserDashboard() {
     await updateRatingInTable(updateData)
   }
 
+
+  const selectDayHandler =(e:{value: string}) => {
+     setTaskDay(e.value)
+  }
+
+
   return (
     <div className="">
 
@@ -159,7 +166,19 @@ export function UserDashboard() {
             }`}
         >
           {/* Sidbar info */}
+
           <div className="text-2xl">
+          <div className="flex gap-5 justify-between">
+            <SelectButton value={taskDay} options={["Writing 1", "Writing 2"]} onChange={selectDayHandler} />
+            <span>
+              <InfoSidebar
+                infoHead="Review"
+                infoList={assessData}
+                renderInfo={(info) => <TaskContent info={info as AssessData} />}
+              ></InfoSidebar>
+            </span>
+            
+          </div>
             <p>Current is Task {currentTaskIndex + 1}  of {totalTasks} tasks</p>
             {completedTasks > 0 && !allTasksCompleted && (
               <div>
@@ -167,13 +186,7 @@ export function UserDashboard() {
               </div>
             )}
 
-            <span>
-              <InfoSidebar
-                infoHead="Review Task List"
-                infoList={assessData}
-                renderInfo={(info) => <TaskContent info={info as AssessData} />}
-              ></InfoSidebar>
-            </span>
+            
           </div>
 
           <div className="flex flex-col justify-center items-center gap-4 border-spacing-4">
@@ -218,7 +231,7 @@ export function UserDashboard() {
               <Button onClick={() => saveRatings(assessData)}>Save</Button>
             </div>
           </div>
-
+         
 
         </div>
         <button

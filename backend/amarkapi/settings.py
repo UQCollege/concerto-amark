@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+# import ldap
+# from django_auth_ldap.config import LDAPSearch, GroupOfNamesType, LDAPGroupQuery, PosixGroupType
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -110,11 +112,34 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Australia/Brisbane'
 
 USE_I18N = True
 
 USE_TZ = True
+DATE_FORMAT = "d-m-Y"
+USE_L10N = False
+
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
+#--------------------------------------------------------------------
+# AUTH_USER_MODEL = 'apputil.ApplicationUser'
+# LOGOUT_REDIRECT_URL="/"
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# #LDAP Autherntications
+# #--------------------------------------------------------------------
+# AUTHENTICATION_BACKENDS = [
+#     "django_auth_ldap.backend.LDAPBackend", 
+#     "django.contrib.auth.backends.ModelBackend",
+#     ]
+# AUTH_LDAP_SERVER_URI = "ldap://ldap.uq.edu.au"
+# AUTH_LDAP_BIND_DN = ""
+# AUTH_LDAP_BIND_PASSWORD = ""
+# AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=people,o=The University of Queensland,c=au", ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+
+
 
 
 # Static files (CSS, JavaScript, Images)

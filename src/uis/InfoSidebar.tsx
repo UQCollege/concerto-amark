@@ -16,6 +16,7 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
   return (
     <>
       <Button
+      icon="pi pi-arrow-left"
         onClick={() => setVisibleRight(true)}
         label={infoHead}
       />
