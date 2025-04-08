@@ -47,3 +47,34 @@ export function transformApiData(data: ApiData[]): TD[] {
   }))
 
 }
+
+export function toMatrix(data: TD[]): Record<string, Record<string, string>> {
+  const matrix: Record<string, Record<string, string>> = {};
+
+  data.forEach((entry) => {
+    const rowKey = `${entry.studentName}_${entry.trait}`;
+    if (!matrix[rowKey]) {
+      matrix[rowKey] = {};
+    }
+    matrix[rowKey][entry.raterName] = 'x';
+  });
+
+  return matrix;
+}
+
+export function matrixToCSV(matrix: Record<string, Record<string, string>>): string {
+  const rows = Object.entries(matrix);
+  const allRaters = new Set<string>();
+  rows.forEach(([, raters]) => Object.keys(raters).forEach(r => allRaters.add(r)));
+
+  const raterList = Array.from(allRaters);
+  const csvRows = [
+    ['Submission', ...raterList],
+    ...rows.map(([submission, raters]) =>
+      [submission, ...raterList.map(r => raters[r] || '')]
+    ),
+  ];
+
+  return csvRows.map(row => row.join(',')).join('\n');
+}
+

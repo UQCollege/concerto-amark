@@ -43,14 +43,28 @@ class WritingTasks(models.Model):
             raise ValueError("At least 4 raters are required for unique assignments.")
 
         # Prevent duplicate assignment if this task already has raters
-        if ReviewAssignment.objects.filter(writing_task=self).exists():
-            print(f"Raters already assigned to writing task: {self.id}")
-            return {
-                "trait": self.trait,
-                "assigned_raters": list(
-                    ReviewAssignment.objects.filter(writing_task=self).values_list("rater__name", flat=True)
-                )
-            }
+
+        existedTask = ReviewAssignment.objects.filter(writing_task=self)
+        if existedTask.exists():
+            # student_name = self.student_name
+            usedRaterforstu = ReviewAssignment.objects.filter(writing_task__student_name=self.student_name)
+            if(len(existedTask)<2):
+                print(f"existedTask: {existedTask}")
+                assigned_rater_ids = usedRaterforstu.values_list("rater", flat=True)
+                available_raters = [r for r in raters if r.id not in assigned_rater_ids]
+                rater=available_raters[0]
+                ReviewAssignment.objects.create(writing_task=self, rater=rater)
+            
+        
+
+         
+            return
+        elif existedTask.exists() and len(existedTask)==1:
+           
+            available_raters = [r for r in raters if r not in existedTask.values_list("rater", flat=True)]
+            rater=available_raters[0]
+            ReviewAssignment.objects.create(writing_task=self, rater=rater)
+            
 
         # Get other writing task for the same user
         opposite_trait = "writing task 1" if self.trait == "writing task 2" else "writing task 2"

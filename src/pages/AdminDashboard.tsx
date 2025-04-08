@@ -5,7 +5,7 @@ import { fetchRaters, createRaters } from "../features/data/ratersUpdateSlice";
 import Loading from "../uis/Loading";
 // import Button from "../uis/Button";
 import { Button } from "primereact/button";
-import { transformApiData, type TD } from "../utils/transformApiData";
+import { toMatrix, matrixToCSV, transformApiData, type TD } from "../utils/transformApiData";
 import { downloadExcel } from "../utils/downloadExcel";
 import DataTableUI from "../uis/DataTableUI";
 import { getAssessmentData, getInitialAssessmentData } from "../utils/apiService";
@@ -87,6 +87,22 @@ export function AdminDashboard() {
     reader.readAsText(file);
   };
 
+  const downloadMatrixCSVHandler = () => {
+    const matrix = toMatrix(taskData);
+    const csvContent = matrixToCSV(matrix);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rater_matrix.csv";
+
+    // Trigger download
+    a.click();
+
+    // Clean up
+    URL.revokeObjectURL(url);
+  };
 
 
   return (
@@ -141,6 +157,7 @@ export function AdminDashboard() {
 
           </div>
           <Button onClick={handleDownloadExcel}>Download as Excel</Button>{" "}
+          <Button onClick={downloadMatrixCSVHandler}>Download Matrix in csv</Button>
 
           {taskData.length === 0 && isProcess && <Loading />}
         </div>
@@ -151,36 +168,36 @@ export function AdminDashboard() {
         </div>
         <hr />
         <TabView>
-        <TabPanel header="Task Allocation">
+          <TabPanel header="Task Allocation">
 
-        {
-          taskData.length > 0 &&
-          <DataTableUI
-            taskData={taskData}
-            fieldNames={[
-              "id",
-              "studentName",
-              "trait",
-              "startedTime",
-              "rater",
-              "raterName",
-              "completed",
-              "ta",
-              "gra",
-              "voc",
-              "coco",
-            ]}
-          />
-        }
-        </TabPanel>
-        <TabPanel header="Rater List">
-        <RatersTableUI />
-        
-        </TabPanel>
-        
-        </TabView> 
+            {
+              taskData.length > 0 &&
+              <DataTableUI
+                taskData={taskData}
+                fieldNames={[
+                  "id",
+                  "studentName",
+                  "trait",
+                  "startedTime",
+                  "rater",
+                  "raterName",
+                  "completed",
+                  "ta",
+                  "gra",
+                  "voc",
+                  "coco",
+                ]}
+              />
+            }
+          </TabPanel>
+          <TabPanel header="Rater List">
+            <RatersTableUI />
 
-        
+          </TabPanel>
+
+        </TabView>
+
+
       </div>
     </div>
   );

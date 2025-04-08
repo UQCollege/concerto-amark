@@ -1,5 +1,5 @@
 import axios from "axios";
-import {  RaterList } from "../features/data/ratersUpdateSlice";
+import { RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -25,7 +25,6 @@ export const getInitialAssessmentData = async () => {
 
 export const getAssessmentData = async () => {
     try {
-        await apiService.get("/clear-tasks");
         await apiService.get("/assign-tasks");
         const response = await
             apiService.get("/raters-assignment");
@@ -50,7 +49,7 @@ export const getRatersFromDB = async () => {
     try {
         const response = await apiService.get("/raters/");
 
-        const result = response.data.map((item: { name: string; rater_digital_id: string; active:boolean }) => ({raterName: item.name, raterDigitalId: item.rater_digital_id, active: item.active}));
+        const result = response.data.map((item: { name: string; rater_digital_id: string; active: boolean }) => ({ raterName: item.name, raterDigitalId: item.rater_digital_id, active: item.active }));
         return result
     } catch (error) {
         console.error("Error fetching data: ", error);
@@ -67,7 +66,7 @@ export const createTaskInTable = async (data: { student_name: string; trait: str
     }
 }
 export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> => {
-    const ratersData=[]
+    const ratersData = []
     try {
 
         for (const rater of raters) {
@@ -77,18 +76,18 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
                 active: true,
                 password: 'test123', // Default password
             };
-            
+
             ratersData.push(raterData)
         }
-        const response = await apiService.post("/raters/", {raters: ratersData});
- 
-        if (response.data.Code===409) {
-           console.log(response.data.message);
+        const response = await apiService.post("/raters/", { raters: ratersData });
+
+        if (response.data.Code === 409) {
+            console.log(response.data.message);
         }
-        
+
     } catch (error) {
         console.error("Error creating raters: ", error);
-   
+
     }
 }
 
@@ -122,7 +121,7 @@ export const deleteTaskInTable = async (id: number) => {
     }
 }
 
-export const deleteRaterInTable = async (rater_digital_id: string) => {  
+export const deleteRaterInTable = async (rater_digital_id: string) => {
     try {
 
         await apiService.delete(`/raters/`, { data: { rater_digital_id } });

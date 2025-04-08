@@ -25,7 +25,7 @@ class RatersViewSet(viewsets.ModelViewSet):
         if new_raters:
             print(f"Creating new raters: {new_raters}")
             for rater in new_raters:
-                Raters.objects.create(name=rater['name'], rater_digital_id=rater['rater_digital_id'], password=rater['password'])
+                Raters.objects.create(name=rater['name'], rater_digital_id=rater['rater_digital_id'], password=rater['password'], active=rater['active'])
         objects_raters = Raters.objects.all()
         print(f"All raters: {objects_raters}")
         return Response({"message": "Raters created successfully", "Code": 200, "data": RatersSerializer(objects_raters, many=True).data})
