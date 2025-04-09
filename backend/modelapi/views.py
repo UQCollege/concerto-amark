@@ -19,16 +19,27 @@ class RatersViewSet(viewsets.ModelViewSet):
     #     pass
 
     def create(self, request):
-        raters = request.data.get('raters', []) # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
-        existed_raters = Raters.objects.values_list('rater_digital_id', flat=True)
-        new_raters = [rater for rater in raters if rater['rater_digital_id'] not in existed_raters]
-        if new_raters:
-            print(f"Creating new raters: {new_raters}")
-            for rater in new_raters:
-                Raters.objects.create(name=rater['name'], rater_digital_id=rater['rater_digital_id'], password=rater['password'], active=rater['active'])
-        objects_raters = Raters.objects.all()
-        print(f"All raters: {objects_raters}")
-        return Response({"message": "Raters created successfully", "Code": 200, "data": RatersSerializer(objects_raters, many=True).data})
+        raters = request.data.get('raters', [])  # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
+        existed_raters = Raters.objects.in_bulk(field_name='rater_digital_id')
+
+        for rater in raters:
+            rater_digital_id = rater['rater_digital_id']
+            if rater_digital_id not in existed_raters:
+                # Create a new rater if it doesn't exist
+                Raters.objects.create(
+                    name=rater['name'],
+                    rater_digital_id=rater_digital_id,
+                    password=rater['password'],
+                    active=rater.get('active', True)
+                )
+            else:
+                # Check if the existing rater is inactive and reactivate it
+                existing_rater = existed_raters[rater_digital_id]
+                if not existing_rater.active:
+                    existing_rater.active = True
+                    existing_rater.save()
+
+        return Response({"message": "Raters processed successfully", "Code": 200})
     
     def destroy(self, request):
         """
@@ -42,6 +53,18 @@ class RatersViewSet(viewsets.ModelViewSet):
         print(f"Deactivating rater with name '{rater.name}' instead of deleting.")
         rater.save()
         return Response({"message": "Rater deleted successfully", "Code": 200}, status=status.HTTP_204_NO_CONTENT)
+    
+    def update(self, request):
+        task_access = request.data.get('taskAccess')
+
+        if task_access:
+            # Update all raters' task_access with the provided data
+            raters = Raters.objects.all()
+            for rater in raters:
+                rater.task_access = task_access
+                rater.save()
+            return Response({"message": "All raters' task_access updated successfully", "Code": 200})
+        return Response({"message": "No task_access provided", "Code": 400})
 
 
 
@@ -84,15 +107,20 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         """
-        Allows filtering by rater_id via a query parameter
-        Example: GET /api/review-assignments/?rater=Rater1
+        Allows filtering by rater_name via a query parameter.
+        Example: GET /api/review-assignments/?rater_name=Rater1
         """
-        queryset = ReviewAssignment.objects.all().order_by('id') # Cannot use self.queryset whay?
+        queryset = self.queryset  # Use self.queryset to maintain consistency
         rater_name = request.GET.get('rater_name', None)
 
         if rater_name:
-            queryset = queryset.filter(rater__name=rater_name)
-        
+            try:
+                rater = Raters.objects.get(name=rater_name)
+                task_access = rater.task_access
+                queryset = queryset.filter(rater=rater, writing_task__trait=f"Writing {task_access}")
+            except Raters.DoesNotExist:
+                return Response({"message": f"Rater '{rater_name}' not found", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     

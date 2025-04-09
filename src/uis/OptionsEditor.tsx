@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { InputText } from 'primereact/inputtext';
-import{ ColumnEditorOptions } from 'primereact/column';
+import { ColumnEditorOptions } from 'primereact/column';
 
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { useAppSelector } from '../store/hooks';
@@ -19,6 +19,7 @@ const OptionsEditor = (props: OptionsEditorProps) => {
   const raters = useAppSelector((state) => state.ratersUpdate).map((rater) => ({
     label: rater.raterName,
     value: rater.raterName,
+    active: rater.active,
   }));
 
   const [filteredOptions, setFilteredOptions] = useState(raters);
@@ -26,7 +27,7 @@ const OptionsEditor = (props: OptionsEditorProps) => {
   const onFilter = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value.toLowerCase();
     setFilteredOptions(
-      raters.filter((option) => option.label.toLowerCase().includes(query))
+      raters.filter((rater) => rater.active === true).filter((option) => option.label.toLowerCase().includes(query))
     );
   };
 
@@ -38,7 +39,7 @@ const OptionsEditor = (props: OptionsEditorProps) => {
 
   if (isTableContext(props)) {
     const { column, rowData } = props;
-    const col = column as { field?: string }; // 👈 Type assertion here
+    const col = column as { field?: string }; // 
     if (col.field && rowData && typeof col.field === 'string') {
       currentValue = rowData[col.field];
     }
@@ -71,4 +72,4 @@ const OptionsEditor = (props: OptionsEditorProps) => {
     </div>
   );
 };
-  export default OptionsEditor;
+export default OptionsEditor;

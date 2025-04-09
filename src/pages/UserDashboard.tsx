@@ -22,7 +22,7 @@ import {
   initialRating,
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../utils/transformApiData";
-import { SelectButton } from "primereact/selectbutton";
+
 
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
@@ -32,14 +32,13 @@ const markOptions = [
 ];
 
 export function UserDashboard() {
-  const[taskDay, setTaskDay] = useState<string>('Writing 1')
   const { name } = useParams<{ name: string | undefined }>();
   const currentUser = name ? name : ""
   const [currentTaskId, setCurrentTaskId] = useState<number | undefined>();
   const [expanded, setExpanded] = useState(true);
-  
+
   const assessData: AssessData[] = [...useAppSelector((state) => state.assess)];
-   
+
   const dispatch = useAppDispatch();
 
   const currentTask = assessData.find((task) => task.id === currentTaskId);
@@ -68,18 +67,14 @@ export function UserDashboard() {
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
-      
-        
-      const filteredTasks = tasks.filter((task) => task.trait === taskDay);
-      dispatch(initialRating(filteredTasks));
-      const currentTaskId = filteredTasks[0]?.id;
+
+      dispatch(initialRating(tasks));
+      const currentTaskId = tasks[0]?.id;
       setCurrentTaskId(currentTaskId);
     };
     if (currentUser === null || currentUser === undefined) return;
     fetchTask();
-  }, [taskDay,currentUser, dispatch]);
-
-
+  }, [currentUser, dispatch]);
 
   if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
 
@@ -134,7 +129,7 @@ export function UserDashboard() {
     return (
       <div>
         All assessments completed. Great job!
-       
+
       </div>
     );
   }
@@ -151,12 +146,6 @@ export function UserDashboard() {
     await updateRatingInTable(updateData)
   }
 
-
-  const selectDayHandler =(e:{value: string}) => {
-     setTaskDay(e.value)
-  }
-
-
   return (
     <div className="">
 
@@ -168,17 +157,17 @@ export function UserDashboard() {
           {/* Sidbar info */}
 
           <div className="text-2xl">
-          <div className="flex gap-5 justify-between">
-            <SelectButton value={taskDay} options={["Writing 1", "Writing 2"]} onChange={selectDayHandler} />
-            <span>
-              <InfoSidebar
-                infoHead="Review"
-                infoList={assessData}
-                renderInfo={(info) => <TaskContent info={info as AssessData} />}
-              ></InfoSidebar>
-            </span>
-            
-          </div>
+            <div className="flex gap-5 justify-between">
+
+              <span>
+                <InfoSidebar
+                  infoHead="Review"
+                  infoList={assessData}
+                  renderInfo={(info) => <TaskContent info={info as AssessData} />}
+                ></InfoSidebar>
+              </span>
+
+            </div>
             <p>Current is Task {currentTaskIndex + 1}  of {totalTasks} tasks</p>
             {completedTasks > 0 && !allTasksCompleted && (
               <div>
@@ -186,7 +175,7 @@ export function UserDashboard() {
               </div>
             )}
 
-            
+
           </div>
 
           <div className="flex flex-col justify-center items-center gap-4 border-spacing-4">
@@ -231,7 +220,7 @@ export function UserDashboard() {
               <Button onClick={() => saveRatings(assessData)}>Save</Button>
             </div>
           </div>
-         
+
 
         </div>
         <button

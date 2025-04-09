@@ -4,10 +4,11 @@ from collections import Counter
 
 # Create your models here.
 class Raters(models.Model):
-    name = models.CharField(max_length=100)  # Rater's firstname_lastname
-    rater_digital_id = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)  # Rater's firstname_lastname
+    rater_digital_id = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100, default="test123")  # Rater's password
     active = models.BooleanField()  # Rater's status
+    task_access=models.IntegerField(default=1)
 
     def __str__(self):
         return self.name
@@ -51,14 +52,14 @@ class WritingTasks(models.Model):
             if(len(existedTask)<2):
                 print(f"existedTask: {existedTask}")
                 assigned_rater_ids = usedRaterforstu.values_list("rater", flat=True)
-                available_raters = [r for r in raters if r.id not in assigned_rater_ids]
+                available_raters = [r for r in raters if r.id not in assigned_rater_ids and r.active == True]
                 rater=available_raters[0]
                 ReviewAssignment.objects.create(writing_task=self, rater=rater)
           
             return
         elif existedTask.exists() and len(existedTask)==1:
            
-            available_raters = [r for r in raters if r not in existedTask.values_list("rater", flat=True)]
+            available_raters = [r for r in raters if r not in existedTask.values_list("rater", flat=True) and r.active == True]
             rater=available_raters[0]
             ReviewAssignment.objects.create(writing_task=self, rater=rater)
             
@@ -78,7 +79,7 @@ class WritingTasks(models.Model):
         )
 
         sorted_raters = sorted(raters, key=lambda r: rater_assignments_count[r.id])
-        available_raters = [r for r in sorted_raters if r.id not in excluded_raters]
+        available_raters = [r for r in sorted_raters if r.id not in excluded_raters and r.active == True]
 
         if len(available_raters) < 2:
             available_raters = sorted_raters

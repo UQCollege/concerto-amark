@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchRaters, createRaters } from "../features/data/ratersUpdateSlice";
 
 import Loading from "../uis/Loading";
-// import Button from "../uis/Button";
+import { SelectButton } from "primereact/selectbutton";
 import { Button } from "primereact/button";
 import {
   toMatrix,
@@ -15,6 +15,7 @@ import DataTableUI from "../uis/DataTableUI";
 import {
   getAssessmentData,
   getInitialAssessmentData,
+  updateRater,
 } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
 import InfoSidebar from "../uis/InfoSidebar";
@@ -23,8 +24,11 @@ import { setTasks } from "../features/data/taskAllocationSlice";
 import { verifyTaskAllocation } from "../utils/verifyTaskAllocation";
 import { TabPanel, TabView } from "primereact/tabview";
 import RatersTableUI from "../uis/RaterTable";
+import { Toast } from "primereact/toast";
+import { MenuItem } from "primereact/menuitem";
 
 export function AdminDashboard() {
+  const [taskDay, setTaskDay] = useState<number>()
   const [isProcess, setIsProcess] = useState(false);
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
@@ -62,11 +66,13 @@ export function AdminDashboard() {
     });
 
     dispatch(setTasks(newTaskData));
+    setIsProcess(false);
   };
 
 
   const createRaterList = (e: React.ChangeEvent<HTMLInputElement>) => {
     // todo: test setIsProcess(true) in order to show the process
+    setIsProcess(true)
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -91,6 +97,7 @@ export function AdminDashboard() {
 
       dispatch(createRaters(records));
       // todo: setIsProcess(false)
+      setIsProcess(false)
     };
     reader.readAsText(file);
   };
@@ -111,24 +118,29 @@ export function AdminDashboard() {
     // Clean up
     URL.revokeObjectURL(url);
   };
+  const toast = useRef<Toast>(null);
+  const updateDay = (day: number) => {
+    toast.current?.show({ severity: 'info', summary: 'Info', detail: 'Message Content' + day });
+  };
 
   return (
     <div className="flex items-start min-h-screen">
       <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
-       <div className="flex justify-between">
+        <div className="flex justify-between">
+          <Toast ref={toast} />
+          <Button onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
+          <Button onClick={async () => { await updateRater({ taskAccess: 2 }); updateDay(2) }} >Day 2</Button>
+          <div className="flex items-center  gap-3">
+            <div className="flex flex-row items-center gap-2">
+              <Button onClick={() => { }}>Data Migration</Button>
+              (todo)
+            </div>
+            <div className="pi pi-arrow-right"></div>
+            <div>
+              <Button onClick={() => { }}>Manual choose 3 Students</Button>{" "}
+            </div>
+            <div className="pi pi-arrow-right"></div>
 
-        
-        <div className="flex items-start gap-3">
-          <div className="flex flex-row items-center gap-2">
-            <Button onClick={() => {}}>Data Migration</Button>
-            (todo)
-            <span>&rarr;</span>
-          </div>
-          <div>
-            <Button onClick={() => {}}>Manual choose 3 Students</Button>{" "}
-            <span>&rarr;</span>
-          </div>
-          
             <label
               htmlFor="raterlist"
               className="cursor-pointer bg-blue-600 text-white px-2 py-2 rounded-lg shadow hover:bg-blue-700 transition"
@@ -140,34 +152,31 @@ export function AdminDashboard() {
                 onChange={createRaterList}
                 className="hidden"
               />
-            <span>&rarr;</span>
-            </label>
-         
-          <div className="flex flex-row items-center gap-2">
-            <Button onClick={handleFetchResult}>tasks allocating</Button>
-         
-          </div>
-            {taskData.length === 0 && isProcess && <Loading />}
-            </div>
-          <div className="flex items-end ">
 
-          <Button label="RaterMatrix .csv" icon="pi pi-download"  onClick={downloadMatrixCSVHandler}>
-            
-          </Button>
-          <div className="flex flex-row items-center gap-2">
-            <InfoSidebar
-              infoHead=""
-              infoList={verifyTaskAllocation(taskData, assessorsList)}
-              renderInfo={(info) => (
-                <TaskContent info={info as { name: string; value: number }} />
-              )}
+            </label>
+            <div className="pi pi-arrow-right"></div>
+            <div className="flex flex-row items-center gap-2">
+              <Button onClick={handleFetchResult}>tasks allocating</Button>
+
+            </div>
+            {isProcess && <Loading />}
+          </div>
+          <div className="flex items-end ">
+            <span>(to esure all tasks been allocated correctly)</span>
+            <Button label="RaterMatrix .csv" icon="pi pi-download" onClick={downloadMatrixCSVHandler}>
+            </Button>
+            <div className="flex flex-row items-center gap-2">
+              <InfoSidebar
+                infoHead=""
+                infoList={verifyTaskAllocation(taskData, assessorsList)}
+                renderInfo={(info) => (
+                  <TaskContent info={info as { name: string; value: number }} />
+                )}
               />
-          </div>
+            </div>
           </div>
         </div>
-        <div>
-          <span>(to esure all tasks been allocated correctly)</span>
-        </div>
+
         <hr />
         <TabView>
           <TabPanel header="Task Allocation">

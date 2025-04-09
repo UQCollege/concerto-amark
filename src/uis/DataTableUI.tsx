@@ -26,7 +26,7 @@ import { RadioButton, RadioButtonChangeEvent } from "primereact/radiobutton";
 import { exportExcel } from "../utils/downloadExcel";
 import { SelectButton } from "primereact/selectbutton";
 import { Divider } from 'primereact/divider';
-         
+
 
 export interface ColumnMeta {
   field: string;
@@ -190,7 +190,7 @@ export default function DataTableUI({
       options={columns}
       optionLabel="header"
       onChange={onColumnToggle}
-      className="w-full sm:w-20rem"
+      className="w-60 sm:w-20rem"
       display="chip"
     />
   );
@@ -258,8 +258,8 @@ export default function DataTableUI({
         onRowEditComplete={onRowEditComplete}
         filters={filters}
         paginator
-        rows={10}
-        rowsPerPageOptions={[10, 20, 50]}
+        rows={15}
+        rowsPerPageOptions={[10, 15, 25, 55, 100]}
         tableStyle={{ minWidth: "50rem" }}
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} records"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -340,10 +340,14 @@ export default function DataTableUI({
         className="p-fluid"
         onHide={hideDialog}
       >
-        <Divider />
+
+        <Divider align="left">
+          <div className="inline-flex align-items-center">
+            <b> Input A Student Name</b>
+          </div>
+        </Divider>
         <div className="field m-5">
           <label htmlFor="name" className="font-bold">
-          Input A Student Name
           </label>
           <InputText
             id="studentName"
@@ -361,9 +365,12 @@ export default function DataTableUI({
             })}
           />
         </div>
-
+        <Divider align="left">
+          <div className="inline-flex align-items-center">
+            <b> Choose A Writing Task</b>
+          </div>
+        </Divider>
         <div className="field m-5">
-          <label className="mb-3 font-bold">Choose A Writing Task</label>
           <div className="formgrid grid">
             <div className="field-radiobutton col-6">
               <RadioButton
@@ -387,10 +394,15 @@ export default function DataTableUI({
             </div>
           </div>
         </div>
+        <Divider align="left">
+          <div className="inline-flex align-items-center">
+            <b> Assign to one or Assign to all</b>
+          </div>
+        </Divider>
         <div className="formgrid grid m-5">
           <div className="field col">
             <label htmlFor="price" className="font-bold">
-            
+
               <SelectButton
                 value={selectAllRaters}
                 options={[
@@ -423,6 +435,7 @@ export default function DataTableUI({
         {submitted && !newRecord?.trait && (
           <small className="p-error">select writing 1 or 2 is required.</small>
         )}
+        <Divider />
         <Divider />
         <div className="flex align-items-center justify-content-end mt-10 gap-5">
           <Button

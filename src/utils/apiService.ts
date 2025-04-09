@@ -112,6 +112,14 @@ export const updateRatingInTable = async (data: { id: number; ratings: RatingAsp
     }
 }
 
+export const updateRater = async (data: { taskAccess: number }) => {
+    try {
+        await apiService.put("/raters/", data)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 // Delete Method
 export const deleteTaskInTable = async (id: number) => {
     try {
