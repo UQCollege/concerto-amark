@@ -54,10 +54,7 @@ class WritingTasks(models.Model):
                 available_raters = [r for r in raters if r.id not in assigned_rater_ids]
                 rater=available_raters[0]
                 ReviewAssignment.objects.create(writing_task=self, rater=rater)
-            
-        
-
-         
+          
             return
         elif existedTask.exists() and len(existedTask)==1:
            

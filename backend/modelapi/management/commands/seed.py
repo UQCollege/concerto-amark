@@ -9,7 +9,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Database seeded successfully'))
 
     def seed_writing_tasks(self):
-        students = [str(i) for i in range(501) ]  # Add more users as needed
+        students = ["s0"+str(i) for i in range(501) ]  # Add more users as needed
         start_date = "2025-02-27"
         end_date = "2025-02-28"
         writing_tasks_data = []

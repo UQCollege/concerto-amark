@@ -1,7 +1,7 @@
 import { DataTable, DataTableRowEditCompleteEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
-import { useState } from "react";
+import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
+import { useState, useRef } from "react";
 import { InputText } from "primereact/inputtext";
 import OptionsEditor from "./OptionsEditor";
 import { Button } from "primereact/button";
@@ -12,12 +12,21 @@ import { useAppDispatch } from "../store/hooks";
 import "primereact/resources/primereact.min.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
-import { updateTasks, removeTasks, selectedTasks, cancelSelectedTasks, createNewTask } from "../features/data/taskAllocationSlice";
+import {
+  updateTasks,
+  removeTasks,
+  selectedTasks,
+  cancelSelectedTasks,
+  createNewTask,
+} from "../features/data/taskAllocationSlice";
 import { FilterMatchMode } from "primereact/api";
 import DialogUi from "./DialogUi";
-import { classNames } from 'primereact/utils';
-import { RadioButton, RadioButtonChangeEvent } from 'primereact/radiobutton';
-
+import { classNames } from "primereact/utils";
+import { RadioButton, RadioButtonChangeEvent } from "primereact/radiobutton";
+import { exportExcel } from "../utils/downloadExcel";
+import { SelectButton } from "primereact/selectbutton";
+import { Divider } from 'primereact/divider';
+         
 
 export interface ColumnMeta {
   field: string;
@@ -29,13 +38,19 @@ type DataTableUIProps = {
   fieldNames: string[];
 };
 
-export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) {
+export default function DataTableUI({
+  taskData,
+  fieldNames,
+}: DataTableUIProps) {
+  // for set task to all raters
+  const [selectAllRaters, setSelectAllRaters] = useState(false);
+
   const dispatch = useAppDispatch();
 
   // DataTable functions
   // createnew, Select, bulk edit
   const [selected, setSelected] = useState<TD[] | null>();
-  const [displaySelected, setDisplaySelected] = useState(false)
+  const [displaySelected, setDisplaySelected] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onSelectionChange = (event: any) => {
@@ -51,41 +66,94 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
   const leftToolbarTemplate = () => {
     return (
       <div className="flex flex-row gap-2">
-        <Button label="New" icon="pi pi-plus" severity="success" onClick={createNew} size="small" />
-        <Button label={displaySelected ? "Cancel / Done" : "Select to Bulk Edit"} icon="pi pi-file-edit" severity={displaySelected ? "warning" : "info"} onClick={updateBulk} size="small" />
-        <Button label="Run SQL" icon="pi pi-file-edit" severity="info" onClick={OnRunSQL} size="small" disabled />
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="success"
+          onClick={createNew}
+          size="small"
+        />
+        <Button
+          label={displaySelected ? "Cancel / Done" : "BulkEdit"}
+          icon="pi pi-file-edit"
+          severity={displaySelected ? "warning" : "info"}
+          onClick={updateBulk}
+          size="small"
+        />
+      </div>
+    );
+  };
+
+  const rightToolbarTemplate = () => {
+    return (
+      <div className="flex flex-row gap-2">
+        <Button
+          label=".xlsx"
+          icon="pi pi-file-excel"
+          severity="success"
+          onClick={() => exportExcel(taskData, visibleColumn)}
+          data-pr-tooltip="XLS"
+        />
+        <Button
+          label="SQL"
+          icon="pi pi-file-edit"
+          severity="info"
+          onClick={OnRunSQL}
+          size="small"
+          disabled
+        />
       </div>
     );
   };
   // Create New
   const [createNewDialog, setCreateNewDialog] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [newRecord, setNewRecord] = useState<{ studentName?: string; trait?: string; raterName?: string; completed: false }>();
-  const createNew = () => { setCreateNewDialog(true) }
+  const [newRecord, setNewRecord] = useState<{
+    studentName?: string;
+    trait?: string;
+    raterName?: string;
+    completed: false;
+  }>();
+  const createNew = () => {
+    setCreateNewDialog(true);
+  };
   const hideDialog = () => {
-    setCreateNewDialog(false); setSubmitted(false); setNewRecord(undefined)
-  }
-  const saveNew = () => { console.log("save new"); if (!newRecord?.studentName || !newRecord.raterName || !newRecord.trait) return setSubmitted(true); dispatch(createNewTask(newRecord)) }
+    setCreateNewDialog(false);
+    setSubmitted(false);
+    setNewRecord(undefined);
+  };
+  const saveANew = () => {
+    if (!newRecord?.studentName || !newRecord.raterName || !newRecord.trait) {
+      setSubmitted(true);
+      return;
+    }
 
+    dispatch(createNewTask(newRecord));
+    setCreateNewDialog(false);
+    setNewRecord(undefined);
+    setSubmitted(false);
+  };
+
+  const saveAllNew = () => {
+    alert("This will assign this task to all raters");
+  };
 
   const onRadioInputChange = (e: RadioButtonChangeEvent) => {
     setNewRecord((state) => ({ ...state, trait: e.value, completed: false }));
   };
 
   const updateBulk = () => {
-
     if (displaySelected) {
-      dispatch(cancelSelectedTasks())
-      setSelected(null)
+      dispatch(cancelSelectedTasks());
+      setSelected(null);
     }
-    setDisplaySelected((state) => !state)
-  }
-
+    setDisplaySelected((state) => !state);
+  };
   // SQL dialog
-  const [isSQLDialogVisible, setisSQLDialogVisible] = useState(false)
+  const [isSQLDialogVisible, setisSQLDialogVisible] = useState(false);
   const OnRunSQL = () => {
-    setisSQLDialogVisible(true)
-  }
+    setisSQLDialogVisible(true);
+  };
   // Filter
   const [filters, setFilters] = useState(() =>
     fieldNames.reduce(
@@ -102,23 +170,43 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
   const [isDelDialogVisible, setisDelDialogVisible] = useState(false);
 
   // Toggle columns option
-  const columns: ColumnMeta[] = fieldNames.map((stringItem) => ({ field: stringItem, header: stringItem }))
-  const [visibleColumn, setVisibleColumn] = useState<ColumnMeta[]>(columns.filter((col) => col.field !== "id"))
+  const columns: ColumnMeta[] = fieldNames.map((stringItem) => ({
+    field: stringItem,
+    header: stringItem,
+  }));
+  const [visibleColumn, setVisibleColumn] = useState<ColumnMeta[]>(
+    columns.filter((col) => col.field !== "id")
+  );
   const onColumnToggle = (event: MultiSelectChangeEvent) => {
-    const selectedColumns = event.value
-    const orderedSelectedColumns = columns.filter((col) => selectedColumns.some((sCol: ColumnMeta) => sCol.field === col.field));
-    setVisibleColumn(orderedSelectedColumns)
-  }
-  const header = <MultiSelect value={visibleColumn} options={columns} optionLabel="header" onChange={onColumnToggle} className="w-full sm:w-20rem" display="chip" />
+    const selectedColumns = event.value;
+    const orderedSelectedColumns = columns.filter((col) =>
+      selectedColumns.some((sCol: ColumnMeta) => sCol.field === col.field)
+    );
+    setVisibleColumn(orderedSelectedColumns);
+  };
+  const header = (
+    <MultiSelect
+      value={visibleColumn}
+      options={columns}
+      optionLabel="header"
+      onChange={onColumnToggle}
+      className="w-full sm:w-20rem"
+      display="chip"
+    />
+  );
+
+  // Export Excel
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dt = useRef<DataTable<any>>(null);
 
   // Edit Row and Bulk edit rows
   const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
     const _data = [...taskData];
     const { newData, index } = e;
     _data[index] = newData as TD;
-    console.log("input text", _data[index])
-    setSelected(null)
-    setDisplaySelected(false)
+    console.log("input text", _data[index]);
+    setSelected(null);
+    setDisplaySelected(false);
     dispatch(updateTasks(_data[index] as TD));
   };
 
@@ -135,13 +223,15 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
     setSelectedRow(null);
   };
 
-
   const columnFilterTemplate = (field: string) => (
     <InputText
       onInput={(e) =>
         setFilters({
           ...filters,
-          [field]: { value: e.currentTarget.value, matchMode: FilterMatchMode.CONTAINS },
+          [field]: {
+            value: e.currentTarget.value,
+            matchMode: FilterMatchMode.CONTAINS,
+          },
         })
       }
       placeholder={`Search ${field}...`}
@@ -158,9 +248,9 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
 
   return (
     <div className="card p-fluid">
-
-      <Toolbar left={leftToolbarTemplate} />
+      <Toolbar left={leftToolbarTemplate} right={rightToolbarTemplate} />
       <DataTable
+        ref={dt}
         value={taskData}
         header={header}
         editMode="row"
@@ -177,7 +267,12 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
         showSelectAll={false}
         onSelectionChange={onSelectionChange}
       >
-        {displaySelected && <Column selectionMode="multiple" headerStyle={{ width: "1%", minWidth: "1rem" }} />}
+        {displaySelected && (
+          <Column
+            selectionMode="multiple"
+            headerStyle={{ width: "1%", minWidth: "1rem" }}
+          />
+        )}
         {visibleColumn.map((col, idx) => (
           <Column
             key={`col-${col.field}-${idx}`}
@@ -186,15 +281,31 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
             sortable
             filter
             filterElement={columnFilterTemplate(col.field)}
-            {...(col.field === "raterName" ? { editor: (options) => <OptionsEditor {...options} /> } : {})}
-            style={{ width: "5%", padding: "0", margin: "0", textAlign: "center" }}
+            {...(col.field === "raterName"
+              ? { editor: (options) => <OptionsEditor {...options} /> }
+              : {})}
+            style={{
+              width: "5%",
+              padding: "0",
+              margin: "0",
+              textAlign: "center",
+            }}
           />
         ))}
 
-        <Column rowEditor={() => true} headerStyle={{ width: "5%", minWidth: "5rem" }} bodyStyle={{ textAlign: "center" }} hidden={taskData.length === 0} />
+        <Column
+          rowEditor={() => true}
+          headerStyle={{ width: "5%", minWidth: "5rem" }}
+          bodyStyle={{ textAlign: "center" }}
+          hidden={taskData.length === 0}
+        />
 
-        <Column body={actionBodyTemplate} headerStyle={{ width: "5%", minWidth: "5rem" }} style={{ textAlign: "center" }} hidden={taskData.length === 0} />
-
+        <Column
+          body={actionBodyTemplate}
+          headerStyle={{ width: "5%", minWidth: "5rem" }}
+          style={{ textAlign: "center" }}
+          hidden={taskData.length === 0}
+        />
       </DataTable>
 
       <DialogUi
@@ -206,76 +317,127 @@ export default function DataTableUI({ taskData, fieldNames }: DataTableUIProps) 
 
       <Dialog
         visible={isSQLDialogVisible}
-        onHide={() => { if (!isSQLDialogVisible) return; setisSQLDialogVisible(false) }}
+        onHide={() => {
+          if (!isSQLDialogVisible) return;
+          setisSQLDialogVisible(false);
+        }}
       >
-
-        <label htmlFor="">select a SQL options to run
+        <label htmlFor="">
+          select a SQL options to run
           <select name="" id="">
-
             <option value="">Find smallest on </option>
             <option value="">2</option>
           </select>
         </label>
-
       </Dialog>
 
-
-
-      <Dialog visible={createNewDialog} style={{ width: '32rem' }} breakpoints={{ '960px': '75vw', '641px': '90vw' }} header="Product Details" modal className="p-fluid" onHide={hideDialog}>
-
-        <div className="field">
+      <Dialog
+        visible={createNewDialog}
+        style={{ width: "32rem" }}
+        breakpoints={{ "960px": "75vw", "641px": "90vw" }}
+        header="New Writing Assessment Task"
+        modal
+        className="p-fluid"
+        onHide={hideDialog}
+      >
+        <Divider />
+        <div className="field m-5">
           <label htmlFor="name" className="font-bold">
-            Student Name
+          Input A Student Name
           </label>
-          <InputText id="studentName" onChange={(e) => setNewRecord((state) => ({ ...state, studentName: e.target.value, completed: false }))} required autoFocus className={classNames({ 'p-invalid': submitted && !newRecord?.studentName })} />
-
+          <InputText
+            id="studentName"
+            onChange={(e) =>
+              setNewRecord((state) => ({
+                ...state,
+                studentName: e.target.value,
+                completed: false,
+              }))
+            }
+            required
+            autoFocus
+            className={classNames({
+              "p-invalid": submitted && !newRecord?.studentName,
+            })}
+          />
         </div>
 
-        <div className="field">
-          <label className="mb-3 font-bold">Writing Task</label>
+        <div className="field m-5">
+          <label className="mb-3 font-bold">Choose A Writing Task</label>
           <div className="formgrid grid">
             <div className="field-radiobutton col-6">
-              <RadioButton inputId="writing_task_1" name="writing_task_1" value="Writing 1" onChange={onRadioInputChange} checked={newRecord?.trait === 'Writing 1'} />
+              <RadioButton
+                inputId="writing_task_1"
+                name="writing_task_1"
+                value="Writing 1"
+                onChange={onRadioInputChange}
+                checked={newRecord?.trait === "Writing 1"}
+              />
               <label htmlFor="writing_task_1">Writing 1</label>
             </div>
             <div className="field-radiobutton col-6">
-              <RadioButton inputId="writing_task_2" name="writing_task_2" value="Writing 2" onChange={onRadioInputChange} checked={newRecord?.trait === 'Writing 2'} />
+              <RadioButton
+                inputId="writing_task_2"
+                name="writing_task_2"
+                value="Writing 2"
+                onChange={onRadioInputChange}
+                checked={newRecord?.trait === "Writing 2"}
+              />
               <label htmlFor="writing_task_2">Writing 2</label>
             </div>
-
-
           </div>
         </div>
-        <div className="formgrid grid">
+        <div className="formgrid grid m-5">
           <div className="field col">
             <label htmlFor="price" className="font-bold">
-              Rater Name
+            
+              <SelectButton
+                value={selectAllRaters}
+                options={[
+                  { label: "Choose A Rater", value: false },
+                  { label: "Assign to All (Todo)", value: true },
+                ]}
+                onChange={(e) => setSelectAllRaters(e.value)}
+              />
             </label>
-            <OptionsEditor
-              value={newRecord?.raterName}
-              onChange={(newValue) =>
-                setNewRecord((state) => ({
-                  ...state,
-                  raterName: newValue,
-                  completed: false
-                }))
-              }
-            />
+            {!selectAllRaters && (
+              <OptionsEditor
+                value={newRecord?.raterName}
+                onChange={(newValue) =>
+                  setNewRecord((state) => ({
+                    ...state,
+                    raterName: newValue,
+                    completed: false,
+                  }))
+                }
+              />
+            )}
           </div>
-
         </div>
-        {submitted && !newRecord?.studentName && <small className="p-error">Name is required.</small>}
-        {submitted && !newRecord?.raterName && <small className="p-error">choose a rater is required.</small>}
-        {submitted && !newRecord?.trait && <small className="p-error">select writing 1 or 2 is required.</small>}
-        <div className="flex align-items-center justify-content-end mt-4 gap-5">
-          <Button label="Cancel" icon="pi pi-times" outlined onClick={hideDialog} />
-          <Button label="Save" icon="pi pi-check" onClick={saveNew} />
+        {submitted && !newRecord?.studentName && (
+          <small className="p-error">Name is required.</small>
+        )}
+        {submitted && !newRecord?.raterName && (
+          <small className="p-error">choose a rater is required.</small>
+        )}
+        {submitted && !newRecord?.trait && (
+          <small className="p-error">select writing 1 or 2 is required.</small>
+        )}
+        <Divider />
+        <div className="flex align-items-center justify-content-end mt-10 gap-5">
+          <Button
+            label="Cancel"
+            icon="pi pi-times"
+            outlined
+            onClick={hideDialog}
+          />
+          <Button
+            label="Save"
+            icon="pi pi-check"
+            onClick={!selectAllRaters ? saveANew : saveAllNew}
+          />
         </div>
-
       </Dialog>
-
-
-
     </div>
   );
 }
