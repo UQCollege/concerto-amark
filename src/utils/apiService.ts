@@ -91,6 +91,17 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
     }
 }
 
+export const assignToAll = async (data: { studentNames: string[] }): Promise<void> => {
+    try {
+        console.log(data)
+        await apiService.post("/assign-all/", data)
+
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+
 // Put Method
 
 export const updateTasksTable = async (task: { idList: number[], raterName: string }) => {
@@ -111,6 +122,7 @@ export const updateRatingInTable = async (data: { id: number; ratings: RatingAsp
         console.error(error)
     }
 }
+
 
 export const updateRater = async (data: { taskAccess: number }) => {
     try {

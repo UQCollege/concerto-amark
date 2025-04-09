@@ -335,7 +335,7 @@ export default function DataTableUI({
         visible={createNewDialog}
         style={{ width: "32rem" }}
         breakpoints={{ "960px": "75vw", "641px": "90vw" }}
-        header="New Writing Assessment Task"
+        header="Re-allocate for deleted Task"
         modal
         className="p-fluid"
         onHide={hideDialog}
@@ -343,7 +343,7 @@ export default function DataTableUI({
 
         <Divider align="left">
           <div className="inline-flex align-items-center">
-            <b> Input A Student Name</b>
+            <b> Input A Student Name, who has writings not been assigned to a rater</b>
           </div>
         </Divider>
         <div className="field m-5">
@@ -367,7 +367,7 @@ export default function DataTableUI({
         </div>
         <Divider align="left">
           <div className="inline-flex align-items-center">
-            <b> Choose A Writing Task</b>
+            <b> Choose A unasssigned Writing Task</b>
           </div>
         </Divider>
         <div className="field m-5">

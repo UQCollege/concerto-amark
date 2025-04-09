@@ -1,17 +1,17 @@
 from rest_framework import serializers
-from .models import Raters, ReviewAssignment, WritingTasks
+from .models import Rater, AssessmentTask, WritingTask
 
-class RatersSerializer(serializers.ModelSerializer):
+class RaterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Raters
+        model = Rater
         fields = '__all__'
 
-class WritingTasksSerializer(serializers.ModelSerializer):
+class WritingTaskSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WritingTasks
+        model = WritingTask
         fields = '__all__'
 
-class ReviewAssignmentSerializer(serializers.ModelSerializer):
+class AssessmentTaskSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='writing_task.student_name', read_only=True)
     rater_name = serializers.CharField(source='rater.name', read_only=True)
     rater_digital_id = serializers.CharField(source='rater.rater_digital_id', read_only=True)
@@ -20,5 +20,5 @@ class ReviewAssignmentSerializer(serializers.ModelSerializer):
     words_count = serializers.IntegerField(source='writing_task.words_count', read_only=True)
     started_time = serializers.CharField(source='writing_task.started_time', read_only=True)
     class Meta:
-        model = ReviewAssignment
+        model = AssessmentTask
         fields = ['id', 'student_name', 'trait', 'started_time', 'rater_name', 'rater_digital_id', 'response', 'words_count', 'ta', 'gra', 'voc', 'coco', 'completed']

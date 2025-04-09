@@ -71,13 +71,39 @@ td {
   padding: 0 0.1em 0 0.1em;
 }
 
-.p-toolbar{
+.p-toolbar {
   background: none;
   padding: 1px;
   border: none;
 }
 
-.p-column-filter-menu-button.p-column-filter-menu-button-active{
+.p-column-filter-menu-button.p-column-filter-menu-button-active {
   /* background: #363637; */
   color: #2196f3;
+}
+
+.chip-input-field {
+  border: none;
+  /* No border */
+  outline: none;
+  /* No outline */
+  background: transparent;
+  /* Transparent background to match the wrapper */
+  flex-grow: 1;
+  min-width: 80px;
+  margin-top: 5px;
+  /* Small gap for better visual separation */
+  padding: 5px 8px;
+  font-size: 14px;
+}
+
+.chip-input-field:focus {
+  box-shadow: none;
+  /* No shadow on focus */
+  border: none;
+  /* Ensure no border on focus */
+}
+
+.chip-input-field::placeholder {
+  color: #999;
 }

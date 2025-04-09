@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from django.test import TestCase
-from .models import Raters, WritingTasks, ReviewAssignment
+from .models import Raters, WritingTask, AssessmentTask
 from django.db import IntegrityError
 
 class WritingTaskAssignRatersTestCase(TestCase):
@@ -14,7 +14,7 @@ class WritingTaskAssignRatersTestCase(TestCase):
         self.rater4 = Raters.objects.create(name="Rater 4", password="password123")
         
         # Create a writing task
-        self.task = WritingTasks.objects.create(itemId=1, testId="Test001", content="This is a writing task.")
+        self.task = WritingTask.objects.create(itemId=1, testId="Test001", content="This is a writing task.")
 
     def test_assign_raters(self):
         # Assign raters to the task using the `assign_raters` method
@@ -31,9 +31,9 @@ class WritingTaskAssignRatersTestCase(TestCase):
         day2_raters = result["writing task 2"]
         self.assertTrue(not set(day1_raters) & set(day2_raters))  # No overlap between Day 1 and Day 2
         
-        # Check that ReviewAssignments are created for both days
-        self.assertEqual(ReviewAssignment.objects.filter(writing_task=self.task, writing_task__trait="writing task 1").count(), 2)
-        self.assertEqual(ReviewAssignment.objects.filter(writing_task=self.task, writing_task__trait="writing task 2").count(), 2)
+        # Check that AssessmentTask are created for both days
+        self.assertEqual(AssessmentTask.objects.filter(writing_task=self.task, writing_task__trait="writing task 1").count(), 2)
+        self.assertEqual(AssessmentTask.objects.filter(writing_task=self.task, writing_task__trait="writing task 2").count(), 2)
 
         # Check the names of the raters assigned to Day 1 and Day 2
         day1_rater_names = [r.rater.name for r in self.task.reviews.filter(writing_task__trait="writing task 1")]

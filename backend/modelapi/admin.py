@@ -1,18 +1,18 @@
 from django.contrib import admin
 # from django.contrib.auth.admin import UserAdmin
-from .models import Raters, WritingTasks, ReviewAssignment
+from .models import Rater, WritingTask, AssessmentTask
 # Register your models here.
 
-@admin.register(Raters)
-class RatersAdmin(admin.ModelAdmin):
+@admin.register(Rater)
+class RaterAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'rater_digital_id']  # Add any fields you want to see
 
-@admin.register(WritingTasks)
-class WritingTasksAdmin(admin.ModelAdmin):
+@admin.register(WritingTask)
+class WritingTaskAdmin(admin.ModelAdmin):
     list_display = ['id', 'student_name', 'trait', 'started_time', 'response']  # Show columns in list view
 
-@admin.register(ReviewAssignment)
-class ReviewAssignmentAdmin(admin.ModelAdmin):
+@admin.register(AssessmentTask)
+class AssessmentTaskAdmin(admin.ModelAdmin):
     list_display = ['id', 'writing_task', 'get_rater', 'ta', 'gra', 'voc', 'coco', 'completed']  # Adjust fields to match your model
     @admin.display(description='Rater')
     def get_rater(self, obj):

@@ -3,7 +3,6 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchRaters, createRaters } from "../features/data/ratersUpdateSlice";
 
 import Loading from "../uis/Loading";
-import { SelectButton } from "primereact/selectbutton";
 import { Button } from "primereact/button";
 import {
   toMatrix,
@@ -13,6 +12,7 @@ import {
 } from "../utils/transformApiData";
 import DataTableUI from "../uis/DataTableUI";
 import {
+  assignToAll,
   getAssessmentData,
   getInitialAssessmentData,
   updateRater,
@@ -25,10 +25,11 @@ import { verifyTaskAllocation } from "../utils/verifyTaskAllocation";
 import { TabPanel, TabView } from "primereact/tabview";
 import RatersTableUI from "../uis/RaterTable";
 import { Toast } from "primereact/toast";
-import { MenuItem } from "primereact/menuitem";
+import ChipInput from "../uis/ChipInput";
+
 
 export function AdminDashboard() {
-  const [taskDay, setTaskDay] = useState<number>()
+
   const [isProcess, setIsProcess] = useState(false);
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
@@ -122,6 +123,7 @@ export function AdminDashboard() {
   const updateDay = (day: number) => {
     toast.current?.show({ severity: 'info', summary: 'Info', detail: 'Message Content' + day });
   };
+  const [chips, setChips] = useState<string[]>([]);
 
   return (
     <div className="flex items-start min-h-screen">
@@ -137,7 +139,9 @@ export function AdminDashboard() {
             </div>
             <div className="pi pi-arrow-right"></div>
             <div>
-              <Button onClick={() => { }}>Manual choose 3 Students</Button>{" "}
+              <h1>Comma to Chips Example</h1>
+              <ChipInput chips={chips} setChips={setChips} />
+              <Button onClick={async () => { await assignToAll({ studentNames: chips }) }}>Manual choose 3 Students</Button>{" "}
             </div>
             <div className="pi pi-arrow-right"></div>
 

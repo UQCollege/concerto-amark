@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from collections import Counter
 
 # Create your models here.
-class Raters(models.Model):
+class Rater(models.Model):
     name = models.CharField(max_length=100, unique=True)  # Rater's firstname_lastname
     rater_digital_id = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100, default="test123")  # Rater's password
@@ -15,18 +15,16 @@ class Raters(models.Model):
     
 
 
-class WritingTasks(models.Model):
+class WritingTask(models.Model):
     '''
-    WritingTasks model represents the writing tasks that raters will review.
+    WritingTask model represents the writing tasks that raters will review.
     The data is from Concerto database: assessResponse_Writingtask table.
     '''
 
-    # Todo: change schema to match data exported from Concerto database: startedTime, trait, student_name, response
-    # id= models.IntegerField(unique=True, primary_key=True) # writing task number
     started_time = models.DateTimeField()
     trait = models.CharField(max_length=100)
     student_name = models.CharField(max_length=100)
-    
+    assign_all = models.BooleanField(default=False)
     response = models.TextField()
     words_count= models.IntegerField(null=True)
 
@@ -45,37 +43,37 @@ class WritingTasks(models.Model):
 
         # Prevent duplicate assignment if this task already has raters
 
-        existedTask = ReviewAssignment.objects.filter(writing_task=self)
+        existedTask = AssessmentTask.objects.filter(writing_task=self)
         if existedTask.exists():
             # student_name = self.student_name
-            usedRaterforstu = ReviewAssignment.objects.filter(writing_task__student_name=self.student_name)
+            usedRaterforstu = AssessmentTask.objects.filter(writing_task__student_name=self.student_name)
             if(len(existedTask)<2):
                 print(f"existedTask: {existedTask}")
                 assigned_rater_ids = usedRaterforstu.values_list("rater", flat=True)
                 available_raters = [r for r in raters if r.id not in assigned_rater_ids and r.active == True]
                 rater=available_raters[0]
-                ReviewAssignment.objects.create(writing_task=self, rater=rater)
+                AssessmentTask.objects.create(writing_task=self, rater=rater)
           
             return
         elif existedTask.exists() and len(existedTask)==1:
            
             available_raters = [r for r in raters if r not in existedTask.values_list("rater", flat=True) and r.active == True]
             rater=available_raters[0]
-            ReviewAssignment.objects.create(writing_task=self, rater=rater)
+            AssessmentTask.objects.create(writing_task=self, rater=rater)
             
 
         # Get other writing task for the same user
         opposite_trait = "writing task 1" if self.trait == "writing task 2" else "writing task 2"
-        other_task = WritingTasks.objects.filter(student_name=self.student_name, trait=opposite_trait).first()
+        other_task = WritingTask.objects.filter(student_name=self.student_name, trait=opposite_trait).first()
 
         excluded_raters = set()
         if other_task:
             excluded_raters = set(
-                ReviewAssignment.objects.filter(writing_task=other_task).values_list("rater_id", flat=True)
+                AssessmentTask.objects.filter(writing_task=other_task).values_list("rater_id", flat=True)
             )
 
         rater_assignments_count = Counter(
-            ReviewAssignment.objects.filter(rater__in=raters).values_list('rater_id', flat=True)
+            AssessmentTask.objects.filter(rater__in=raters).values_list('rater_id', flat=True)
         )
 
         sorted_raters = sorted(raters, key=lambda r: rater_assignments_count[r.id])
@@ -86,7 +84,7 @@ class WritingTasks(models.Model):
 
         selected_raters = available_raters[:2]
         for rater in selected_raters:
-            ReviewAssignment.objects.create(writing_task=self, rater=rater)
+            AssessmentTask.objects.create(writing_task=self, rater=rater)
 
         return {
             "trait": self.trait,
@@ -94,11 +92,10 @@ class WritingTasks(models.Model):
         }
 
 
-class ReviewAssignment(models.Model):
-    # todo:  Change columns
+class AssessmentTask(models.Model):
 
-    writing_task = models.ForeignKey(WritingTasks, on_delete=models.CASCADE, related_name="reviews")
-    rater = models.ForeignKey(Raters, on_delete=models.CASCADE, related_name="assignments")
+    writing_task = models.ForeignKey(WritingTask, on_delete=models.CASCADE, related_name="reviews")
+    rater = models.ForeignKey(Rater, on_delete=models.CASCADE, related_name="assignments")
     ta = models.IntegerField(null=True)
     gra = models.IntegerField(null=True)
     voc = models.IntegerField(null=True)

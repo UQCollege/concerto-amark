@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from modelapi.models import Raters, WritingTasks
+from modelapi.models import Rater, WritingTask
 
 class Command(BaseCommand):
     help = 'Seed the database with initial data'
@@ -31,5 +31,5 @@ class Command(BaseCommand):
 
 
         for writing_task_data in writing_tasks_data:
-            WritingTasks.objects.get_or_create(**writing_task_data)
-        self.stdout.write(self.style.SUCCESS('WritingTasks table seeded'))
+            WritingTask.objects.get_or_create(**writing_task_data)
+        self.stdout.write(self.style.SUCCESS('WritingTask table seeded'))

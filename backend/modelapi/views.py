@@ -4,29 +4,30 @@ from django.http import JsonResponse
 # Create your views here.
 from rest_framework import viewsets
 from rest_framework.response import Response
-from .serializers import RatersSerializer, ReviewAssignmentSerializer, WritingTasksSerializer
+from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from rest_framework import status
-from .models import Raters, WritingTasks, ReviewAssignment
+from .models import Rater, WritingTask, AssessmentTask
+from rest_framework.decorators import api_view
 
-class RatersViewSet(viewsets.ModelViewSet):
+class RaterViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = Raters.objects.all().order_by('name')
-    serializer_class = RatersSerializer
+    queryset = Rater.objects.all().order_by('name')
+    serializer_class = RaterSerializer
 
     # def list(self, request):
     #     pass
 
     def create(self, request):
         raters = request.data.get('raters', [])  # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
-        existed_raters = Raters.objects.in_bulk(field_name='rater_digital_id')
+        existed_raters = Rater.objects.in_bulk(field_name='rater_digital_id')
 
         for rater in raters:
             rater_digital_id = rater['rater_digital_id']
             if rater_digital_id not in existed_raters:
                 # Create a new rater if it doesn't exist
-                Raters.objects.create(
+                Rater.objects.create(
                     name=rater['name'],
                     rater_digital_id=rater_digital_id,
                     password=rater['password'],
@@ -48,7 +49,7 @@ class RatersViewSet(viewsets.ModelViewSet):
         rater_digital_id = request.data.get('rater_digital_id')
 
       
-        rater = get_object_or_404(Raters, rater_digital_id=rater_digital_id)
+        rater = get_object_or_404(Rater, rater_digital_id=rater_digital_id)
         rater.active = False
         print(f"Deactivating rater with name '{rater.name}' instead of deleting.")
         rater.save()
@@ -59,7 +60,7 @@ class RatersViewSet(viewsets.ModelViewSet):
 
         if task_access:
             # Update all raters' task_access with the provided data
-            raters = Raters.objects.all()
+            raters = Rater.objects.all()
             for rater in raters:
                 rater.task_access = task_access
                 rater.save()
@@ -76,12 +77,12 @@ class RatersViewSet(viewsets.ModelViewSet):
     #     pass
 
 
-class WritingTasksViewSet(viewsets.ModelViewSet):
+class WritingTaskViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = WritingTasks.objects.all().order_by('id')
-    serializer_class = WritingTasksSerializer
+    queryset = WritingTask.objects.all().order_by('id')
+    serializer_class = WritingTaskSerializer
 
     # def list(self, request):
     #     pass
@@ -98,12 +99,12 @@ class WritingTasksViewSet(viewsets.ModelViewSet):
 
 
 
-class ReviewAssignmentViewSet(viewsets.ModelViewSet):
+class AssessmentTaskViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = ReviewAssignment.objects.all().order_by('id')
-    serializer_class = ReviewAssignmentSerializer
+    queryset = AssessmentTask.objects.all().order_by('id')
+    serializer_class = AssessmentTaskSerializer
 
     def list(self, request):
         """
@@ -115,12 +116,12 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
 
         if rater_name:
             try:
-                rater = Raters.objects.get(name=rater_name)
+                rater = Rater.objects.get(name=rater_name)
                 task_access = rater.task_access
                 queryset = queryset.filter(rater=rater, writing_task__trait=f"Writing {task_access}")
-            except Raters.DoesNotExist:
+            except Rater.DoesNotExist:
                 return Response({"message": f"Rater '{rater_name}' not found", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
-
+        
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
@@ -134,11 +135,11 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
 
         if student_name and trait and rater_name:
             try:
-                writing_task = get_object_or_404(WritingTasks, trait=trait, student_name=student_name)
-                rater = get_object_or_404(Raters, name=rater_name)
+                writing_task = get_object_or_404(WritingTask, trait=trait, student_name=student_name)
+                rater = get_object_or_404(Rater, name=rater_name)
 
                 # Check if the assignment already exists
-                ReviewAssignment.objects.create(
+                AssessmentTask.objects.create(
                     writing_task=writing_task,
                     rater=rater,
                     completed=False,
@@ -163,7 +164,7 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
         if update_data:
             for item in update_data:
                 if 'ratings' in item:
-                    allocatedTask = ReviewAssignment.objects.get(id=item['id']) 
+                    allocatedTask = AssessmentTask.objects.get(id=item['id']) 
                     allocatedTask.ta, allocatedTask.gra, allocatedTask.voc, allocatedTask.coco = item.get('ratings', {}).get('ta'), item.get('ratings', {}).get('gra'), item.get('ratings', {}).get('voc'), item.get('ratings', {}).get('coco')
                     allocatedTask.completed = item.get('completed')
                     allocatedTask.save()
@@ -171,9 +172,9 @@ class ReviewAssignmentViewSet(viewsets.ModelViewSet):
                     rater_name = item.get('raterName')
                     idList = item.get('idList')
                     for id in idList:
-                        allocatedTask = ReviewAssignment.objects.get(id=id)
+                        allocatedTask = AssessmentTask.objects.get(id=id)
                         if rater_name:
-                            rater = Raters.objects.filter(name=rater_name).first()
+                            rater = Rater.objects.filter(name=rater_name).first()
                             if rater:
                                 allocatedTask.rater = rater
                             else:
@@ -190,18 +191,53 @@ def assign_raters_view(request):
     View to assign raters to a writing task.
     """
 
-    tasks = WritingTasks.objects.all()
+    tasks = WritingTask.objects.all()
     for task in tasks:
-        raters = Raters.objects.all()  # Fetch all available raters
+        raters = Rater.objects.all()  # Fetch all available raters
         task.assign_raters(raters)   
     
     return JsonResponse({"message": "Raters assigned successfully", "Code": 200})
+
+@api_view(['POST'])
+def assign_to_all(request):
+    """
+    View to assign certain tasks to all raters.
+    """
+    student_names = request.data.get("studentNames", [])
+    if not student_names:
+        return JsonResponse({"message": "No student names provided", "Code": 400})
+    print("0")
+    tasks = WritingTask.objects.filter(student_name__in=student_names)
+
+    for task in tasks:
+        task.assign_all = True
+        task.save()
+
+        raters = Rater.objects.all()
+        for rater in raters:
+            # Check if the assignment already exists
+            if not AssessmentTask.objects.filter(rater=rater, writing_task=task).exists():
+                AssessmentTask.objects.create(
+                    writing_task=task,
+                    rater=rater,
+                    ta=None,
+                    gra=None,
+                    voc=None,
+                    coco=None,
+                    completed=False
+                )
+    print("1")
+
+    return JsonResponse({"message": "Tasks assigned to all raters successfully", "Code": 200})
+            
+    
+
 
 def clear_tasks_view(request):
     """
     View to clear all writing tasks.
     """
-    ReviewAssignment.objects.all().delete()
+    AssessmentTask.objects.all().delete()
     return JsonResponse({"message": "Tasks cleared successfully", "Code": 200})
 
 
