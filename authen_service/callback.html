@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>SSO Callback</title>
+</head>
+
+<body>
+    <p>Redirecting...</p>
+    <script type="module">
+        import { UserManager } from 'https://cdn.skypack.dev/oidc-client-ts@3.2.0';
+        import { OIDC_CONFIG } from './config.js';
+
+        const userManager = new UserManager({
+            authority: OIDC_CONFIG.authority,
+            client_id: OIDC_CONFIG.client_id,
+            redirect_uri: OIDC_CONFIG.redirect_uri,
+            response_type: "code",
+            scope: "email openid phone"
+        });
+
+        userManager.signinRedirectCallback()
+            .then(() => {
+                window.location.href = "/";
+            })
+            .catch(err => {
+                console.error("Login callback failed", err);
+            });
+    </script>
+</body>
+
+</html>

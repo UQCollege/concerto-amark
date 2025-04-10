@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reusable SSO Login</title>
+</head>
+
+<body>
+    <h1>Reusable SSO Login</h1>
+    <p>Select your login provider and authenticate:</p>
+    <div>
+        <button id="signIn">Sign In</button>
+        <button id="signOut">Log out</button>
+    </div>
+
+    <div id="django-link" style="display:none; margin-top: 1em;">
+        <p>
+            Login successful. Proceed to your dashboard:
+            <button id="goToDashboard">Go to My Dashboard</button>
+        </p>
+    </div>
+
+    <script type="module">
+        import { UserManager } from 'https://cdn.skypack.dev/oidc-client-ts@3.2.0';
+        import { OIDC_CONFIG } from './config.js';
+
+        const cognitoAuthConfig = {
+            authority: OIDC_CONFIG.authority,
+            client_id: OIDC_CONFIG.client_id,
+            redirect_uri: OIDC_CONFIG.redirect_uri,
+            response_type: "code",
+            scope: "email openid phone"
+        };
+
+        const userManager = new UserManager({ ...cognitoAuthConfig });
+
+        document.getElementById("signIn")?.addEventListener("click", async () => {
+            await userManager.signinRedirect();
+        });
+
+        document.getElementById("signOut")?.addEventListener("click", async () => {
+            const clientId = OIDC_CONFIG.client_id;
+            const logoutUri = OIDC_CONFIG.post_logout_redirect_uri;
+            const cognitoDomain = OIDC_CONFIG.cognitoDomain;
+            window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+        });
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            try {
+                console.log("loading....")
+                const user = await userManager.getUser();
+                if (user && user.id_token) {
+                    const payload = JSON.parse(atob(user.id_token.split('.')[1]));
+                    const groups = payload["cognito:groups"] || [];
+                    let dashboard = "general";
+                    if (groups.includes("Admin")) dashboard = "google";
+                    else if (groups.includes("general")) dashboard = "amazon";
+
+                    const dashboardUrl = `https://${dashboard}.com`;
+
+                    const dashboardBtn = document.getElementById("goToDashboard");
+                    dashboardBtn.onclick = () => {
+                        window.location.href = dashboardUrl;
+                    };
+
+                    document.getElementById("django-link").style.display = "block";
+                    console.log("to visible??....")
+                }
+            } catch (e) {
+                console.warn("User not signed in or token missing.");
+            }
+        });
+    </script>
+</body>
+
+</html>
