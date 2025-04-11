@@ -3,15 +3,17 @@ from django.contrib.auth.models import AbstractUser
 from collections import Counter
 
 # Create your models here.
-class Rater(models.Model):
-    name = models.CharField(max_length=100, unique=True)  # Rater's firstname_lastname
+
+
+class Rater(AbstractUser):
+    username = models.CharField(max_length=100, unique=True)  # Rater's firstname_lastname
     rater_digital_id = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100, default="test123")  # Rater's password
     active = models.BooleanField()  # Rater's status
     task_access=models.IntegerField(default=1)
 
     def __str__(self):
-        return self.name
+        return self.username
     
 
 
@@ -34,35 +36,27 @@ class WritingTask(models.Model):
 
     def assign_raters(self, raters):
         """
-        Assigns two different raters for a writing task, ensuring:
-        - No repetition between 'writing task 1' and 'writing task 2' for the same user, if possible.
-        - Avoids assigning raters multiple times to the same task.
+        Assigns two different raters to a writing task, ensuring:
+        - A student’s writing task 1 and 2 are rated by different raters.
+        - Raters are evenly distributed across tasks.
+        - Raters are active.
         """
+
         if len(raters) < 4:
             raise ValueError("At least 4 raters are required for unique assignments.")
 
-        # Prevent duplicate assignment if this task already has raters
+        raters = [r for r in raters if r.active and r.username and "admin" not in r.username.lower()]
+        if not raters:
+            raise ValueError("No active raters available.")
 
-        existedTask = AssessmentTask.objects.filter(writing_task=self)
-        if existedTask.exists():
-            # student_name = self.student_name
-            usedRaterforstu = AssessmentTask.objects.filter(writing_task__student_name=self.student_name)
-            if(len(existedTask)<2):
-                print(f"existedTask: {existedTask}")
-                assigned_rater_ids = usedRaterforstu.values_list("rater", flat=True)
-                available_raters = [r for r in raters if r.id not in assigned_rater_ids and r.active == True]
-                rater=available_raters[0]
-                AssessmentTask.objects.create(writing_task=self, rater=rater)
-          
-            return
-        elif existedTask.exists() and len(existedTask)==1:
-           
-            available_raters = [r for r in raters if r not in existedTask.values_list("rater", flat=True) and r.active == True]
-            rater=available_raters[0]
-            AssessmentTask.objects.create(writing_task=self, rater=rater)
-            
+        # Check if task already assigned
+        existing_tasks = AssessmentTask.objects.filter(writing_task=self)
+        if existing_tasks.count() >= 2:
+            return  # Already fully assigned
 
-        # Get other writing task for the same user
+        assigned_rater_ids = set(existing_tasks.values_list("rater_id", flat=True))
+
+        # Find other task for this student
         opposite_trait = "writing task 1" if self.trait == "writing task 2" else "writing task 2"
         other_task = WritingTask.objects.filter(student_name=self.student_name, trait=opposite_trait).first()
 
@@ -72,25 +66,38 @@ class WritingTask(models.Model):
                 AssessmentTask.objects.filter(writing_task=other_task).values_list("rater_id", flat=True)
             )
 
-        rater_assignments_count = Counter(
-            AssessmentTask.objects.filter(rater__in=raters).values_list('rater_id', flat=True)
+        # Avoid raters already assigned to the same student's opposite task
+        eligible_raters = [r for r in raters if r.id not in assigned_rater_ids | excluded_raters]
+
+        # Track how many tasks each rater has across all assignments
+        assignment_counts = Counter(
+            AssessmentTask.objects.filter(rater__in=raters).values_list("rater_id", flat=True)
         )
 
-        sorted_raters = sorted(raters, key=lambda r: rater_assignments_count[r.id])
-        available_raters = [r for r in sorted_raters if r.id not in excluded_raters and r.active == True]
+        # Separate raters into ones with more task1 or task2 assignments
+        task_type_counts = Counter()
+        all_tasks = AssessmentTask.objects.filter(rater__in=raters).select_related("writing_task")
+        for t in all_tasks:
+            task_type_counts[(t.rater_id, t.writing_task.trait)] += 1
 
-        if len(available_raters) < 2:
-            available_raters = sorted_raters
+        def sort_key(rater):
+            return (
+                task_type_counts[(rater.id, self.trait)],  # Prefer those who rated less of this trait
+                assignment_counts[rater.id]                # Then prefer those with fewer total tasks
+            )
 
-        selected_raters = available_raters[:2]
-        for rater in selected_raters:
+        sorted_raters = sorted(eligible_raters, key=sort_key)
+
+        needed = 2 - len(existing_tasks)
+        selected = sorted_raters[:needed]
+
+        for rater in selected:
             AssessmentTask.objects.create(writing_task=self, rater=rater)
 
         return {
             "trait": self.trait,
-            "assigned_raters": [r.name for r in selected_raters]
+            "assigned_raters": [r.username for r in selected]
         }
-
 
 class AssessmentTask(models.Model):
 
@@ -103,5 +110,5 @@ class AssessmentTask(models.Model):
     completed = models.BooleanField(default=False)
     
     def __str__(self):
-        return f"{self.writing_task.id} - {self.writing_task.trait} on {self.writing_task.started_time} reviewed by {self.rater.name} "
+        return f"{self.writing_task.id} - {self.writing_task.trait} on {self.writing_task.started_time} reviewed by {self.rater.username} "
     

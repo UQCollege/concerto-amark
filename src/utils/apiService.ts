@@ -12,6 +12,14 @@ const apiService = axios.create({
 });
 
 // Get Method
+export const verify = async()=>{
+    try{
+    const response = await apiService.get("/verify")
+    return response.data
+    }catch(error){
+     console.error(error)
+    }
+}
 export const getInitialAssessmentData = async () => {
     try {
         const response = await
@@ -25,6 +33,7 @@ export const getInitialAssessmentData = async () => {
 
 export const getAssessmentData = async () => {
     try {
+        // await apiService.get("/clear-tasks")
         await apiService.get("/assign-tasks");
         const response = await
             apiService.get("/raters-assignment");
@@ -49,7 +58,7 @@ export const getRatersFromDB = async () => {
     try {
         const response = await apiService.get("/raters/");
 
-        const result = response.data.map((item: { name: string; rater_digital_id: string; active: boolean }) => ({ raterName: item.name, raterDigitalId: item.rater_digital_id, active: item.active }));
+        const result = response.data.map((item: { username: string; rater_digital_id: string; active: boolean }) => ({ raterName: item.username, raterDigitalId: item.rater_digital_id, active: item.active }));
         return result
     } catch (error) {
         console.error("Error fetching data: ", error);
@@ -147,5 +156,13 @@ export const deleteRaterInTable = async (rater_digital_id: string) => {
         await apiService.delete(`/raters/`, { data: { rater_digital_id } });
     } catch (error) {
         console.error("Error deleting task: ", error);
+    }
+}
+
+export const deleteAllTasks = async()=>{
+    try{
+        await apiService.get("/clear-tasks")
+    }catch(error){
+        console.error("Error happens deleteing all task: ", error)
     }
 }

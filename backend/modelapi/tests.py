@@ -1,48 +1,63 @@
 from django.test import TestCase
+from collections import Counter
+from .models import WritingTask, Rater, AssessmentTask
 
-from django.test import TestCase
-from .models import Raters, WritingTask, AssessmentTask
-from django.db import IntegrityError
-
-class WritingTaskAssignRatersTestCase(TestCase):
-    
+class AssignRatersMultipleTasksTestCase(TestCase):
     def setUp(self):
-        # Set up test data
-        self.rater1 = Raters.objects.create(name="Rater 1", password="password123")
-        self.rater2 = Raters.objects.create(name="Rater 2", password="password123")
-        self.rater3 = Raters.objects.create(name="Rater 3", password="password123")
-        self.rater4 = Raters.objects.create(name="Rater 4", password="password123")
-        
-        # Create a writing task
-        self.task = WritingTask.objects.create(itemId=1, testId="Test001", content="This is a writing task.")
+        # Create 10 active raters
+        self.raters = [
+            Rater.objects.create(username=f"rater{i}", active=True, rater_digital_id=f"RID{i}")
+            for i in range(10)
+        ]
 
-    def test_assign_raters(self):
-        # Assign raters to the task using the `assign_raters` method
-        result = self.task.assign_raters([self.rater1, self.rater2, self.rater3, self.rater4])
-        
-        # Check that the result contains two raters for each day
-        self.assertIn("writing task 1", result)
-        self.assertIn("writing task 2", result)
-        self.assertEqual(len(result["writing task 1"]), 2)
-        self.assertEqual(len(result["writing task 2"]), 2)
-        
-        # Check that the same raters are not assigned to both days
-        day1_raters = result["writing task 1"]
-        day2_raters = result["writing task 2"]
-        self.assertTrue(not set(day1_raters) & set(day2_raters))  # No overlap between Day 1 and Day 2
-        
-        # Check that AssessmentTask are created for both days
-        self.assertEqual(AssessmentTask.objects.filter(writing_task=self.task, writing_task__trait="writing task 1").count(), 2)
-        self.assertEqual(AssessmentTask.objects.filter(writing_task=self.task, writing_task__trait="writing task 2").count(), 2)
+        self.students = ["studentA", "studentB", "studentC", "studentD", "studentE", "studentF"]
+        self.tasks = []
 
-        # Check the names of the raters assigned to Day 1 and Day 2
-        day1_rater_names = [r.rater.name for r in self.task.reviews.filter(writing_task__trait="writing task 1")]
-        day2_rater_names = [r.rater.name for r in self.task.reviews.filter(writing_task__trait="writing task 2")]
-        
-        self.assertTrue(set(day1_rater_names).issubset(day1_raters))
-        self.assertTrue(set(day2_rater_names).issubset(day2_raters))
+        # Create 2 tasks per student: writing task 1 and 2
+        for student in self.students:
+            task1 = WritingTask.objects.create(
+                started_time="2024-01-01T10:00:00Z",
+                trait="writing task 1",
+                student_name=student,
+                response=f"{student}'s response 1",
+                words_count=100,
+            )
+            task2 = WritingTask.objects.create(
+                started_time="2024-01-01T11:00:00Z",
+                trait="writing task 2",
+                student_name=student,
+                response=f"{student}'s response 2",
+                words_count=120,
+            )
+            self.tasks.append((task1, task2))
 
-    def test_insufficient_raters(self):
-        # Try assigning raters with fewer than 4 raters
-        with self.assertRaises(ValueError):
-            self.task.assign_raters([self.rater1, self.rater2, self.rater3])
+    def test_assign_raters_multiple_students(self):
+        for task1, task2 in self.tasks:
+            task1.assign_raters(self.raters)
+            task2.assign_raters(self.raters)
+
+        all_assignments = AssessmentTask.objects.all()
+        self.assertEqual(all_assignments.count(), len(self.students) * 2 * 2)  # 2 raters per task
+
+        # Check uniqueness of raters per student
+        for student in self.students:
+            task1_raters = AssessmentTask.objects.filter(
+                writing_task__student_name=student,
+                writing_task__trait="writing task 1"
+            ).values_list("rater_id", flat=True)
+
+            task2_raters = AssessmentTask.objects.filter(
+                writing_task__student_name=student,
+                writing_task__trait="writing task 2"
+            ).values_list("rater_id", flat=True)
+
+            # Ensure task1 and task2 raters are different
+            self.assertTrue(set(task1_raters).isdisjoint(set(task2_raters)))
+
+        # Check balanced distribution across raters
+        rater_counts = Counter(
+            AssessmentTask.objects.values_list("rater_id", flat=True)
+        )
+        counts = list(rater_counts.values())
+        self.assertLessEqual(max(counts) - min(counts), 1, "Raters are not evenly distributed")
+

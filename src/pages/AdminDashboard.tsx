@@ -13,9 +13,11 @@ import {
 import DataTableUI from "../uis/DataTableUI";
 import {
   assignToAll,
+  deleteAllTasks,
   getAssessmentData,
   getInitialAssessmentData,
   updateRater,
+  verify,
 } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
 import InfoSidebar from "../uis/InfoSidebar";
@@ -26,10 +28,11 @@ import { TabPanel, TabView } from "primereact/tabview";
 import RatersTableUI from "../uis/RaterTable";
 import { Toast } from "primereact/toast";
 import ChipInput from "../uis/ChipInput";
+import DialogUi from "../uis/DialogUi";
 
 
 export function AdminDashboard() {
-
+  const [showDialog, setShowDialog] = useState(false)
   const [isProcess, setIsProcess] = useState(false);
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
@@ -72,7 +75,6 @@ export function AdminDashboard() {
 
 
   const createRaterList = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // todo: test setIsProcess(true) in order to show the process
     setIsProcess(true)
     const file = e.target.files?.[0];
     if (!file) return;
@@ -97,7 +99,6 @@ export function AdminDashboard() {
         });
 
       dispatch(createRaters(records));
-      // todo: setIsProcess(false)
       setIsProcess(false)
     };
     reader.readAsText(file);
@@ -113,23 +114,30 @@ export function AdminDashboard() {
     a.href = url;
     a.download = "rater_matrix.csv";
 
-    // Trigger download
     a.click();
-
-    // Clean up
     URL.revokeObjectURL(url);
   };
   const toast = useRef<Toast>(null);
   const updateDay = (day: number) => {
-    toast.current?.show({ severity: 'info', summary: 'Info', detail: 'Message Content' + day });
+    toast.current?.show({ severity: 'info', summary: 'Info', detail: 'Set tasks for Day ' + day });
   };
   const [chips, setChips] = useState<string[]>([]);
+  const verifyHandler = async () => {
+    const message = await verify();
 
+      if ("details" in message) {
+        toast.current?.show({ severity: 'warn', summary: 'Warning: ', detail: JSON.stringify(message.details) });
+      }else{
+        toast.current?.show({ severity: 'info', summary: 'Info', detail: JSON.stringify(message.message) });
+      }
+
+   
+  };
   return (
     <div className="flex items-start min-h-screen">
+      <Toast ref={toast} />
       <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
         <div className="flex justify-between">
-          <Toast ref={toast} />
           <Button onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
           <Button onClick={async () => { await updateRater({ taskAccess: 2 }); updateDay(2) }} >Day 2</Button>
           <div className="flex items-center  gap-3">
@@ -161,14 +169,15 @@ export function AdminDashboard() {
             <div className="pi pi-arrow-right"></div>
             <div className="flex flex-row items-center gap-2">
               <Button onClick={handleFetchResult}>tasks allocating</Button>
-
+              <Button onClick={()=>setShowDialog(true)}>Clear all tasks</Button>
             </div>
             {isProcess && <Loading />}
           </div>
           <div className="flex items-end ">
             <span>(to esure all tasks been allocated correctly)</span>
-            <Button label="RaterMatrix .csv" icon="pi pi-download" onClick={downloadMatrixCSVHandler}>
-            </Button>
+            <Button label="RaterMatrix .csv" icon="pi pi-download" onClick={downloadMatrixCSVHandler}/>
+            <Button label="Verify" onClick={verifyHandler}/>
+
             <div className="flex flex-row items-center gap-2">
               <InfoSidebar
                 infoHead=""
@@ -208,6 +217,13 @@ export function AdminDashboard() {
           </TabPanel>
         </TabView>
       </div>
+
+      <DialogUi
+              visible={showDialog}
+              message="Are you sure you want to delete all records?"
+              onHide={() => setShowDialog(false)}
+              onConfirm={()=>{deleteAllTasks(); setShowDialog(false)}}
+            />
     </div>
   );
 }

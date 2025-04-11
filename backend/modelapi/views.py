@@ -13,7 +13,7 @@ class RaterViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = Rater.objects.all().order_by('name')
+    queryset = Rater.objects.all().order_by('username')
     serializer_class = RaterSerializer
 
     # def list(self, request):
@@ -28,7 +28,7 @@ class RaterViewSet(viewsets.ModelViewSet):
             if rater_digital_id not in existed_raters:
                 # Create a new rater if it doesn't exist
                 Rater.objects.create(
-                    name=rater['name'],
+                    username=rater['name'],
                     rater_digital_id=rater_digital_id,
                     password=rater['password'],
                     active=rater.get('active', True)
@@ -51,7 +51,6 @@ class RaterViewSet(viewsets.ModelViewSet):
       
         rater = get_object_or_404(Rater, rater_digital_id=rater_digital_id)
         rater.active = False
-        print(f"Deactivating rater with name '{rater.name}' instead of deleting.")
         rater.save()
         return Response({"message": "Rater deleted successfully", "Code": 200}, status=status.HTTP_204_NO_CONTENT)
     
@@ -68,33 +67,12 @@ class RaterViewSet(viewsets.ModelViewSet):
         return Response({"message": "No task_access provided", "Code": 400})
 
 
-
-
-    # def retrieve(self, request, pk=None):
-    #     pass
-
-    # def update(self, request, pk=None):
-    #     pass
-
-
 class WritingTaskViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     queryset = WritingTask.objects.all().order_by('id')
     serializer_class = WritingTaskSerializer
-
-    # def list(self, request):
-    #     pass
-
-    # def create(self, request):
-    #     pass
-
-    # def retrieve(self, request, pk=None):
-    #     pass
-
-    # def update(self, request, pk=None):
-    #     pass
 
 
 
@@ -111,12 +89,12 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         Allows filtering by rater_name via a query parameter.
         Example: GET /api/review-assignments/?rater_name=Rater1
         """
-        queryset = self.queryset  # Use self.queryset to maintain consistency
+        queryset = AssessmentTask.objects.all().order_by('id')  # Use self.queryset to maintain consistency
         rater_name = request.GET.get('rater_name', None)
 
         if rater_name:
             try:
-                rater = Rater.objects.get(name=rater_name)
+                rater = Rater.objects.get(username=rater_name)
                 task_access = rater.task_access
                 queryset = queryset.filter(rater=rater, writing_task__trait=f"Writing {task_access}")
             except Rater.DoesNotExist:
@@ -136,7 +114,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         if student_name and trait and rater_name:
             try:
                 writing_task = get_object_or_404(WritingTask, trait=trait, student_name=student_name)
-                rater = get_object_or_404(Rater, name=rater_name)
+                rater = get_object_or_404(Rater, username=rater_name)
 
                 # Check if the assignment already exists
                 AssessmentTask.objects.create(
@@ -148,7 +126,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                     voc=None,
                     coco=None)
                 serializer = self.get_serializer(writing_task)
-                print(f"successfully create the Writing task {writing_task.id} assigned to rater {rater.name}")
+                print(f"successfully create the Writing task {writing_task.id} assigned to rater {rater.username}")
                 return Response(serializer.data, status=201)
             except Exception as e:
                 print(f"Error creating review assignment: {e}")
@@ -174,7 +152,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                     for id in idList:
                         allocatedTask = AssessmentTask.objects.get(id=id)
                         if rater_name:
-                            rater = Rater.objects.filter(name=rater_name).first()
+                            rater = Rater.objects.filter(username=rater_name).first()
                             if rater:
                                 allocatedTask.rater = rater
                             else:
@@ -197,6 +175,28 @@ def assign_raters_view(request):
         task.assign_raters(raters)   
     
     return JsonResponse({"message": "Raters assigned successfully", "Code": 200})
+
+
+def verify_view(request):
+    """
+    Verify each student has 4 unique raters.
+    """
+    student_list = WritingTask.objects.values_list("student_name", flat=True).distinct()
+    invalid_students = {}
+
+    for student in student_list:
+        # Get all raters assigned to the student's writing tasks
+        raters = AssessmentTask.objects.filter(writing_task__student_name=student).values_list("rater__username", flat=True)
+        unique_raters = set(raters)
+        # Check if the student has exactly 4 unique raters
+        if len(unique_raters) != 4:
+            invalid_students[student] = list(unique_raters)
+
+    if invalid_students:
+        return JsonResponse({"message": "Some students do not have exactly 4 unique raters", "details": invalid_students, "Code": 400})
+
+    return JsonResponse({"message": "All students have 4 unique raters", "Code": 200})
+
 
 @api_view(['POST'])
 def assign_to_all(request):
@@ -231,8 +231,6 @@ def assign_to_all(request):
     return JsonResponse({"message": "Tasks assigned to all raters successfully", "Code": 200})
             
     
-
-
 def clear_tasks_view(request):
     """
     View to clear all writing tasks.
@@ -240,29 +238,3 @@ def clear_tasks_view(request):
     AssessmentTask.objects.all().delete()
     return JsonResponse({"message": "Tasks cleared successfully", "Code": 200})
 
-
-
-# def login_user(req):
-#     if req.user.is_authenticated:
-#         return redirect("index")
-#     else:
-#         if req.method=='POST':
-#             form=Login_Form(data=req.POST)
-#             username_ldap=req.POST.get('username')
-#         # print(user)
-#             if form.is_valid():
-#                 user=form.get_user()
-#                 login(req, user, backend="django_auth_ldap.backend.LDAPBackend",)
-#                 return redirect("index")
-        
-#             else:
-#                 messages.warning(req, ' no permission for this application, please contact Admin!')
-#                 return redirect("/")
-#         else:
-#             form = Login_Form()
-#         return render(req, 'registration/login.html', {'form': form})    
-
-# #-------------------------------------------------------------------------------------------------
-# def logout_user(req):
-#     logout(req)    
-#     return redirect("/")

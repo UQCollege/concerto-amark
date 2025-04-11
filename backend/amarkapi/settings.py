@@ -124,7 +124,7 @@ USE_L10N = False
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 #--------------------------------------------------------------------
-# AUTH_USER_MODEL = 'apputil.ApplicationUser'
+AUTH_USER_MODEL = 'modelapi.Rater'
 # LOGOUT_REDIRECT_URL="/"
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

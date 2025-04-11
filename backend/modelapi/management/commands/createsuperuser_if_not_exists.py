@@ -15,7 +15,8 @@ class Command(BaseCommand):
             User.objects.create_superuser(
                 username=username,
                 email=email,
-                password=password
+                password=password,
+                active = True
             )
             self.stdout.write(self.style.SUCCESS('Superuser created successfully'))
         else:

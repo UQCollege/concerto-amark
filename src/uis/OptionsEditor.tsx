@@ -21,7 +21,6 @@ const OptionsEditor = (props: OptionsEditorProps) => {
     value: rater.raterName,
     active: rater.active,
   }));
-
   const [filteredOptions, setFilteredOptions] = useState(raters);
 
   const onFilter = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -5,7 +5,7 @@ from .models import Rater, WritingTask, AssessmentTask
 
 @admin.register(Rater)
 class RaterAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'rater_digital_id']  # Add any fields you want to see
+    list_display = ['id', 'username', 'rater_digital_id']  # Add any fields you want to see
 
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):
