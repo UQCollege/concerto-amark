@@ -1,15 +1,16 @@
+import requests
+import os
 from jose import jwt
 from jose.exceptions import JWTError
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from django.conf import settings
 from django.contrib.auth.models import Group
-import requests
 from .models import Rater
 
-COGNITO_REGION = 'ap-southeast-2'
-USERPOOL_ID = 'ap-southeast-2_tOw3xswtp'
-APP_CLIENT_ID = '1d2tj7lp2i1lva375ltpcopfkl'
+COGNITO_REGION = os.environ.get("COGNITO_REGION", "ap-southeast-2")
+USERPOOL_ID =  os.environ.get("USERPOOL_ID", None)
+APP_CLIENT_ID =  os.environ.get("APP_CLIENT_ID", None)
 COGNITO_ISSUER = f'https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{USERPOOL_ID}'
 JWKS_URL = f'{COGNITO_ISSUER}/.well-known/jwks.json'
 JWKS = requests.get(JWKS_URL).json()
@@ -17,6 +18,20 @@ JWKS = requests.get(JWKS_URL).json()
 
 class CognitoJWTAuthentication(BaseAuthentication):
     def authenticate(self, request):
+        if settings.USE_FAKE_AUTH:
+            if not hasattr(self, "_devuser"):
+                self._devuser, _ = Rater.objects.get_or_create(
+                    username="devuser",
+                    defaults={
+                        "rater_digital_id": "sub",
+                        "email": "email",
+                        "active": True,
+                        "task_access": 1,
+                        "is_staff" : True,
+                        "is_superuser" : True
+                    }
+                )
+                return (self._devuser, None)
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             print("no Authen")

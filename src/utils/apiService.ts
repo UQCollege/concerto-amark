@@ -1,6 +1,7 @@
 import axios from "axios";
 import { RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
+import { getAccessToken } from "./auth";
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -13,7 +14,7 @@ const apiService = axios.create({
 });
 
 apiService.interceptors.request.use((config) => {
-    const token = localStorage.getItem("access_token");
+    const token = getAccessToken();
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }

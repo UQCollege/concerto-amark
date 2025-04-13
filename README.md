@@ -6,6 +6,16 @@ Backend: Built with Django
 Frontend: Developed using React and TypeScript
 
 ## Quick-Start
+
+### Authentication
+
+- For Local development:
+set `USE_FAKE_AUTH=True` -> `backend/.env` 
+set `VITE_AUTH_DISABLED=true` -> `.env`
+
+- For Prod, change them back to false/False
+
+### 
 - Navigate to the project root and run:
 `npm install & npm run dev`
 - Move into the backend directory:`cd backend`
