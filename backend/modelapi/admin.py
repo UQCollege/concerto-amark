@@ -13,7 +13,7 @@ class WritingTaskAdmin(admin.ModelAdmin):
 
 @admin.register(AssessmentTask)
 class AssessmentTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'writing_task', 'get_rater', 'ta', 'gra', 'voc', 'coco', 'completed']  # Adjust fields to match your model
+    list_display = ['id', 'writing_task', 'get_rater', 'ta', 'gra', 'voc', 'coco', 'comments', 'completed']  # Adjust fields to match your model
     @admin.display(description='Rater')
     def get_rater(self, obj):
         return obj.rater.rater_digital_id  # Adjust based on your actual Raters model

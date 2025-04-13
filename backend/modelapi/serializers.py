@@ -19,6 +19,7 @@ class AssessmentTaskSerializer(serializers.ModelSerializer):
     response = serializers.CharField(source='writing_task.response', read_only=True)
     words_count = serializers.IntegerField(source='writing_task.words_count', read_only=True)
     started_time = serializers.CharField(source='writing_task.started_time', read_only=True)
+
     class Meta:
         model = AssessmentTask
-        fields = ['id', 'student_name', 'trait', 'started_time', 'rater_name', 'rater_digital_id', 'response', 'words_count', 'ta', 'gra', 'voc', 'coco', 'completed']
+        fields = ['id', 'student_name', 'trait', 'started_time', 'rater_name', 'rater_digital_id', 'response', 'words_count', 'ta', 'gra', 'voc', 'coco', 'completed', 'comments']

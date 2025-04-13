@@ -21,7 +21,7 @@ import {
 
   initialRating,
 } from "../features/data/assessDataSlice";
-import { ApiData } from "../utils/transformApiData";
+import { ApiData } from "../apiTypes";
 
 
 const markOptions = [
@@ -63,7 +63,7 @@ export function UserDashboard() {
             voc: task.voc,
             coco: task.coco,
           },
-          comments: "",
+          comments: task.comments,
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
@@ -100,7 +100,7 @@ export function UserDashboard() {
   ) => {
     const key = Object.keys(selected)[0] as SelectOptionType;
     const val = selected[key] as Rating;
-    console.log("handleMarkChange", key, val);
+
     dispatch(setRating({ id: currentTask.id, ratingType: key, value: val }));
   };
 
@@ -139,6 +139,7 @@ export function UserDashboard() {
     const updateData = assessData.filter((el) => el.completed === true).map((el) => ({
       id: el.id,
       ratings: el.ratings,
+      comments: el.comments,
       completed: el.completed
 
     }))

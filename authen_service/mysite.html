@@ -51,7 +51,7 @@
                 console.log("loading....")
                 const user = await userManager.getUser();
                 if (user && user.id_token) {
-                    console.log(user)
+                    // console.log("getUser: ", user)
                     const payload = JSON.parse(atob(user.id_token.split('.')[1]));
                     const groups = payload["cognito:groups"] || [];
                     let dashboard = "general";

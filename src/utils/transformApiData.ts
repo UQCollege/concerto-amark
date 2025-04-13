@@ -1,33 +1,20 @@
-export type ApiData = {
-  id: number;
-  response: string;
-  words_count: number;
-  started_time: string;
-  trait: string;
-  student_name: string;
-  rater_digital_id: string;
-  rater_name: string;
-  ta: number | null;
-  gra: number | null;
-  voc: number | null;
-  coco: number | null;
-  completed: boolean;
-};
+import { ApiData, Rating } from "../apiTypes";
 
 // TD: Task distribution
 export interface TD {
   id: number;
-  trait: string;
   studentName: string;
-  startedTime: string;
-  selected: boolean;
+  trait: string;
   rater: string;
   raterName: string;
+  startedTime: string;
+  selected: boolean;
   completed: boolean;
-  ta: number | null;
-  gra: number | null;
-  voc: number | null;
-  coco: number | null;
+  comments: string;
+  ta: Rating | null;
+  gra: Rating | null;
+  voc: Rating | null;
+  coco: Rating | null;
 }
 
 export function transformApiData(data: ApiData[]): TD[] {
@@ -40,6 +27,7 @@ export function transformApiData(data: ApiData[]): TD[] {
     rater: entry.rater_digital_id,
     raterName: entry.rater_name,
     completed: entry.completed,
+    comments: entry.comments,
     ta: entry.ta,
     gra: entry.gra,
     voc: entry.voc,

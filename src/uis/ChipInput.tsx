@@ -43,7 +43,7 @@ const ChipInput: React.FC<ChipInputProps> = ({ chips, setChips }) => {
                     value={inputValue}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type and press comma to add chip"
+                    placeholder="Example: s000, s001, s002,"
                     className="chip-input-field border-0"
                 />
             </div>

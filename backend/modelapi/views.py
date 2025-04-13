@@ -124,7 +124,8 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                     ta=None,
                     gra=None,
                     voc=None,
-                    coco=None)
+                    coco=None,
+                    comments=None,)
                 serializer = self.get_serializer(writing_task)
                 print(f"successfully create the Writing task {writing_task.id} assigned to rater {rater.username}")
                 return Response(serializer.data, status=201)
@@ -141,12 +142,13 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
 
         if update_data:
             for item in update_data:
-                if 'ratings' in item:
+                if 'ratings' in item: # Save the assessment result of a writing task
                     allocatedTask = AssessmentTask.objects.get(id=item['id']) 
                     allocatedTask.ta, allocatedTask.gra, allocatedTask.voc, allocatedTask.coco = item.get('ratings', {}).get('ta'), item.get('ratings', {}).get('gra'), item.get('ratings', {}).get('voc'), item.get('ratings', {}).get('coco')
                     allocatedTask.completed = item.get('completed')
+                    allocatedTask.comments = item.get('comments', None)
                     allocatedTask.save()
-                if 'idList' in item:
+                if 'idList' in item: # For Admin changes raters
                     rater_name = item.get('raterName')
                     idList = item.get('idList')
                     for id in idList:
@@ -206,7 +208,6 @@ def assign_to_all(request):
     student_names = request.data.get("studentNames", [])
     if not student_names:
         return JsonResponse({"message": "No student names provided", "Code": 400})
-    print("0")
     tasks = WritingTask.objects.filter(student_name__in=student_names)
 
     for task in tasks:
@@ -224,9 +225,10 @@ def assign_to_all(request):
                     gra=None,
                     voc=None,
                     coco=None,
-                    completed=False
+                    completed=False,
+                    comments=None,
                 )
-    print("1")
+    print("all")
 
     return JsonResponse({"message": "Tasks assigned to all raters successfully", "Code": 200})
             

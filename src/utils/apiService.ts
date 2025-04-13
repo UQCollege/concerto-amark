@@ -12,12 +12,12 @@ const apiService = axios.create({
 });
 
 // Get Method
-export const verify = async()=>{
-    try{
-    const response = await apiService.get("/verify")
-    return response.data
-    }catch(error){
-     console.error(error)
+export const verify = async () => {
+    try {
+        const response = await apiService.get("/verify")
+        return response.data
+    } catch (error) {
+        console.error(error)
     }
 }
 export const getInitialAssessmentData = async () => {
@@ -124,7 +124,7 @@ export const updateTasksTable = async (task: { idList: number[], raterName: stri
     }
 }
 
-export const updateRatingInTable = async (data: { id: number; ratings: RatingAspects; completed: boolean }[]) => {
+export const updateRatingInTable = async (data: { id: number; ratings: RatingAspects; comments: string; completed: boolean }[]) => {
     try {
         await apiService.put("/raters-assignment/", data)
     } catch (error) {
@@ -159,10 +159,10 @@ export const deleteRaterInTable = async (rater_digital_id: string) => {
     }
 }
 
-export const deleteAllTasks = async()=>{
-    try{
+export const deleteAllTasks = async () => {
+    try {
         await apiService.get("/clear-tasks")
-    }catch(error){
+    } catch (error) {
         console.error("Error happens deleteing all task: ", error)
     }
 }

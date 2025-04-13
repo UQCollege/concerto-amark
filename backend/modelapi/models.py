@@ -55,16 +55,10 @@ class WritingTask(models.Model):
             return  # Already fully assigned
 
         assigned_rater_ids = set(existing_tasks.values_list("rater_id", flat=True))
-
-        # Find other task for this student
-        opposite_trait = "writing task 1" if self.trait == "writing task 2" else "writing task 2"
-        other_task = WritingTask.objects.filter(student_name=self.student_name, trait=opposite_trait).first()
-
-        excluded_raters = set()
-        if other_task:
-            excluded_raters = set(
-                AssessmentTask.objects.filter(writing_task=other_task).values_list("rater_id", flat=True)
-            )
+        excluded_raters = set(
+            AssessmentTask.objects.filter(writing_task__student_name=self.student_name)
+            .values_list("rater_id", flat=True)
+        )
 
         # Avoid raters already assigned to the same student's opposite task
         eligible_raters = [r for r in raters if r.id not in assigned_rater_ids | excluded_raters]
@@ -108,7 +102,8 @@ class AssessmentTask(models.Model):
     voc = models.IntegerField(null=True)
     coco = models.IntegerField(null=True)
     completed = models.BooleanField(default=False)
-    
+    comments = models.CharField(max_length=250, null=True)
+
     def __str__(self):
         return f"{self.writing_task.id} - {self.writing_task.trait} on {self.writing_task.started_time} reviewed by {self.rater.username} "
     

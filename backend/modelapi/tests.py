@@ -10,7 +10,7 @@ class AssignRatersMultipleTasksTestCase(TestCase):
             for i in range(10)
         ]
 
-        self.students = ["studentA", "studentB", "studentC", "studentD", "studentE", "studentF"]
+        self.students = ['s'+str(i) for i in range(20)]
         self.tasks = []
 
         # Create 2 tasks per student: writing task 1 and 2

@@ -125,31 +125,27 @@ export function AdminDashboard() {
   const verifyHandler = async () => {
     const message = await verify();
 
-      if ("details" in message) {
-        toast.current?.show({ severity: 'warn', summary: 'Warning: ', detail: JSON.stringify(message.details) });
-      }else{
-        toast.current?.show({ severity: 'info', summary: 'Info', detail: JSON.stringify(message.message) });
-      }
+    if ("details" in message) {
+      toast.current?.show({ severity: 'warn', summary: 'Warning: ', detail: JSON.stringify(message.details) });
+    } else {
+      toast.current?.show({ severity: 'info', summary: 'Info', detail: JSON.stringify(message.message) });
+    }
 
-   
+
   };
   return (
     <div className="flex items-start min-h-screen">
       <Toast ref={toast} />
       <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
         <div className="flex justify-between">
-          <Button onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
-          <Button onClick={async () => { await updateRater({ taskAccess: 2 }); updateDay(2) }} >Day 2</Button>
+          <div className="flex flex-col items-center  gap-3">
+            <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
+            <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 2 }); updateDay(2) }} >Day 2</Button>
+          </div>
           <div className="flex items-center  gap-3">
             <div className="flex flex-row items-center gap-2">
               <Button onClick={() => { }}>Data Migration</Button>
               (todo)
-            </div>
-            <div className="pi pi-arrow-right"></div>
-            <div>
-              <h1>Comma to Chips Example</h1>
-              <ChipInput chips={chips} setChips={setChips} />
-              <Button onClick={async () => { await assignToAll({ studentNames: chips }) }}>Manual choose 3 Students</Button>{" "}
             </div>
             <div className="pi pi-arrow-right"></div>
 
@@ -167,16 +163,22 @@ export function AdminDashboard() {
 
             </label>
             <div className="pi pi-arrow-right"></div>
+            <div>
+
+              <ChipInput chips={chips} setChips={setChips} />
+              <Button onClick={async () => { await assignToAll({ studentNames: chips }) }}>Manual choose 3 Students</Button>{" "}
+            </div>
+            <div className="pi pi-arrow-right"></div>
             <div className="flex flex-row items-center gap-2">
               <Button onClick={handleFetchResult}>tasks allocating</Button>
-              <Button onClick={()=>setShowDialog(true)}>Clear all tasks</Button>
+              <Button onClick={() => setShowDialog(true)}>Clear all tasks</Button>
             </div>
             {isProcess && <Loading />}
           </div>
           <div className="flex items-end ">
             <span>(to esure all tasks been allocated correctly)</span>
-            <Button label="RaterMatrix .csv" icon="pi pi-download" onClick={downloadMatrixCSVHandler}/>
-            <Button label="Verify" onClick={verifyHandler}/>
+            <Button label="RaterMatrix .csv" icon="pi pi-download" onClick={downloadMatrixCSVHandler} />
+            <Button label="Verify" onClick={verifyHandler} />
 
             <div className="flex flex-row items-center gap-2">
               <InfoSidebar
@@ -203,6 +205,7 @@ export function AdminDashboard() {
                   "startedTime",
                   "rater",
                   "raterName",
+                  "comments",
                   "completed",
                   "ta",
                   "gra",
@@ -219,11 +222,11 @@ export function AdminDashboard() {
       </div>
 
       <DialogUi
-              visible={showDialog}
-              message="Are you sure you want to delete all records?"
-              onHide={() => setShowDialog(false)}
-              onConfirm={()=>{deleteAllTasks(); setShowDialog(false)}}
-            />
+        visible={showDialog}
+        message="Are you sure you want to delete all records?"
+        onHide={() => setShowDialog(false)}
+        onConfirm={() => { deleteAllTasks(); setShowDialog(false) }}
+      />
     </div>
   );
 }
