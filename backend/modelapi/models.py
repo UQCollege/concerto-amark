@@ -45,7 +45,7 @@ class WritingTask(models.Model):
         if len(raters) < 4:
             raise ValueError("At least 4 raters are required for unique assignments.")
 
-        raters = [r for r in raters if r.active and r.username and "admin" not in r.username.lower()]
+        raters = [r for r in raters if r.active]
         if not raters:
             raise ValueError("No active raters available.")
 

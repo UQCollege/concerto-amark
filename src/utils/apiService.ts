@@ -2,6 +2,7 @@ import axios from "axios";
 import { RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
 
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const apiService = axios.create({
@@ -9,6 +10,14 @@ const apiService = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+});
+
+apiService.interceptors.request.use((config) => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
 });
 
 // Get Method

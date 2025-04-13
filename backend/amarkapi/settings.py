@@ -58,6 +58,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'amarkapi.urls'
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'modelapi.authentication.CognitoJWTAuthentication',
+    ),
+}
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

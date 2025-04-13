@@ -1,9 +1,22 @@
 import { useState } from 'react';
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { setToken } from "../features/auth/authSlice";
 
 
 const Home = () => {
     const [value, setValue] = useState('');
     const [passwordValue, setPasswordValue] = useState('');
+    // useEffect(() => {
+    //     const params = new URLSearchParams(window.location.search);
+    //     const token = params.get("access_token");
+    //     const dispatch = useAppDispatch()
+    //     if (token) {
+    //         dispatch(setToken(token));
+    //         window.history.replaceState({}, document.title, "/dashboard");
+    //     }
+    // }, []);
+
     return (
         <div className="w-full max-w-xs mx-auto">
             <form className="bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4 border">

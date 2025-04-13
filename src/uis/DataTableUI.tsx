@@ -67,7 +67,7 @@ export default function DataTableUI({
     return (
       <div className="flex flex-row gap-2">
         <Button
-          label="New"
+          label="Add Assessment Task"
           icon="pi pi-plus"
           severity="success"
           onClick={createNew}

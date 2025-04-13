@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 
 # Create your views here.
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import BasePermission
 from rest_framework import viewsets
 from rest_framework.response import Response
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
@@ -9,15 +11,14 @@ from rest_framework import status
 from .models import Rater, WritingTask, AssessmentTask
 from rest_framework.decorators import api_view
 
+
 class RaterViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
+    permission_classes = [IsAuthenticated]
     queryset = Rater.objects.all().order_by('username')
     serializer_class = RaterSerializer
-
-    # def list(self, request):
-    #     pass
 
     def create(self, request):
         raters = request.data.get('raters', [])  # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
@@ -173,7 +174,7 @@ def assign_raters_view(request):
 
     tasks = WritingTask.objects.all()
     for task in tasks:
-        raters = Rater.objects.all()  # Fetch all available raters
+        raters = Rater.objects.filter(is_superuser=False)  # Fetch all available raters
         task.assign_raters(raters)   
     
     return JsonResponse({"message": "Raters assigned successfully", "Code": 200})

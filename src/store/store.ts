@@ -3,13 +3,15 @@ import assessReducer from "../features/data/assessDataSlice";
 import ratersUpdateReducer from "../features/data/ratersUpdateSlice"
 import taskAllocationReducer from "../features/data/taskAllocationSlice"
 import assessTaskstatusReducer from "../features/data/joinTable";
+import authReducer from "../features/auth/authSlice";
 
 const store = configureStore({
   reducer: {
     assess: assessReducer, // Add the slice reducer to the store
     ratersUpdate: ratersUpdateReducer,
     taskAllocation: taskAllocationReducer,
-    assessTaskstatus: assessTaskstatusReducer
+    assessTaskstatus: assessTaskstatusReducer,
+    auth: authReducer
   },
 });
 

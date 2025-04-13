@@ -3,9 +3,27 @@ import Sidebar from "../uis/Sidebar";
 import { SidebarItem } from "../uis/Sidebar";
 import { Flag, Home, Layers, LayoutDashboard, LogOut } from "lucide-react";
 import { PrimeReactProvider } from "primereact/api";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { setToken } from "../features/auth/authSlice";
 
 const Root = () => {
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("access_token");
+
+    if (token) {
+      dispatch(setToken(token));
+      localStorage.setItem("access_token", token);
+      window.history.replaceState({}, document.title, "/");
+    }
+  }, [dispatch]);
+
   const name = 'Alice10'; //todo: implement login feature for userId
+
   return (
     <PrimeReactProvider>
       <div className="flex relative m-5">

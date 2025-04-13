@@ -3,11 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Reusable SSO Login</title>
+    <title>Sign In App</title>
 </head>
 
 <body>
-    <h1>Reusable SSO Login</h1>
+    <h1>SSO / Cognito Login</h1>
     <p>Select your login provider and authenticate:</p>
     <div>
         <button id="signIn">Sign In</button>
@@ -50,23 +50,19 @@
             try {
                 console.log("loading....")
                 const user = await userManager.getUser();
-                if (user && user.id_token) {
-                    // console.log("getUser: ", user)
-                    const payload = JSON.parse(atob(user.id_token.split('.')[1]));
-                    const groups = payload["cognito:groups"] || [];
-                    let dashboard = "general";
-                    if (groups.includes("Admin")) dashboard = "google";
-                    else if (groups.includes("general")) dashboard = "amazon";
+                if (user && user.id_token && user.access_token) {
+                    localStorage.setItem("access_token", user.access_token);
+                    localStorage.setItem("id_token", user.id_token);
 
-                    const dashboardUrl = `https://${dashboard}.com`;
-
+                    const dashboardUrl = `http://localhost:5173?access_token=${user.access_token}`;
                     const dashboardBtn = document.getElementById("goToDashboard");
                     dashboardBtn.onclick = () => {
                         window.location.href = dashboardUrl;
                     };
 
                     document.getElementById("django-link").style.display = "block";
-                    console.log("to visible??....")
+                } else {
+                    document.getElementById("django-link").style.display = "none";
                 }
             } catch (e) {
                 console.warn("User not signed in or token missing.");

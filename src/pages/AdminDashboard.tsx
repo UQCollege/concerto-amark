@@ -215,7 +215,7 @@ export function AdminDashboard() {
               />
             )}
           </TabPanel>
-          <TabPanel header="Rater List">
+          <TabPanel header="User List">
             <RatersTableUI />
           </TabPanel>
         </TabView>
