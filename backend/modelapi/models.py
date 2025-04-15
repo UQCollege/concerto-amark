@@ -4,6 +4,11 @@ from collections import Counter
 
 # Create your models here.
 
+class BEClass(models.Model):
+    class_name = models.IntegerField(unique=True, primary_key=True)
+
+    def __str__(self):
+        return f'BEClass: {self.class_name}'
 
 class Rater(AbstractUser):
     username = models.CharField(max_length=100, unique=True)  # Rater's firstname_lastname
@@ -11,10 +16,21 @@ class Rater(AbstractUser):
     password = models.CharField(max_length=100, default="test123")  # Rater's password
     active = models.BooleanField()  # Rater's status
     task_access=models.IntegerField(default=1)
+    classes=models.ForeignKey(BEClass, on_delete=models.SET_NULL, related_name="classes", null=True)
 
     def __str__(self):
         return self.username
     
+
+
+class Student(models.Model):
+    student_name = models.CharField(max_length=50, unique=True, primary_key=True)
+    last_name = models.CharField(max_length=100, null=True) 
+    first_name = models.CharField(max_length=100, null=True)
+    classes=models.ForeignKey(BEClass, on_delete=models.SET_NULL, related_name="student_classes", null=True)
+    
+    def __str__(self):
+        return self.student_name
 
 
 class WritingTask(models.Model):
@@ -24,8 +40,8 @@ class WritingTask(models.Model):
     '''
 
     started_time = models.DateTimeField()
-    trait = models.CharField(max_length=100)
-    student_name = models.CharField(max_length=100)
+    trait = models.CharField(max_length=100, null=True)
+    student_name = models.ForeignKey(Student, on_delete=models.CASCADE)
     assign_all = models.BooleanField(default=False)
     response = models.TextField()
     words_count= models.IntegerField(null=True)

@@ -8,19 +8,21 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from rest_framework import status
-from .models import Rater, WritingTask, AssessmentTask
-from rest_framework.decorators import api_view
+from .models import Rater, WritingTask, AssessmentTask, Student, BEClass
+from rest_framework.decorators import api_view, permission_classes
 
 
 class RaterViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     queryset = Rater.objects.all().order_by('username')
     serializer_class = RaterSerializer
 
     def create(self, request):
+        if request.user.is_superuser == "False":
+            return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
         raters = request.data.get('raters', [])  # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
         existed_raters = Rater.objects.in_bulk(field_name='rater_digital_id')
 
@@ -47,33 +49,74 @@ class RaterViewSet(viewsets.ModelViewSet):
         """
         Delete a rater by digital Id.
         """
+        if request.user.is_superuser == "False":
+            return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
         rater_digital_id = request.data.get('rater_digital_id')
 
-      
         rater = get_object_or_404(Rater, rater_digital_id=rater_digital_id)
         rater.active = False
         rater.save()
         return Response({"message": "Rater deleted successfully", "Code": 200}, status=status.HTTP_204_NO_CONTENT)
     
     def update(self, request):
-        task_access = request.data.get('taskAccess')
+        if request.user.is_superuser == False:
+            return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN) # Ensure permissions are checked
+        
+        if request.user.is_superuser:
+            task_access = request.data.get('taskAccess')
 
-        if task_access:
-            # Update all raters' task_access with the provided data
-            raters = Rater.objects.all()
-            for rater in raters:
-                rater.task_access = task_access
-                rater.save()
-            return Response({"message": "All raters' task_access updated successfully", "Code": 200})
+            if task_access:
+                # Update all raters' task_access with the provided data
+                raters = Rater.objects.all()
+                for rater in raters:
+                    rater.task_access = task_access
+                    rater.save()
+                return Response({"message": "All raters' task_access updated successfully", "Code": 200})
         return Response({"message": "No task_access provided", "Code": 400})
 
 
 class WritingTaskViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows users to be viewed or edited.
+    API endpoint that allows writing tasks to be viewed or edited.
     """
     queryset = WritingTask.objects.all().order_by('id')
     serializer_class = WritingTaskSerializer
+
+    def get_permissions(self):
+        """
+        Assign permissions based on the request type.
+        """
+        if self.request.GET.get('rater_name'):
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), IsAdminUser()]
+
+    def list(self, request):
+        """
+        List writing tasks, optionally filtered by rater_name.
+        """
+        rater_name = request.GET.get('rater_name')
+        context = []
+
+        if rater_name:
+            rater = get_object_or_404(Rater, username=rater_name)
+            query_class = rater.classes
+            students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
+
+            for student in students:
+                writings = student.writingtask_set.all()
+                student_writings = {
+                    "student": student.student_name,
+                    "first_name": student.first_name,
+                    "last_name": student.last_name,
+                    "writings": WritingTaskSerializer(writings, many=True).data
+                }
+                context.append(student_writings)
+        else:
+            context = WritingTaskSerializer(self.queryset, many=True).data
+
+        return Response(context)
+                
+
 
 
 
@@ -82,25 +125,26 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
+    permission_classes = [IsAuthenticated]
     queryset = AssessmentTask.objects.all().order_by('id')
     serializer_class = AssessmentTaskSerializer
+
 
     def list(self, request):
         """
         Allows filtering by rater_name via a query parameter.
         Example: GET /api/review-assignments/?rater_name=Rater1
         """
-        queryset = AssessmentTask.objects.all().order_by('id')  # Use self.queryset to maintain consistency
         rater_name = request.GET.get('rater_name', None)
-
         if rater_name:
-            try:
-                rater = Rater.objects.get(username=rater_name)
-                task_access = rater.task_access
-                queryset = queryset.filter(rater=rater, writing_task__trait=f"Writing {task_access}")
-            except Rater.DoesNotExist:
-                return Response({"message": f"Rater '{rater_name}' not found", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
-        
+            rater = get_object_or_404(Rater, username=rater_name)
+            queryset = AssessmentTask.objects.filter(rater=rater, writing_task__trait=f"Writing {rater.task_access}")
+        elif request.user.is_superuser:
+            queryset=AssessmentTask.objects.all().order_by('id')
+        else:
+            queryset =[]
+            return Response({"message": "Error creating review assignment", "Code": 500})
+       
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
@@ -167,6 +211,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         
 
     
+@permission_classes([IsAdminUser])
 def assign_raters_view(request):
     """
     View to assign raters to a writing task.
@@ -179,7 +224,7 @@ def assign_raters_view(request):
     
     return JsonResponse({"message": "Raters assigned successfully", "Code": 200})
 
-
+@permission_classes([IsAdminUser])
 def verify_view(request):
     """
     Verify each student has 4 unique raters.
@@ -202,6 +247,7 @@ def verify_view(request):
 
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser])
 def assign_to_all(request):
     """
     View to assign certain tasks to all raters.
@@ -233,11 +279,12 @@ def assign_to_all(request):
 
     return JsonResponse({"message": "Tasks assigned to all raters successfully", "Code": 200})
             
-    
+@permission_classes([IsAdminUser]) 
 def clear_tasks_view(request):
     """
     View to clear all writing tasks.
     """
     AssessmentTask.objects.all().delete()
     return JsonResponse({"message": "Tasks cleared successfully", "Code": 200})
+
 

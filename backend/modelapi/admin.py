@@ -1,6 +1,6 @@
 from django.contrib import admin
 # from django.contrib.auth.admin import UserAdmin
-from .models import Rater, WritingTask, AssessmentTask
+from .models import Rater, WritingTask, AssessmentTask, Student, BEClass
 # Register your models here.
 
 @admin.register(Rater)
@@ -17,3 +17,12 @@ class AssessmentTaskAdmin(admin.ModelAdmin):
     @admin.display(description='Rater')
     def get_rater(self, obj):
         return obj.rater.rater_digital_id  # Adjust based on your actual Raters model
+
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ['student_name', 'first_name', 'last_name', 'classes']  # Show columns in list view
+
+
+@admin.register(BEClass)
+class BEClassAdmin(admin.ModelAdmin):
+    list_display = ['class_name']  # Show columns in list view

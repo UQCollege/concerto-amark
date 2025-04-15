@@ -22,6 +22,7 @@ interface SidebarItemProps {
 
 const Sidebar = ({ children }: SidebarProps) => {
   const [expanded, setExpanded] = useState(false);
+
   return (
     <>
       <aside className="h-screen border">

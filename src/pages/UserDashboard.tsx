@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getUserTasks, updateRatingInTable } from "../utils/apiService";
+import { getClassWritings, getUserTasks, updateRatingInTable } from "../utils/apiService";
 import Button from "../uis/Button";
 
 import MarkOption from "../uis/MarkOption";
@@ -22,6 +22,7 @@ import {
   initialRating,
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../apiTypes";
+import { downloadWritingsZip } from "../utils/downloadPDF";
 
 
 const markOptions = [
@@ -36,6 +37,7 @@ export function UserDashboard() {
   const currentUser = name ? name : ""
   const [currentTaskId, setCurrentTaskId] = useState<number | undefined>();
   const [expanded, setExpanded] = useState(true);
+  
 
   const assessData: AssessData[] = [...useAppSelector((state) => state.assess)];
 
@@ -63,7 +65,7 @@ export function UserDashboard() {
             voc: task.voc,
             coco: task.coco,
           },
-          comments: task.comments,
+          comments:""+ task.comments, //"" - to solve textarea should not be null
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
@@ -78,7 +80,7 @@ export function UserDashboard() {
 
   if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
 
-  if (!currentTask) return <div>Loading task...</div>;
+  if (!currentTask) return <div>Loading task for {currentUser}</div>;
 
   const totalTasks = assessData.length;
   const completedTasks = assessData.filter((task) => task.completed).length;
@@ -147,8 +149,18 @@ export function UserDashboard() {
     await updateRatingInTable(updateData)
   }
 
+ const handleClassWritings = async(name: string)=>{
+   const pdfData = await getClassWritings(name);
+   console.log(pdfData)
+   downloadWritingsZip(pdfData)
+
+ }
+
   return (
     <div className="">
+        <div>
+          <Button className="btn-outline" onClick={async ()=>handleClassWritings(currentUser)}>Class Task</Button>
+        </div>
 
       <div className="flex items-center h-[100vh]">
         <div

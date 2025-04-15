@@ -1,15 +1,22 @@
 from django.core.management.base import BaseCommand
-from modelapi.models import Rater, WritingTask
+from modelapi.models import Rater, WritingTask, Student
 
 class Command(BaseCommand):
     help = 'Seed the database with initial data'
 
     def handle(self, *args, **kwargs):
+        self.seed_student()
         self.seed_writing_tasks()
         self.stdout.write(self.style.SUCCESS('Database seeded successfully'))
 
+
+    def seed_student(self):
+        students = ["s0"+str(i) for i in range(500) ] 
+        for student in students:
+            Student.objects.get_or_create(student_name = student, first_name='firstn'+student, last_name='lastn'+student)   
+
     def seed_writing_tasks(self):
-        students = ["s0"+str(i) for i in range(501) ]  # Add more users as needed
+        students =Student.objects.all()  # Add more users as needed
         start_date = "2025-02-27"
         end_date = "2025-02-28"
         writing_tasks_data = []

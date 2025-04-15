@@ -13,7 +13,8 @@ USERPOOL_ID =  os.environ.get("USERPOOL_ID", None)
 APP_CLIENT_ID =  os.environ.get("APP_CLIENT_ID", None)
 COGNITO_ISSUER = f'https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{USERPOOL_ID}'
 JWKS_URL = f'{COGNITO_ISSUER}/.well-known/jwks.json'
-JWKS = requests.get(JWKS_URL).json()
+
+JWKS = {"keys": []} if settings.USE_FAKE_AUTH else requests.get(JWKS_URL).json()
 
 
 class CognitoJWTAuthentication(BaseAuthentication):
@@ -28,10 +29,11 @@ class CognitoJWTAuthentication(BaseAuthentication):
                         "active": True,
                         "task_access": 1,
                         "is_staff" : True,
-                        "is_superuser" : True
+                        "is_superuser" : True,
                     }
                 )
                 return (self._devuser, None)
+            
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             print("no Authen")
@@ -57,8 +59,9 @@ class CognitoJWTAuthentication(BaseAuthentication):
         return (user, None)
 
     def get_or_create_user(self, claims):
-
-        username = claims.get("username") or claims.get("cognito:username")
+        print("start...")
+        username = (claims.get("username") or claims.get("cognito:username")).capitalize()
+        print("from Auth user: ", username)
         sub = claims.get("sub")
         email = claims.get("email", "")
         cognito_groups = claims.get("cognito:groups", [])
@@ -78,9 +81,11 @@ class CognitoJWTAuthentication(BaseAuthentication):
         if 'Admin' in cognito_groups:
             user.is_staff = True
             user.is_superuser = True
+            print("admin")
         elif 'general' in cognito_groups:
             user.is_staff = True
             user.is_superuser = False
+            print("general")
 
         user.save()
         return user

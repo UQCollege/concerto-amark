@@ -22,6 +22,17 @@ apiService.interceptors.request.use((config) => {
 });
 
 // Get Method
+export const getClassWritings = async(name:string)=>{
+    try{
+
+        const response =await apiService.get(`/tasks/?rater_name=${name}`)
+
+       
+        return response.data
+    }catch(error){
+        console.error(error)
+    }
+}
 export const verify = async () => {
     try {
         const response = await apiService.get("/verify")
@@ -33,7 +44,7 @@ export const verify = async () => {
 export const getInitialAssessmentData = async () => {
     try {
         const response = await
-            apiService.get("/raters-assignment");
+            apiService.get("/allocated-tasks");
         return response.data;
     } catch (error) {
         console.error("Error fetching data: ", error);
@@ -43,10 +54,9 @@ export const getInitialAssessmentData = async () => {
 
 export const getAssessmentData = async () => {
     try {
-        // await apiService.get("/clear-tasks")
         await apiService.get("/assign-tasks");
         const response = await
-            apiService.get("/raters-assignment");
+            apiService.get("/allocated-tasks");
         return response.data;
     } catch (error) {
         console.error("Error fetching data: ", error);
@@ -55,13 +65,12 @@ export const getAssessmentData = async () => {
 
 export const getUserTasks = async (name: string) => {
 
-
-    try {
-        const response = await apiService.get(`/raters-assignment/?rater_name=${name}`);
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching data: ", error);
-    }
+        try {
+            const response = await apiService.get(`/allocated-tasks/?rater_name=${name}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching data: ", error);
+        }
 }
 
 export const getRatersFromDB = async () => {
@@ -78,7 +87,7 @@ export const getRatersFromDB = async () => {
 // Post Method
 export const createTaskInTable = async (data: { student_name: string; trait: string; rater_name: string }) => {
     try {
-        const response = await apiService.post("/raters-assignment/", data);
+        const response = await apiService.post("/allocated-tasks/", data);
         return response.data;
     } catch (error) {
         console.error("Error creating task: ", error);
@@ -128,7 +137,7 @@ export const updateTasksTable = async (task: { idList: number[], raterName: stri
         const { idList, raterName } = task
         const data = []
         data.push({ idList, raterName })
-        await apiService.put("/raters-assignment/", data)
+        await apiService.put("/allocated-tasks/", data)
     } catch (error) {
         console.error(error)
     }
@@ -136,7 +145,7 @@ export const updateTasksTable = async (task: { idList: number[], raterName: stri
 
 export const updateRatingInTable = async (data: { id: number; ratings: RatingAspects; comments: string; completed: boolean }[]) => {
     try {
-        await apiService.put("/raters-assignment/", data)
+        await apiService.put("/allocated-tasks/", data)
     } catch (error) {
         console.error(error)
     }
