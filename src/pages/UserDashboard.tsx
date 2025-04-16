@@ -114,12 +114,21 @@ export function UserDashboard() {
   const currentTaskIndex = assessData.findIndex(
     (task) => task.id === currentTaskId
   );
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     dispatch(setCompleted({ id: currentTask.id, completed: true }));
     const index = assessData.findIndex((t) => t.id === currentTaskId);
     if (index < assessData.length - 1) {
       setCurrentTaskId(assessData[index + 1].id);
     }
+    const updateData = assessData.filter((el) => el.completed === true).map((el) => ({
+      id: el.id,
+      ratings: el.ratings,
+      comments: el.comments,
+      completed: el.completed
+
+    }))
+
+    await updateRatingInTable(updateData)
   };
 
   const handleRevert = () => {

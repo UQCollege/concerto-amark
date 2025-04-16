@@ -171,7 +171,7 @@ export function AdminDashboard() {
             <div className="pi pi-arrow-right"></div>
             <div className="flex flex-row items-center gap-2">
               <Button onClick={handleFetchResult}>tasks allocating</Button>
-              <Button onClick={() => setShowDialog(true)}>Clear all tasks</Button>
+              <Button className="p-button-danger" onClick={() => setShowDialog(true)}>Clear all tasks</Button>
             </div>
             {isProcess && <Loading />}
           </div>

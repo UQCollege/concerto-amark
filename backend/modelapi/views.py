@@ -234,13 +234,17 @@ def verify_view(request):
         raters = AssessmentTask.objects.filter(writing_task__student_name=student).values_list("rater__username", flat=True)
         unique_raters = set(raters)
         # Check if the student has exactly 4 unique raters
-        if len(unique_raters) != 4:
+        if len(raters) >10: 
+            print(student)
+            print(len(raters))
+            print(len(unique_raters))
+        if len(raters) != len(unique_raters) and len(raters) != (2*len(unique_raters)):
             invalid_students[student] = list(unique_raters)
 
     if invalid_students:
         return JsonResponse({"message": "Some students do not have exactly 4 unique raters", "details": invalid_students, "Code": 400})
 
-    return JsonResponse({"message": "Each students have 4 unique raters", "Code": 200})
+    return JsonResponse({"message": "Each students have 4 unique raters and some students' tasks been reviewed by all", "Code": 200})
 
 
 @api_view(['POST'])
@@ -258,7 +262,7 @@ def assign_to_all(request):
         task.assign_all = True
         task.save()
 
-        raters = Rater.objects.all()
+        raters = Rater.objects.filter(is_superuser=False)
         for rater in raters:
             # Check if the assignment already exists
             if not AssessmentTask.objects.filter(rater=rater, writing_task=task).exists():
