@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import {jwtDecode} from "jwt-decode";
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
-type UserType = "Admin" | "general" | null
+type UserType = "Admin" | "General" | null
 
 interface User {
     token:string|null;

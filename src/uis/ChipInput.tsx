@@ -1,4 +1,4 @@
-import React, { ChangeEvent, KeyboardEvent, useRef } from 'react';
+import React, { ChangeEvent, KeyboardEvent } from 'react';
 import { Chip } from 'primereact/chip';
 import { InputText } from 'primereact/inputtext';
 

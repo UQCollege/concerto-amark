@@ -118,9 +118,6 @@ class WritingTaskViewSet(viewsets.ModelViewSet):
                 
 
 
-
-
-
 class AssessmentTaskViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
@@ -243,7 +240,7 @@ def verify_view(request):
     if invalid_students:
         return JsonResponse({"message": "Some students do not have exactly 4 unique raters", "details": invalid_students, "Code": 400})
 
-    return JsonResponse({"message": "All students have 4 unique raters", "Code": 200})
+    return JsonResponse({"message": "Each students have 4 unique raters", "Code": 200})
 
 
 @api_view(['POST'])

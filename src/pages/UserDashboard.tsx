@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getClassWritings, getUserTasks, updateRatingInTable } from "../utils/apiService";
-import Button from "../uis/Button";
+import { Button } from "primereact/button";
 
 import MarkOption from "../uis/MarkOption";
 import { SelectOptionType } from "../uis/MarkOption";
@@ -80,7 +80,9 @@ export function UserDashboard() {
 
   if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
 
-  if (!currentTask) return <div>Loading task for {currentUser}</div>;
+  if (!currentTask) return <div>Loading task for {currentUser} or <div>
+  <Button  label="Download Class Tasks" onClick={async ()=>handleClassWritings(currentUser)} />
+</div></div>;
 
   const totalTasks = assessData.length;
   const completedTasks = assessData.filter((task) => task.completed).length;
@@ -151,7 +153,7 @@ export function UserDashboard() {
 
  const handleClassWritings = async(name: string)=>{
    const pdfData = await getClassWritings(name);
-   console.log(pdfData)
+
    downloadWritingsZip(pdfData)
 
  }
@@ -159,7 +161,7 @@ export function UserDashboard() {
   return (
     <div className="">
         <div>
-          <Button className="btn-outline" onClick={async ()=>handleClassWritings(currentUser)}>Class Task</Button>
+        <Button  label="Download Class Tasks" onClick={async ()=>handleClassWritings(currentUser)} />
         </div>
 
       <div className="flex items-center h-[100vh]">

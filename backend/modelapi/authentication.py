@@ -19,6 +19,7 @@ JWKS = {"keys": []} if settings.USE_FAKE_AUTH else requests.get(JWKS_URL).json()
 
 class CognitoJWTAuthentication(BaseAuthentication):
     def authenticate(self, request):
+
         if settings.USE_FAKE_AUTH:
             if not hasattr(self, "_devuser"):
                 self._devuser, _ = Rater.objects.get_or_create(
@@ -35,6 +36,7 @@ class CognitoJWTAuthentication(BaseAuthentication):
                 return (self._devuser, None)
             
         auth_header = request.headers.get("Authorization")
+      
         if not auth_header or not auth_header.startswith("Bearer "):
             print("no Authen")
             return None
@@ -53,15 +55,17 @@ class CognitoJWTAuthentication(BaseAuthentication):
                 }
             )
         except JWTError as e:
+ 
             raise AuthenticationFailed(f"Invalid token: {e}")
 
         user = self.get_or_create_user(claims)
+
         return (user, None)
 
     def get_or_create_user(self, claims):
-        print("start...")
+
         username = (claims.get("username") or claims.get("cognito:username")).capitalize()
-        print("from Auth user: ", username)
+   
         sub = claims.get("sub")
         email = claims.get("email", "")
         cognito_groups = claims.get("cognito:groups", [])
@@ -81,11 +85,11 @@ class CognitoJWTAuthentication(BaseAuthentication):
         if 'Admin' in cognito_groups:
             user.is_staff = True
             user.is_superuser = True
-            print("admin")
-        elif 'general' in cognito_groups:
+ 
+        elif 'General' in cognito_groups:
             user.is_staff = True
             user.is_superuser = False
-            print("general")
+ 
 
         user.save()
         return user

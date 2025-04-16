@@ -27,12 +27,12 @@
                <div class="col-3 border">
                    <img class="poster" src="" alt="APP Splash" />
                 </a>
-                <p>Login</p>
+                <p>Concerto - Writing Assessment</p>
                 <div>
                     <button id="signIn">Sign In</button>
                     <button id="signOut">Log out</button>
                 </div>
-                <div id="django-link" style="display:none; margin-top: 1em;">
+                <div id="django-link" style="margin-top: 1em;">
                     <p>
                         Login successful. Proceed to your dashboard:
                         <button id="goToDashboard">Go to My Dashboard</button>
@@ -69,6 +69,7 @@
             // Clear local session data
             localStorage.removeItem("session_token");
             sessionStorage.removeItem("session_token");
+            console.log("Clear up")
             document.cookie = "session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             const clientId = OIDC_CONFIG.client_id;
             const logoutUri = OIDC_CONFIG.post_logout_redirect_uri;
@@ -82,8 +83,8 @@
                 if (user && user.id_token && user.access_token) {
                     localStorage.setItem("access_token", user.access_token);
                     localStorage.setItem("id_token", user.id_token);
-
-                    const dashboardUrl = `${APP_DASHBORD}?access_token=${user.access_token}`;
+                     
+                    const dashboardUrl = `${APP_LOGIN.AMARK_DASHBORD}?access_token=${user.access_token}`;
                     const dashboardBtn = document.getElementById("goToDashboard");
                     dashboardBtn.onclick = () => {
                         window.location.href = dashboardUrl;
