@@ -29,3 +29,10 @@ dist-ssr
 .env*
 .env
 .concerto-amark_env
+config.js
+
+# terraform
+terraform.*
+.terraform.*
+*.pem
+.terraform/*
