@@ -2,31 +2,6 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
-variable "key_name" {
-  default = "amark-key"
-}
-
-variable "ecr_url" {
-  description = "Your ECR URL (e.g., 123456789012.dkr.ecr.ap-southeast-2.amazonaws.com)"
-  type        = string
-  default     = ".dkr.ecr.ap-southeast-2.amazonaws.com"
-}
-
-variable "secret_key" {
-  description = "Your Django SECRET_KEY"
-  type        = string
-}
-
-variable "userpool_id" {
-  description = "Cognito User Pool_id"
-  type        = string
-}
-
-variable "app_client_id" {
-  description = "Cognito app Client Id"
-  type        = string
-}
-
 data "aws_vpc" "default" {
   default = true
 }

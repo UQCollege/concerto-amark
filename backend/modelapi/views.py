@@ -20,6 +20,20 @@ class RaterViewSet(viewsets.ModelViewSet):
     queryset = Rater.objects.all().order_by('username')
     serializer_class = RaterSerializer
 
+    def list (self, request):
+        if request.user.is_superuser == "False":
+            return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
+
+        raters=Rater.objects.all().order_by('username')
+        data = []
+        if raters.exists():
+            for rater in raters:
+                tasks_total = AssessmentTask.objects.filter(rater = rater).count()
+                data.append({"username": rater.username, "rater_digital_id": rater.rater_digital_id, "active": rater.active, "tasks_total": tasks_total})
+ 
+        return Response(data)     
+            
+
     def create(self, request):
         if request.user.is_superuser == "False":
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
@@ -73,6 +87,7 @@ class RaterViewSet(viewsets.ModelViewSet):
                     rater.save()
                 return Response({"message": "All raters' task_access updated successfully", "Code": 200})
         return Response({"message": "No task_access provided", "Code": 400})
+    
 
 
 class WritingTaskViewSet(viewsets.ModelViewSet):

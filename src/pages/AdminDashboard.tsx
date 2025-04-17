@@ -20,10 +20,7 @@ import {
   verify,
 } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
-import InfoSidebar from "../uis/InfoSidebar";
-import { TaskContent } from "../uis/InfoSidebar";
 import { setTasks } from "../features/data/taskAllocationSlice";
-import { verifyTaskAllocation } from "../utils/verifyTaskAllocation";
 import { TabPanel, TabView } from "primereact/tabview";
 import RatersTableUI from "../uis/RaterTable";
 import { Toast } from "primereact/toast";
@@ -36,14 +33,13 @@ export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
-  const assessorsList = useAppSelector((state) => state.ratersUpdate).map(
-    (rater) => rater.raterDigitalId
-  );
+  
 
   useEffect(() => {
     setIsProcess(true);
     const getInitialData = async () => {
       const result = await getInitialAssessmentData();
+
       if (result.length === 0) {
         setIsProcess(false);
         return;
@@ -136,7 +132,7 @@ export function AdminDashboard() {
   return (
     <div className="flex items-start min-h-screen">
       <Toast ref={toast} />
-      <div className="w-[80vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
+      <div className="w-[90vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
         <div className="flex justify-between">
           <div className="flex flex-col items-center  gap-3">
             <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
@@ -175,20 +171,10 @@ export function AdminDashboard() {
             </div>
             {isProcess && <Loading />}
           </div>
-          <div className="flex items-end ">
-            <span>(to esure all tasks been allocated correctly)</span>
-            <Button label="RaterMatrix .csv" icon="pi pi-download" onClick={downloadMatrixCSVHandler} />
-            <Button label="Verify" onClick={verifyHandler} />
-
-            <div className="flex flex-row items-center gap-2">
-              <InfoSidebar
-                infoHead=""
-                infoList={verifyTaskAllocation(taskData, assessorsList)}
-                renderInfo={(info) => (
-                  <TaskContent info={info as { name: string; value: number }} />
-                )}
-              />
-            </div>
+          <div className="flex flex-col gap-2 items-center ">
+           
+            <Button label="Matrix" className="w-25" rounded outlined icon="pi pi-download" onClick={downloadMatrixCSVHandler} />
+            <Button label="Verify" className="w-25" rounded outlined  aria-setsize={10} onClick={verifyHandler} />
           </div>
         </div>
 

@@ -12,7 +12,7 @@ import DialogUi from "./DialogUi";
 
 
 
-const fieldNames = ["raterName", "raterDigitalId", "active"];
+const fieldNames = ["raterName", "raterDigitalId", "active", "totalTasks"];
 
 export default function RatersTableUI() {
 
@@ -21,6 +21,7 @@ export default function RatersTableUI() {
     dispatch(fetchRaters());
   }, [])
   const raterList = useAppSelector((state) => state.ratersUpdate);
+  console.log("List",raterList)
   const [filters, setFilters] = useState(() =>
     fieldNames.reduce(
       (acc, field) => ({
@@ -72,6 +73,8 @@ export default function RatersTableUI() {
     raterName: item.raterName,
     raterDigitalId: item.raterDigitalId,
     active: item.active.toString(),
+    totalTasks: item.totalTasks
+
   }));
 
   return (

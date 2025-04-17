@@ -36,3 +36,4 @@ terraform.*
 .terraform.*
 *.pem
 .terraform/*
+variables.tf

@@ -6,8 +6,8 @@ import { Panel } from "primereact/panel";
 
 export interface InfoSidebarProps {
   infoHead: string;
-  infoList: (AssessData | { [key: string]: number })[];
-  renderInfo: (task: AssessData | { name: string; value: number }) => React.ReactNode;
+  infoList: AssessData[];
+  renderInfo: (task: AssessData ) => React.ReactNode;
 }
 
 const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
@@ -16,6 +16,7 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
   return (
     <>
       <Button
+      className="w-25" rounded outlined 
       icon="pi pi-arrow-left"
         onClick={() => setVisibleRight(true)}
         label={infoHead}
@@ -28,22 +29,11 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
       >
         <Panel header="Task List">
           {infoList.map((info, index) => {
-            if ("studentName" in info) {
-              // Case: Original format
               return (
                 <div key={index}>
                   <p className="p-1">{renderInfo(info as AssessData)}</p>
                 </div>
               );
-            } else {
-              // Case: New format (extract key-value)
-              const [name, value] = Object.entries(info)[0];
-              return (
-                <div key={index}>
-                  <p className="p-2">{renderInfo({ name, value })}</p>
-                </div>
-              );
-            }
           })}
         </Panel>
       </Sidebar>
@@ -52,12 +42,10 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
 };
 
 export interface TaskContentProps {
-  info: AssessData | { name: string; value: number };
+  info: AssessData ;
 }
 
 export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
-  if ("studentName" in info) {
-    // Case: Original format
     return (
       <>
         <span>
@@ -73,14 +61,7 @@ export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
         <input type="checkbox" checked={info.completed} onChange={() => { }} />
       </>
     );
-  } else {
-    // Case: New format
-    return (
-      <span>
-        {info.name}: {info.value}
-      </span>
-    );
-  }
+  
 };
 
 export default InfoSidebar;

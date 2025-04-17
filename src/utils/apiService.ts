@@ -77,7 +77,8 @@ export const getRatersFromDB = async () => {
     try {
         const response = await apiService.get("/raters/");
 
-        const result = response.data.map((item: { username: string; rater_digital_id: string; active: boolean }) => ({ raterName: item.username, raterDigitalId: item.rater_digital_id, active: item.active }));
+        const result = response.data.map((item: { username: string; rater_digital_id: string; active: boolean; tasks_total: number }) => ({ raterName: item.username, raterDigitalId: item.rater_digital_id, active: item.active, totalTasks: item.tasks_total }));
+        console.log(result)
         return result
     } catch (error) {
         console.error("Error fetching data: ", error);

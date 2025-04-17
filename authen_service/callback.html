@@ -22,7 +22,7 @@
 
         userManager.signinRedirectCallback()
             .then(() => {
-                window.location.href = "/";
+                window.location.href = "/sign-in.html";
             })
             .catch(err => {
                 console.error("Login callback failed", err);
