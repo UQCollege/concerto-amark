@@ -5,6 +5,7 @@ import { getAccessToken } from "./auth";
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+console.log(API_BASE_URL)
 
 const apiService = axios.create({
     baseURL: API_BASE_URL,
@@ -22,14 +23,14 @@ apiService.interceptors.request.use((config) => {
 });
 
 // Get Method
-export const getClassWritings = async(name:string)=>{
-    try{
+export const getClassWritings = async (name: string) => {
+    try {
 
-        const response =await apiService.get(`/tasks/?rater_name=${name}`)
+        const response = await apiService.get(`/tasks/?rater_name=${name}`)
 
-       
+
         return response.data
-    }catch(error){
+    } catch (error) {
         console.error(error)
     }
 }
@@ -65,12 +66,12 @@ export const getAssessmentData = async () => {
 
 export const getUserTasks = async (name: string) => {
 
-        try {
-            const response = await apiService.get(`/allocated-tasks/?rater_name=${name}`);
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching data: ", error);
-        }
+    try {
+        const response = await apiService.get(`/allocated-tasks/?rater_name=${name}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching data: ", error);
+    }
 }
 
 export const getRatersFromDB = async () => {
