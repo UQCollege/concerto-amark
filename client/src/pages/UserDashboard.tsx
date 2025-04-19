@@ -20,6 +20,7 @@ import {
 
 
   initialRating,
+  completeAndUpdate,
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../apiTypes";
 import { downloadWritingsZip } from "../utils/downloadPDF";
@@ -37,7 +38,7 @@ export function UserDashboard() {
   const currentUser = name ? name : ""
   const [currentTaskId, setCurrentTaskId] = useState<number | undefined>();
   const [expanded, setExpanded] = useState(true);
-  
+
 
   const assessData: AssessData[] = [...useAppSelector((state) => state.assess)];
 
@@ -65,7 +66,7 @@ export function UserDashboard() {
             voc: task.voc,
             coco: task.coco,
           },
-          comments:""+ task.comments, //"" - to solve textarea should not be null
+          comments: "" + task.comments, //"" - to solve textarea should not be null
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
@@ -81,8 +82,8 @@ export function UserDashboard() {
   if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
 
   if (!currentTask) return <div>Loading task for {currentUser} or <div>
-  <Button  label="Download Class Tasks" onClick={async ()=>handleClassWritings(currentUser)} />
-</div></div>;
+    <Button label="Download Class Tasks" onClick={async () => handleClassWritings(currentUser)} />
+  </div></div>;
 
   const totalTasks = assessData.length;
   const completedTasks = assessData.filter((task) => task.completed).length;
@@ -115,20 +116,12 @@ export function UserDashboard() {
     (task) => task.id === currentTaskId
   );
   const handleSubmit = async () => {
-    dispatch(setCompleted({ id: currentTask.id, completed: true }));
+    dispatch(completeAndUpdate(currentTask.id))
     const index = assessData.findIndex((t) => t.id === currentTaskId);
     if (index < assessData.length - 1) {
       setCurrentTaskId(assessData[index + 1].id);
     }
-    const updateData = assessData.filter((el) => el.completed === true).map((el) => ({
-      id: el.id,
-      ratings: el.ratings,
-      comments: el.comments,
-      completed: el.completed
 
-    }))
-
-    await updateRatingInTable(updateData)
   };
 
   const handleRevert = () => {
@@ -147,31 +140,20 @@ export function UserDashboard() {
     );
   }
 
-  const saveRatings = async (assessData: AssessData[]) => {
 
-    const updateData = assessData.filter((el) => el.completed === true).map((el) => ({
-      id: el.id,
-      ratings: el.ratings,
-      comments: el.comments,
-      completed: el.completed
 
-    }))
+  const handleClassWritings = async (name: string) => {
+    const pdfData = await getClassWritings(name);
 
-    await updateRatingInTable(updateData)
+    downloadWritingsZip(pdfData)
+
   }
-
- const handleClassWritings = async(name: string)=>{
-   const pdfData = await getClassWritings(name);
-
-   downloadWritingsZip(pdfData)
-
- }
 
   return (
     <div className="">
-        <div>
-        <Button  label="Download Class Tasks" onClick={async ()=>handleClassWritings(currentUser)} />
-        </div>
+      <div>
+        <Button label="Download Class Tasks" onClick={async () => handleClassWritings(currentUser)} />
+      </div>
 
       <div className="flex items-center h-[100vh]">
         <div
@@ -239,9 +221,8 @@ export function UserDashboard() {
                 }
                 disabled={!isAllSelected}
               >
-                {isLastTask ? "Submit Final Assessment" : "Next"}
+                {isLastTask ? "Submit Final Assessment" : "Next ( Save )"}
               </Button>
-              <Button onClick={() => saveRatings(assessData)}>Save</Button>
             </div>
           </div>
 

@@ -1,4 +1,11 @@
+import { ThunkAction, Action } from "@reduxjs/toolkit";
+import { RootState } from "./store/store";
 export type Rating = 1 | 2 | 3 | 4 | 5 | undefined;
+
+// Redux Store Type
+export type AppThunk<ReturnType = void> = ThunkAction<
+    ReturnType, RootState, unknown, Action<string>>
+
 
 // Type from DB
 export type ApiData = {
@@ -37,3 +44,11 @@ export type TaskAPI = {
     comments: string;
     completed: boolean;
 };
+
+
+export interface RatingAspects {
+    ta: Rating;
+    gra: Rating;
+    voc: Rating;
+    coco: Rating;
+}

@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Rating } from "../../apiTypes";
+import { updateRatingInTable } from "../../utils/apiService";
+import { AppThunk } from "../../apiTypes";
 
 export interface RatingAspects {
   ta: Rating;
@@ -20,7 +22,6 @@ export interface AssessData {
   completed: boolean;
 }
 
-export const initialState: AssessData[] = [];
 
 interface UpdateRatingPayload {
   id: number;
@@ -38,6 +39,7 @@ interface SetCompletedPayload {
   completed: boolean;
 }
 
+export const initialState: AssessData[] = [];
 
 
 const assessSlice = createSlice({
@@ -49,9 +51,9 @@ const assessSlice = createSlice({
     },
     setRating: (state, action: PayloadAction<UpdateRatingPayload>) => {
       const { id, ratingType, value } = action.payload;
-  
+
       const assessData = state.find((data) => data.id === id);
-    
+
       if (assessData) {
         assessData.ratings[ratingType] = value;
       }
@@ -64,11 +66,28 @@ const assessSlice = createSlice({
     setCompleted: (state, action: PayloadAction<SetCompletedPayload>) => {
       const { id, completed } = action.payload;
       const task = state.find((d) => d.id === id);
-      if (task) task.completed = completed;
+      if (!task) return
+      task.completed = completed;
+
     },
   },
 });
 
 export const { setRating, initialRating, setCompleted, setComment } = assessSlice.actions;
+export const completeAndUpdate = (id: number): AppThunk => (dispatch, getState) => {
+  dispatch(setCompleted({ id, completed: true }));
+
+  const { assess } = getState(); // Access your assess state slice
+  const updateData = assess
+    .filter((el) => el.completed === true)
+    .map((el) => ({
+      id: el.id,
+      ratings: el.ratings,
+      comments: el.comments,
+      completed: el.completed,
+    }));
+
+  return updateRatingInTable(updateData);
+};
 
 export default assessSlice.reducer;
