@@ -108,6 +108,11 @@ resource "aws_instance" "amark_ec2" {
                     - ./staticfiles:/app/staticfiles
                   env_file:
                     - .env
+                  command: >
+                    sh -c "python manage.py migrate &&
+                           python manage.py createsuperuser_if_not_exists &&
+                           python manage.py collectstatic --noinput &&
+                           gunicorn --bind 0.0.0.0:8000 amarkapi.wsgi:application"
               EOL
 
               cat <<EOL > .env
