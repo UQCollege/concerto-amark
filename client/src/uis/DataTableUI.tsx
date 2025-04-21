@@ -1,14 +1,14 @@
 import { DataTable, DataTableRowEditCompleteEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
-import { useState, useRef } from "react";
+import { useState, useRef, use } from "react";
 import { InputText } from "primereact/inputtext";
 import OptionsEditor from "./OptionsEditor";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Toolbar } from "primereact/toolbar";
 import { type TD } from "../utils/transformApiData";
-import { useAppDispatch } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import "primereact/resources/primereact.min.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
@@ -24,8 +24,9 @@ import DialogUi from "./DialogUi";
 import { classNames } from "primereact/utils";
 import { RadioButton, RadioButtonChangeEvent } from "primereact/radiobutton";
 import { exportExcel } from "../utils/downloadExcel";
-import { SelectButton } from "primereact/selectbutton";
 import { Divider } from 'primereact/divider';
+import { DownloadData, downloadPDF } from "../utils/downloadPDF";
+import { getInitialAssessmentData } from "../utils/apiService";
 
 
 export interface ColumnMeta {
@@ -94,14 +95,7 @@ export default function DataTableUI({
           onClick={() => exportExcel(taskData, visibleColumn)}
           data-pr-tooltip="XLS"
         />
-        <Button
-          label="SQL"
-          icon="pi pi-file-edit"
-          severity="info"
-          onClick={OnRunSQL}
-          size="small"
-          disabled
-        />
+
       </div>
     );
   };
@@ -149,11 +143,7 @@ export default function DataTableUI({
     }
     setDisplaySelected((state) => !state);
   };
-  // SQL dialog
-  const [isSQLDialogVisible, setisSQLDialogVisible] = useState(false);
-  const OnRunSQL = () => {
-    setisSQLDialogVisible(true);
-  };
+
   // Filter
   const [filters, setFilters] = useState(() =>
     fieldNames.reduce(
@@ -238,11 +228,24 @@ export default function DataTableUI({
     />
   );
 
-  const actionBodyTemplate = (rowData: TD) => (
+  const actionDeleteTemplate = (rowData: TD) => (
     <Button
       icon="pi pi-trash"
       className="p-button-rounded p-button-danger"
       onClick={() => confirmDelete(rowData)}
+    />
+  );
+
+  const downloadHandler = async (rowData: TD) => {
+    const downloadData = (await getInitialAssessmentData(rowData.id))[0]
+    await downloadPDF(downloadData as DownloadData)
+
+  }
+  const actionDownloadTemplate = (rowData: TD) => (
+    <Button
+      icon="pi pi-download"
+      className="p-button-rounded p-button-info"
+      onClick={() => downloadHandler(rowData)}
     />
   );
 
@@ -301,7 +304,14 @@ export default function DataTableUI({
         />
 
         <Column
-          body={actionBodyTemplate}
+          body={actionDownloadTemplate}
+          headerStyle={{ width: "5%", minWidth: "5rem" }}
+          style={{ textAlign: "center" }}
+          hidden={taskData.length === 0}
+        />
+
+        <Column
+          body={actionDeleteTemplate}
           headerStyle={{ width: "5%", minWidth: "5rem" }}
           style={{ textAlign: "center" }}
           hidden={taskData.length === 0}
@@ -315,21 +325,7 @@ export default function DataTableUI({
         onConfirm={onDeleteConfirmed}
       />
 
-      <Dialog
-        visible={isSQLDialogVisible}
-        onHide={() => {
-          if (!isSQLDialogVisible) return;
-          setisSQLDialogVisible(false);
-        }}
-      >
-        <label htmlFor="">
-          select a SQL options to run
-          <select name="" id="">
-            <option value="">Find smallest on </option>
-            <option value="">2</option>
-          </select>
-        </label>
-      </Dialog>
+
 
       <Dialog
         visible={createNewDialog}
@@ -396,34 +392,23 @@ export default function DataTableUI({
         </div>
         <Divider align="left">
           <div className="inline-flex align-items-center">
-            <b> Assign to one or Assign to all</b>
+            <b> Choose a Rater </b>
           </div>
         </Divider>
         <div className="formgrid grid m-5">
           <div className="field col">
-            <label htmlFor="price" className="font-bold">
 
-              <SelectButton
-                value={selectAllRaters}
-                options={[
-                  { label: "Choose A Rater", value: false },
-                  { label: "Assign to All (Todo)", value: true },
-                ]}
-                onChange={(e) => setSelectAllRaters(e.value)}
-              />
-            </label>
-            {!selectAllRaters && (
-              <OptionsEditor
-                value={newRecord?.raterName}
-                onChange={(newValue) =>
-                  setNewRecord((state) => ({
-                    ...state,
-                    raterName: newValue,
-                    completed: false,
-                  }))
-                }
-              />
-            )}
+            <OptionsEditor
+              value={newRecord?.raterName}
+              onChange={(newValue) =>
+                setNewRecord((state) => ({
+                  ...state,
+                  raterName: newValue,
+                  completed: false,
+                }))
+              }
+            />
+
           </div>
         </div>
         {submitted && !newRecord?.studentName && (

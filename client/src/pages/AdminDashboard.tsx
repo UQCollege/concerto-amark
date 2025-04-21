@@ -130,11 +130,13 @@ export function AdminDashboard() {
 
 
   };
+  const userData = useAppSelector((state) => state.auth)
+  const isAdmin = userData.groups.includes("Admin")
   return (
     <div className="flex items-start min-h-screen">
       <Toast ref={toast} />
       <div className="w-[90vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
-        <Panel header="Admin Panel" className="bg-gray-800" >
+        {isAdmin && <Panel header="Admin Panel" className="bg-gray-800" >
           <div className="flex flex-col items-center  gap-3">
             <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
             <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 2 }); updateDay(2) }} >Day 2</Button>
@@ -177,7 +179,7 @@ export function AdminDashboard() {
             <Button label="Matrix" className="w-25" rounded outlined icon="pi pi-download" onClick={downloadMatrixCSVHandler} />
             <Button label="Verify" className="w-25" rounded outlined aria-setsize={10} onClick={verifyHandler} />
           </div>
-        </Panel>
+        </Panel>}
 
         <hr />
         <TabView>

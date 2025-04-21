@@ -148,23 +148,28 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         """
-        Allows filtering by rater_name via a query parameter.
-        Example: GET /api/review-assignments/?rater_name=Rater1
+        Allows filtering by rater_name or task_id via query parameters.
+        Example: GET /api/review-assignments/?rater_name=Rater1&id=123
         """
-        rater_name = request.GET.get('rater_name', None)
+        rater_name = request.GET.get('rater_name')
+        task_id = request.GET.get('id')
+
         if rater_name:
             rater = get_object_or_404(CustomUser, username=rater_name)
             if rater.usertype != "Rater" or not rater.active:
-                return Response({"message": "No permission", "Code": 403})
-            queryset = AssessmentTask.objects.filter(rater=rater, writing_task__trait=f"Writing {rater.task_access}")
+                return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
+            queryset = AssessmentTask.objects.filter(
+                rater=rater, 
+                writing_task__trait=f"Writing {rater.task_access}"
+            )
         elif request.user.is_superuser:
-        
-            queryset=AssessmentTask.objects.filter(active=True).order_by('id')
-   
+            queryset = AssessmentTask.objects.filter(
+                active=True, 
+                id=task_id
+            ).order_by('id') if task_id else AssessmentTask.objects.filter(active=True).order_by('id')
         else:
-            queryset =[]
-            return Response({"message": "Error creating review assignment", "Code": 500})
-       
+            return Response({"message": "Unauthorized access", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     

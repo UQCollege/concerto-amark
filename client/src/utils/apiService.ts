@@ -41,15 +41,16 @@ export const verify = async () => {
         console.error(error)
     }
 }
-export const getInitialAssessmentData = async () => {
+export const getInitialAssessmentData = async (id?: number) => {
     try {
-        const response = await
-            apiService.get("/allocated-tasks");
+        const endpoint = id !== undefined ? `/allocated-tasks/?id=${id}` : "/allocated-tasks";
+        const response = await apiService.get(endpoint);
         return response.data;
     } catch (error) {
         console.error("Error fetching data: ", error);
     }
-}
+};
+
 
 
 export const getAssessmentData = async () => {
