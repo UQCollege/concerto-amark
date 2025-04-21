@@ -26,6 +26,7 @@ import RatersTableUI from "../uis/RaterTable";
 import { Toast } from "primereact/toast";
 import ChipInput from "../uis/ChipInput";
 import DialogUi from "../uis/DialogUi";
+import { Panel } from "primereact/panel";
 
 
 export function AdminDashboard() {
@@ -33,13 +34,13 @@ export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
-  
+
 
   useEffect(() => {
     setIsProcess(true);
     const getInitialData = async () => {
       const result = await getInitialAssessmentData();
-
+      console.log(result.length)
       if (result.length === 0) {
         setIsProcess(false);
         return;
@@ -133,7 +134,7 @@ export function AdminDashboard() {
     <div className="flex items-start min-h-screen">
       <Toast ref={toast} />
       <div className="w-[90vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
-        <div className="flex justify-between">
+        <Panel header="Admin Panel" className="bg-gray-800" >
           <div className="flex flex-col items-center  gap-3">
             <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
             <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 2 }); updateDay(2) }} >Day 2</Button>
@@ -172,11 +173,11 @@ export function AdminDashboard() {
             {isProcess && <Loading />}
           </div>
           <div className="flex flex-col gap-2 items-center ">
-           
+
             <Button label="Matrix" className="w-25" rounded outlined icon="pi pi-download" onClick={downloadMatrixCSVHandler} />
-            <Button label="Verify" className="w-25" rounded outlined  aria-setsize={10} onClick={verifyHandler} />
+            <Button label="Verify" className="w-25" rounded outlined aria-setsize={10} onClick={verifyHandler} />
           </div>
-        </div>
+        </Panel>
 
         <hr />
         <TabView>

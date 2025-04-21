@@ -130,7 +130,7 @@ USE_L10N = False
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 #--------------------------------------------------------------------
-AUTH_USER_MODEL = 'modelapi.Rater'
+AUTH_USER_MODEL = 'modelapi.CustomUser'
 USE_FAKE_AUTH = os.environ.get("USE_FAKE_AUTH", "True") == "True"
 
 

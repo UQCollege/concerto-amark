@@ -8,7 +8,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from rest_framework import status
-from .models import Rater, WritingTask, AssessmentTask, Student, BEClass
+from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
 from rest_framework.decorators import api_view, permission_classes
 
 
@@ -16,15 +16,16 @@ class RaterViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    permission_classes = [IsAuthenticated, IsAdminUser]
-    queryset = Rater.objects.all().order_by('username')
+    permission_classes = [IsAuthenticated]
+    queryset = CustomUser.objects.filter(usertype='Rater').order_by('username')
     serializer_class = RaterSerializer
 
     def list (self, request):
+        print("user", request.user, request.user.is_superuser)
         if request.user.is_superuser == "False":
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
 
-        raters=Rater.objects.all().order_by('username')
+        raters=CustomUser.objects.filter(usertype='Rater').order_by('username')
         data = []
         if raters.exists():
             for rater in raters:
@@ -38,23 +39,26 @@ class RaterViewSet(viewsets.ModelViewSet):
         if request.user.is_superuser == "False":
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
         raters = request.data.get('raters', [])  # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
-        existed_raters = Rater.objects.in_bulk(field_name='rater_digital_id')
+        existed_raters = CustomUser.objects.filter(usertype='Rater').in_bulk(field_name='username')
 
         for rater in raters:
-            rater_digital_id = rater['rater_digital_id']
-            if rater_digital_id not in existed_raters:
+            rater_name = rater['name']
+            if rater_name not in existed_raters:
                 # Create a new rater if it doesn't exist
-                Rater.objects.create(
-                    username=rater['name'],
-                    rater_digital_id=rater_digital_id,
-                    password=rater['password'],
-                    active=rater.get('active', True)
+                CustomUser.objects.create(
+                    username=rater_name,
+                    rater_digital_id=rater['rater_digital_id'],
+                    usertype='Rater',
+                    active=rater.get('active', True),
+                    task_access=rater.get('task_access', 1),
                 )
             else:
                 # Check if the existing rater is inactive and reactivate it
-                existing_rater = existed_raters[rater_digital_id]
+                existing_rater = existed_raters[rater_name]
                 if not existing_rater.active:
                     existing_rater.active = True
+                    existing_rater.task_access = rater.get('task_access', 1)
+                    existing_rater.rater_digital_id = rater['rater_digital_id']
                     existing_rater.save()
 
         return Response({"message": "Raters processed successfully", "Code": 200})
@@ -67,7 +71,7 @@ class RaterViewSet(viewsets.ModelViewSet):
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
         rater_digital_id = request.data.get('rater_digital_id')
 
-        rater = get_object_or_404(Rater, rater_digital_id=rater_digital_id)
+        rater = get_object_or_404(CustomUser, rater_digital_id=rater_digital_id)
         rater.active = False
         rater.save()
         return Response({"message": "Rater deleted successfully", "Code": 200}, status=status.HTTP_204_NO_CONTENT)
@@ -81,7 +85,7 @@ class RaterViewSet(viewsets.ModelViewSet):
 
             if task_access:
                 # Update all raters' task_access with the provided data
-                raters = Rater.objects.all()
+                raters = CustomUser.objects.all()
                 for rater in raters:
                     rater.task_access = task_access
                     rater.save()
@@ -101,20 +105,21 @@ class WritingTaskViewSet(viewsets.ModelViewSet):
         """
         Assign permissions based on the request type.
         """
-        if self.request.GET.get('rater_name'):
+        if self.request.GET.get('teacher_name'):
             return [IsAuthenticated()]
         return [IsAuthenticated(), IsAdminUser()]
 
     def list(self, request):
         """
-        List writing tasks, optionally filtered by rater_name.
+        List writing tasks, optionally list class tasks for teachers.
         """
-        rater_name = request.GET.get('rater_name')
+
+        teacher_name = request.GET.get('teacher_name', None)
         context = []
 
-        if rater_name:
-            rater = get_object_or_404(Rater, username=rater_name)
-            query_class = rater.classes
+        if teacher_name:
+            teacher = get_object_or_404(CustomUser, username=teacher_name, usertype='Teacher')
+            query_class = teacher.classes
             students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
 
             for student in students:
@@ -138,9 +143,8 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
     API endpoint that allows users to be viewed or edited.
     """
     permission_classes = [IsAuthenticated]
-    queryset = AssessmentTask.objects.all().order_by('id')
+    queryset = AssessmentTask.objects.filter(active=True).order_by('id')
     serializer_class = AssessmentTaskSerializer
-
 
     def list(self, request):
         """
@@ -149,10 +153,14 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         """
         rater_name = request.GET.get('rater_name', None)
         if rater_name:
-            rater = get_object_or_404(Rater, username=rater_name)
+            rater = get_object_or_404(CustomUser, username=rater_name)
+            if rater.usertype != "Rater" or not rater.active:
+                return Response({"message": "No permission", "Code": 403})
             queryset = AssessmentTask.objects.filter(rater=rater, writing_task__trait=f"Writing {rater.task_access}")
         elif request.user.is_superuser:
-            queryset=AssessmentTask.objects.all().order_by('id')
+        
+            queryset=AssessmentTask.objects.filter(active=True).order_by('id')
+   
         else:
             queryset =[]
             return Response({"message": "Error creating review assignment", "Code": 500})
@@ -171,7 +179,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         if student_name and trait and rater_name:
             try:
                 writing_task = get_object_or_404(WritingTask, trait=trait, student_name=student_name)
-                rater = get_object_or_404(Rater, username=rater_name)
+                rater = get_object_or_404(CustomUser, username=rater_name)
 
                 # Check if the assignment already exists
                 AssessmentTask.objects.create(
@@ -182,7 +190,8 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                     gra=None,
                     voc=None,
                     coco=None,
-                    comments=None,)
+                    comments=None,
+                    update_by=request.user)
                 serializer = self.get_serializer(writing_task)
                 print(f"successfully create the Writing task {writing_task.id} assigned to rater {rater.username}")
                 return Response(serializer.data, status=201)
@@ -190,7 +199,8 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                 print(f"Error creating review assignment: {e}")
                 return Response({"message": "Error creating review assignment", "Code": 500})        
         return Response({"message": "Invalid data", "Code": 400})
-    
+
+
     def update(self, request):
         """
         Update assignedTasks for each allocated writing task.
@@ -204,6 +214,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                     allocatedTask.ta, allocatedTask.gra, allocatedTask.voc, allocatedTask.coco = item.get('ratings', {}).get('ta'), item.get('ratings', {}).get('gra'), item.get('ratings', {}).get('voc'), item.get('ratings', {}).get('coco')
                     allocatedTask.completed = item.get('completed')
                     allocatedTask.comments = item.get('comments', None)
+                    allocatedTask.update_by = request.user
                     allocatedTask.save()
                 if 'idList' in item: # For Admin changes raters
                     rater_name = item.get('raterName')
@@ -211,16 +222,22 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                     for id in idList:
                         allocatedTask = AssessmentTask.objects.get(id=id)
                         if rater_name:
-                            rater = Rater.objects.filter(username=rater_name).first()
+                            rater = CustomUser.objects.filter(username=rater_name).first()
                             if rater:
                                 allocatedTask.rater = rater
                             else:
                                 return Response({"message": f"Rater '{rater_name}' not found", "Code": 404})
+                        allocatedTask.update_by = request.user        
                         allocatedTask.save()
             return Response({"message": "Update successful", "Code": 200})
         return Response({"message": "No data provided", "Code": 400})
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.update_by = request.user  # 👈 Track the user who deleted
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-        
 
     
 @permission_classes([IsAdminUser])
@@ -231,43 +248,72 @@ def assign_raters_view(request):
 
     tasks = WritingTask.objects.all()
     for task in tasks:
-        raters = Rater.objects.filter(is_superuser=False)  # Fetch all available raters
+        raters = CustomUser.objects.filter(usertype="Rater", active=True)  # Fetch all available raters
         task.assign_raters(raters)   
     
     return JsonResponse({"message": "Raters assigned successfully", "Code": 200})
 
+from collections import defaultdict
+
 @permission_classes([IsAdminUser])
 def verify_view(request):
     """
-    Verify each student has 4 unique raters.
+    Validate that:
+    - Each student has at least 4 unique raters.
+    - No writing task is rated more than once by the same rater.
     """
     student_list = WritingTask.objects.values_list("student_name", flat=True).distinct()
-    invalid_students = {}
+    invalid_students = defaultdict(list)
 
     for student in student_list:
-        # Get all raters assigned to the student's writing tasks
-        raters = AssessmentTask.objects.filter(writing_task__student_name=student).values_list("rater__username", flat=True)
-        unique_raters = set(raters)
-        # Check if the student has exactly 4 unique raters
-        if len(raters) >10: 
-            print(student)
-            print(len(raters))
-            print(len(unique_raters))
-        if len(raters) != len(unique_raters) and len(raters) != (2*len(unique_raters)):
-            invalid_students[student] = list(unique_raters)
+        # All assessment tasks for this student's writings
+        assessment_tasks = AssessmentTask.objects.filter(
+            writing_task__student_name=student
+        ).select_related('rater', 'writing_task')
+
+        # Track unique raters
+        unique_raters = set()
+        # Track writing-task + rater pairs to catch duplicates
+        seen_pairs = set()
+
+        for task in assessment_tasks:
+            rater = task.rater.username
+            task_id = task.writing_task.id
+            unique_raters.add(rater)
+
+            pair = (task_id, rater)
+            if pair in seen_pairs:
+                # Duplicate rating found
+                invalid_students[student].append({
+                    "rater": rater,
+                    "writing_trait": task.writing_task.trait,
+                    "issue": "Duplicate rating for the same writing task"
+                })
+            else:
+                seen_pairs.add(pair)
+
+   
 
     if invalid_students:
-        return JsonResponse({"message": "Some students do not have exactly 4 unique raters", "details": invalid_students, "Code": 400})
+        return JsonResponse({
+            "message": "Some students have duplicate ratings or fewer than 4 unique raters.",
+            "details": invalid_students,
+            "Code": 400
+        })
 
-    return JsonResponse({"message": "Each students have 4 unique raters and some students' tasks been reviewed by all", "Code": 200})
-
+    return JsonResponse({
+        "message": "All students have valid ratings (>= 4 unique raters, no duplicates).",
+        "Code": 200
+    })
 
 @api_view(['POST'])
-@permission_classes([IsAdminUser])
 def assign_to_all(request):
     """
     View to assign certain tasks to all raters.
     """
+
+    if request.user.is_superuser == False:
+        return JsonResponse({"message": "No permission", "Code":403})
     student_names = request.data.get("studentNames", [])
     if not student_names:
         return JsonResponse({"message": "No student names provided", "Code": 400})
@@ -277,7 +323,7 @@ def assign_to_all(request):
         task.assign_all = True
         task.save()
 
-        raters = Rater.objects.filter(is_superuser=False)
+        raters = CustomUser.objects.filter(usertype="Rater", active=True)  # Fetch all available raters
         for rater in raters:
             # Check if the assignment already exists
             if not AssessmentTask.objects.filter(rater=rater, writing_task=task).exists():
@@ -291,7 +337,7 @@ def assign_to_all(request):
                     completed=False,
                     comments=None,
                 )
-    print("all")
+
 
     return JsonResponse({"message": "Tasks assigned to all raters successfully", "Code": 200})
             
@@ -300,7 +346,7 @@ def clear_tasks_view(request):
     """
     View to clear all writing tasks.
     """
-    AssessmentTask.objects.all().delete()
+    AssessmentTask._base_manager.all().delete()
     return JsonResponse({"message": "Tasks cleared successfully", "Code": 200})
 
 

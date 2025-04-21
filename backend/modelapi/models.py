@@ -10,20 +10,45 @@ class BEClass(models.Model):
     def __str__(self):
         return f'BEClass: {self.class_name}'
 
-class Rater(AbstractUser):
+class CustomUser(AbstractUser):
+    # an option for chosing the user type
+    # Rater or Teacher or Admin or Admin-Rater
+    USER_TYPE_CHOICES = (
+        ('Rater', 'Rater'),
+        ('Teacher', 'Teacher'),
+        ('Admin', 'Admin'),
+        ('Admin-Rater', 'Admin-Rater'),
+    )
+    usertype = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='Rater')
     username = models.CharField(max_length=100, unique=True)  # Rater's firstname_lastname
     rater_digital_id = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=100, default="test123")  # Rater's password
-    active = models.BooleanField()  # Rater's status
+    active = models.BooleanField(default=True)  # Rater's status
     task_access=models.IntegerField(default=1)
-    classes=models.ForeignKey(BEClass, on_delete=models.SET_NULL, related_name="classes", null=True)
+    classes= models.ForeignKey(BEClass, on_delete=models.SET_NULL, related_name="teacher_classes", null=True, blank=True)
 
     def __str__(self):
         return self.username
     
 
+class Audit(models.Model):
+    update_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, related_name="update_audit", null=True, blank=True)
+    update_date = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
 
-class Student(models.Model):
+    def save(self, *args, **kwargs):
+        # request = self.context.get("request")
+        # print("Inside serializer.save()")
+        # print("Request:", request)
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Override delete to set active to False instead of deleting
+        self.active = False
+        kwargs.pop('request', None)  # remove in case it's passed accidentally
+        print("delete1")
+        self.save(*args, **kwargs)  # Call save to update the active field
+
+class Student(Audit):
     student_name = models.CharField(max_length=50, unique=True, primary_key=True)
     last_name = models.CharField(max_length=100, null=True) 
     first_name = models.CharField(max_length=100, null=True)
@@ -33,7 +58,7 @@ class Student(models.Model):
         return self.student_name
 
 
-class WritingTask(models.Model):
+class WritingTask(Audit):
     '''
     WritingTask model represents the writing tasks that raters will review.
     The data is from Concerto database: assessResponse_Writingtask table.
@@ -61,7 +86,7 @@ class WritingTask(models.Model):
         if len(raters) < 4:
             raise ValueError("At least 4 raters are required for unique assignments.")
 
-        raters = [r for r in raters if r.active]
+        raters = [r for r in raters]
         if not raters:
             raise ValueError("No active raters available.")
 
@@ -109,17 +134,19 @@ class WritingTask(models.Model):
             "assigned_raters": [r.username for r in selected]
         }
 
-class AssessmentTask(models.Model):
+class AssessmentTask(Audit):
 
     writing_task = models.ForeignKey(WritingTask, on_delete=models.CASCADE, related_name="reviews")
-    rater = models.ForeignKey(Rater, on_delete=models.CASCADE, related_name="assignments")
+    rater = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="assignments")
     ta = models.IntegerField(null=True)
     gra = models.IntegerField(null=True)
     voc = models.IntegerField(null=True)
     coco = models.IntegerField(null=True)
     completed = models.BooleanField(default=False)
     comments = models.CharField(max_length=250, null=True)
+    
+
+    
 
     def __str__(self):
         return f"{self.writing_task.id} - {self.writing_task.trait} on {self.writing_task.started_time} reviewed by {self.rater.username} "
-    

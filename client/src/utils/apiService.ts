@@ -5,7 +5,6 @@ import { getAccessToken } from "./auth";
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
-console.log(API_BASE_URL)
 
 const apiService = axios.create({
     baseURL: API_BASE_URL,
@@ -26,7 +25,7 @@ apiService.interceptors.request.use((config) => {
 export const getClassWritings = async (name: string) => {
     try {
 
-        const response = await apiService.get(`/tasks/?rater_name=${name}`)
+        const response = await apiService.get(`/tasks/?teacher_name=${name}`)
 
 
         return response.data
@@ -165,7 +164,7 @@ export const updateRater = async (data: { taskAccess: number }) => {
 // Delete Method
 export const deleteTaskInTable = async (id: number) => {
     try {
-        await apiService.delete(`/raters-assignment/${id}/`);
+        await apiService.delete(`/allocated-tasks/${id}/`);
     } catch (error) {
         console.error("Error deleting task: ", error);
     }

@@ -16,6 +16,7 @@ class Command(BaseCommand):
                 username=username,
                 email=email,
                 password=password,
+                usertype='Admin',
                 active = True
             )
             self.stdout.write(self.style.SUCCESS('Superuser created successfully'))

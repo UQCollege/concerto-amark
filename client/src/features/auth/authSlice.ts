@@ -1,13 +1,13 @@
 // store/authSlice.ts
 import { createSlice } from "@reduxjs/toolkit";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
-type UserType = "Admin" | "General" | null
+type UserType = "Admin" | "Rater" | "Admin-Rater" | "Teacher" | null
 
 interface User {
-    token:string|null;
-    user: string|null;
+    token: string | null;
+    user: string | null;
     groups: UserType[];
 }
 
@@ -23,10 +23,10 @@ export const authSlice = createSlice({
     reducers: {
         setToken: (state, action) => {
             state.token = action.payload;
-            if (isAuthDisabled){ // for local development
-                state.user = "devUser"
-                state.groups =["Admin"]
-            }else{
+            if (isAuthDisabled) { // for local development
+                state.user = "devuser"
+                state.groups = ["Admin"]
+            } else {
 
                 try {
                     interface DecodedToken {

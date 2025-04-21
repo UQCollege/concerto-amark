@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from modelapi.models import Rater, WritingTask, Student
+from modelapi.models import CustomUser, WritingTask, Student
 
 class Command(BaseCommand):
     help = 'Seed the database with initial data'

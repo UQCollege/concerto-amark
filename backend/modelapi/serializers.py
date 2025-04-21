@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from .models import Rater, AssessmentTask, WritingTask
+from .models import CustomUser, AssessmentTask, WritingTask
 
 class RaterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Rater
+        model = CustomUser
         fields = '__all__'
 
 class WritingTaskSerializer(serializers.ModelSerializer):
@@ -23,3 +23,5 @@ class AssessmentTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssessmentTask
         fields = ['id', 'student_name', 'trait', 'started_time', 'rater_name', 'rater_digital_id', 'response', 'words_count', 'ta', 'gra', 'voc', 'coco', 'completed', 'comments']
+    
+    

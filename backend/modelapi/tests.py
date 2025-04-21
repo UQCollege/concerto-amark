@@ -1,12 +1,12 @@
 from django.test import TestCase
 from collections import Counter
-from .models import WritingTask, Rater, AssessmentTask
+from .models import WritingTask, CustomUser, AssessmentTask
 
 class AssignRatersMultipleTasksTestCase(TestCase):
     def setUp(self):
         # Create 10 active raters
         self.raters = [
-            Rater.objects.create(username=f"rater{i}", active=True, rater_digital_id=f"RID{i}")
+            CustomUser.objects.create(username=f"rater{i}", active=True, rater_digital_id=f"RID{i}",task_access=1, usertype="Rater")
             for i in range(10)
         ]
 

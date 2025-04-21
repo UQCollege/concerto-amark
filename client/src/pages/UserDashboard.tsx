@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getClassWritings, getUserTasks, updateRatingInTable } from "../utils/apiService";
+import { getUserTasks } from "../utils/apiService";
 import { Button } from "primereact/button";
 
 import MarkOption from "../uis/MarkOption";
@@ -15,7 +15,6 @@ import { Rating } from "../apiTypes";
 import {
   setRating,
   setComment,
-  setCompleted,
   type AssessData,
 
 
@@ -23,7 +22,7 @@ import {
   completeAndUpdate,
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../apiTypes";
-import { downloadWritingsZip } from "../utils/downloadPDF";
+
 
 
 const markOptions = [
@@ -81,9 +80,7 @@ export function UserDashboard() {
 
   if (currentUser === undefined || currentUser === null) return <div>Invalid user</div>;
 
-  if (!currentTask) return <div>Loading task for {currentUser} or <div>
-    <Button label="Download Class Tasks" onClick={async () => handleClassWritings(currentUser)} />
-  </div></div>;
+  if (!currentTask) return <div>Loading task for {currentUser} </div>;
 
   const totalTasks = assessData.length;
   const completedTasks = assessData.filter((task) => task.completed).length;
@@ -142,18 +139,11 @@ export function UserDashboard() {
 
 
 
-  const handleClassWritings = async (name: string) => {
-    const pdfData = await getClassWritings(name);
 
-    downloadWritingsZip(pdfData)
-
-  }
 
   return (
     <div className="">
-      <div>
-        <Button label="Download Class Tasks" onClick={async () => handleClassWritings(currentUser)} />
-      </div>
+
 
       <div className="flex items-center h-[100vh]">
         <div
@@ -234,7 +224,7 @@ export function UserDashboard() {
         >
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
-        {/*  ToDo:  PDF view */}
+
         <div className="w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] bg-gray-100 text-black line-height-3 shadow-2">
           <h3 className="text-left mb-2">{currentTask.studentName}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
