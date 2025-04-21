@@ -131,7 +131,23 @@ export const assignToAll = async (data: { studentNames: string[] }): Promise<voi
     }
 }
 
+export const uploadData = async <T>(
+    url: string,
+    payloadKey: string,
+    data: T[]
+): Promise<string> => {
+    try {
+        const response = await apiService.post(url, {
+            [payloadKey]: data,
+        });
 
+        return response.data.message || "Upload successful";
+    } catch (error: any) {
+        const msg =
+            error.response?.data?.message || error.message || "Upload failed";
+        throw new Error(msg);
+    }
+};
 // Put Method
 
 export const updateTasksTable = async (task: { idList: number[], raterName: string }) => {

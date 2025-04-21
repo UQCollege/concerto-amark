@@ -31,21 +31,20 @@ class CustomUser(AbstractUser):
     
 
 class Audit(models.Model):
-    update_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, related_name="update_audit", null=True, blank=True)
+    update_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
     update_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
 
+    class Meta:
+        abstract = True
+
     def save(self, *args, **kwargs):
-        # request = self.context.get("request")
-        # print("Inside serializer.save()")
-        # print("Request:", request)
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         # Override delete to set active to False instead of deleting
         self.active = False
         kwargs.pop('request', None)  # remove in case it's passed accidentally
-        print("delete1")
         self.save(*args, **kwargs)  # Call save to update the active field
 
 class Student(Audit):

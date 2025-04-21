@@ -27,6 +27,7 @@ import { Toast } from "primereact/toast";
 import ChipInput from "../uis/ChipInput";
 import DialogUi from "../uis/DialogUi";
 import { Panel } from "primereact/panel";
+import { ImportData } from "../uis/ImportData";
 
 
 export function AdminDashboard() {
@@ -136,15 +137,13 @@ export function AdminDashboard() {
     <div className="flex items-start min-h-screen">
       <Toast ref={toast} />
       <div className="w-[90vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
-        {isAdmin && <Panel header="Admin Panel" className="bg-gray-800" >
-          <div className="flex flex-col items-center  gap-3">
-            <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
-            <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 2 }); updateDay(2) }} >Day 2</Button>
-          </div>
+        {isAdmin && <div className="flex justify-between" >
+
           <div className="flex items-center  gap-3">
             <div className="flex flex-row items-center gap-2">
-              <Button onClick={() => { }}>Data Migration</Button>
-              (todo)
+              Data Migration
+              <ImportData />
+
             </div>
             <div className="pi pi-arrow-right"></div>
 
@@ -174,12 +173,15 @@ export function AdminDashboard() {
             </div>
             {isProcess && <Loading />}
           </div>
-          <div className="flex flex-col gap-2 items-center ">
+          <div className="flex gap-2 items-center">
+            <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 1 }); updateDay(1) }} >Day 1</Button>
+            <Button outlined rounded onClick={async () => { await updateRater({ taskAccess: 2 }); updateDay(2) }} >Day 2</Button>
+
 
             <Button label="Matrix" className="w-25" rounded outlined icon="pi pi-download" onClick={downloadMatrixCSVHandler} />
             <Button label="Verify" className="w-25" rounded outlined aria-setsize={10} onClick={verifyHandler} />
           </div>
-        </Panel>}
+        </div>}
 
         <hr />
         <TabView>

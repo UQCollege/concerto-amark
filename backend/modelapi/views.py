@@ -355,3 +355,45 @@ def clear_tasks_view(request):
     return JsonResponse({"message": "Tasks cleared successfully", "Code": 200})
 
 
+@api_view(["POST"])
+def create_students(request):
+    students = request.data.get("students", [])
+    for s in students:
+        Student.objects.get_or_create(
+            student_name=s["student_name"],
+            defaults={
+                "last_name": s["last_name"],
+                "first_name": s["first_name"],
+              
+            }
+        )
+    return Response({"message": "Students created successfully", "Code": 200})
+
+@api_view(["POST"])
+def create_writing_tasks(request):
+    from datetime import datetime
+    tasks = request.data.get("tasks", [])
+    for t in tasks:
+        student = Student.objects.filter(student_name=t["student_name"]).first()
+        if student:
+            try:
+                # Try parsing DD/MM/YYYY HH:MM
+                started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
+            except ValueError:
+                try:
+                    # Try parsing ISO format fallback (already valid input)
+                    started_time = datetime.fromisoformat(t["started_time"])
+                except ValueError:
+                    return Response({
+                        "message": f"Invalid date format: {t['started_time']}",
+                        "Code": 400
+                    })
+
+            WritingTask.objects.create(
+                student_name=student,
+                trait=t["trait"],
+                started_time=started_time,
+                response=t["response"],
+                words_count=int(t["words_count"]),
+            )
+    return Response({"message": "Writing tasks created successfully", "Code": 200})
