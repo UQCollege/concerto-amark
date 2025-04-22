@@ -35,7 +35,7 @@ export const authSlice = createSlice({
                     }
                     const decodedToken: DecodedToken = jwtDecode<DecodedToken>(action.payload);
                     state.user = decodedToken["username"]
-                        ? decodedToken["username"].charAt(0).toUpperCase() + decodedToken["username"].slice(1)
+                        ? decodedToken["username"]
                         : null;
                     state.groups = decodedToken["cognito:groups"] || [];
                 } catch (error) {

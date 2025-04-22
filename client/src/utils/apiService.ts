@@ -24,9 +24,9 @@ apiService.interceptors.request.use((config) => {
 // Get Method
 export const getClassWritings = async (name: string) => {
     try {
-
+        console.log("teacher_name: ", name)
         const response = await apiService.get(`/tasks/?teacher_name=${name}`)
-
+        
 
         return response.data
     } catch (error) {
@@ -79,7 +79,7 @@ export const getRatersFromDB = async () => {
         const response = await apiService.get("/raters/");
 
         const result = response.data.map((item: { username: string; rater_digital_id: string; active: boolean; tasks_total: number }) => ({ raterName: item.username, raterDigitalId: item.rater_digital_id, active: item.active, totalTasks: item.tasks_total }));
-        console.log(result)
+
         return result
     } catch (error) {
         console.error("Error fetching data: ", error);
@@ -142,6 +142,7 @@ export const uploadData = async <T>(
         });
 
         return response.data.message || "Upload successful";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         const msg =
             error.response?.data?.message || error.message || "Upload failed";

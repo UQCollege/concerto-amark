@@ -35,5 +35,6 @@ config.js
 terraform.*
 .terraform.*
 *.pem
-.terraform/*
+*/.terraform/*
 variables.tf
+*/.terraform.*

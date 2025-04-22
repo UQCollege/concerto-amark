@@ -86,7 +86,8 @@ class CognitoJWTAuthentication(BaseAuthentication):
     def get_or_create_user(self, claims):
         cognito_groups = claims.get("cognito:groups", [])
         usertype = self.get_user_type(cognito_groups)
-        username = (claims.get("username") or claims.get("cognito:username")).capitalize()
+        username = (claims.get("username") or claims.get("cognito:username"))
+   
         sub = claims.get("sub")
         if not sub or not username:
             raise AuthenticationFailed("Required claims missing: sub or username")

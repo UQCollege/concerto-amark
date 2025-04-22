@@ -21,7 +21,6 @@ class RaterViewSet(viewsets.ModelViewSet):
     serializer_class = RaterSerializer
 
     def list (self, request):
-        print("user", request.user, request.user.is_superuser)
         if request.user.is_superuser == "False":
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
 
@@ -29,7 +28,7 @@ class RaterViewSet(viewsets.ModelViewSet):
         data = []
         if raters.exists():
             for rater in raters:
-                tasks_total = AssessmentTask.objects.filter(rater = rater).count()
+                tasks_total = AssessmentTask.objects.filter(rater = rater, active=True).count()
                 data.append({"username": rater.username, "rater_digital_id": rater.rater_digital_id, "active": rater.active, "tasks_total": tasks_total})
  
         return Response(data)     
@@ -160,7 +159,8 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                 return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
             queryset = AssessmentTask.objects.filter(
                 rater=rater, 
-                writing_task__trait=f"Writing {rater.task_access}"
+                writing_task__trait=f"Writing {rater.task_access}",
+                active=True 
             )
         elif request.user.is_superuser:
             queryset = AssessmentTask.objects.filter(
@@ -389,11 +389,13 @@ def create_writing_tasks(request):
                         "Code": 400
                     })
 
-            WritingTask.objects.create(
+            WritingTask.objects.get_or_create(
                 student_name=student,
                 trait=t["trait"],
-                started_time=started_time,
-                response=t["response"],
-                words_count=int(t["words_count"]),
+                defaults={
+                "started_time":started_time,
+                "response":t["response"],
+                "words_count":int(t["words_count"]),
+                }
             )
     return Response({"message": "Writing tasks created successfully", "Code": 200})

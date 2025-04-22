@@ -2,22 +2,24 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
-data "aws_vpc" "default" {
-  default = true
+data "aws_vpc" "custom" {
+  id = var.vpcID
 }
 
-data "aws_subnet" "default" {
+data "aws_subnets" "vpc_subnets" {
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+    values = [data.aws_vpc.custom.id]
   }
+
 
   filter {
-    name   = "default-for-az"
-    values = ["true"]
+    name   = "availability-zone"
+    values = ["ap-southeast-2a"]
   }
-
-  availability_zone = "ap-southeast-2a"
+}
+locals {
+  selected_subnet_id = data.aws_subnets.vpc_subnets.ids[0]
 }
 
 data "aws_ami" "ubuntu" {
@@ -60,7 +62,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 resource "aws_security_group" "amark_sg" {
   name        = "amark-security-group"
   description = "Allow 8000 access"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = data.aws_vpc.custom.id
 
   ingress {
     from_port   = 8000
@@ -79,9 +81,9 @@ resource "aws_security_group" "amark_sg" {
 
 resource "aws_instance" "amark_ec2" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3.micro"
+  instance_type               = "t3.medium"
   associate_public_ip_address = true
-  subnet_id                   = data.aws_subnet.default.id
+  subnet_id                   = data.aws_subnets.vpc_subnets.ids[0]
   vpc_security_group_ids      = [aws_security_group.amark_sg.id]
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
   key_name                    = var.key_name
@@ -100,7 +102,7 @@ resource "aws_instance" "amark_ec2" {
               cat <<EOL > docker-compose.yaml
               services:
                 amark:
-                  image: ${var.ecr_url}/amark-api:latest
+                  image: ${var.ecr_url}
                   ports:
                     - "8000:8000"
                   volumes:

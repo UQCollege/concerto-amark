@@ -21,7 +21,6 @@ export default function RatersTableUI() {
     dispatch(fetchRaters());
   }, [])
   const raterList = useAppSelector((state) => state.ratersUpdate);
-  console.log("List",raterList)
   const [filters, setFilters] = useState(() =>
     fieldNames.reduce(
       (acc, field) => ({
