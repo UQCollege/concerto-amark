@@ -11,7 +11,13 @@ export const parseCsvFile = async <T>(
                 const headerIndex = 1;
 
                 const data = rows.slice(headerIndex).map((line) => {
-                    const values = line.split(",").map((col) => col.trim());
+                    const cleanText = (str: string) =>
+                        str
+                            .replace(/’/g, "'")
+                            .replace(/[“”]/g, '"')
+                            .replace(/[–—]/g, '-')
+                            .replace(/\uFEFF/g, '');
+                    const values = line.split(",").map((col) => cleanText(col.trim()));
                     return parser(values);
                 });
 
@@ -21,7 +27,7 @@ export const parseCsvFile = async <T>(
             }
         };
         reader.onerror = () => reject(reader.error);
-        reader.readAsText(file);
+        reader.readAsText(file, 'UTF-8');
     });
 };
 
