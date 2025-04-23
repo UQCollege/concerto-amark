@@ -72,6 +72,9 @@ class RaterViewSet(viewsets.ModelViewSet):
 
         rater = get_object_or_404(CustomUser, rater_digital_id=rater_digital_id)
         rater.active = False
+        related_tasks = AssessmentTask.objects.filter(rater=rater, completed=False)
+         # Delete all related tasks
+        related_tasks.delete()
         rater.save()
         return Response({"message": "Rater deleted successfully", "Code": 200}, status=status.HTTP_204_NO_CONTENT)
     
@@ -358,44 +361,50 @@ def clear_tasks_view(request):
 @api_view(["POST"])
 def create_students(request):
     students = request.data.get("students", [])
-    for s in students:
-        Student.objects.get_or_create(
-            student_name=s["student_name"],
-            defaults={
-                "last_name": s["last_name"],
-                "first_name": s["first_name"],
-              
-            }
-        )
-    return Response({"message": "Students created successfully", "Code": 200})
+    try:
+        for s in students:
+            Student.objects.get_or_create(
+                student_name=s["student_name"],
+                defaults={
+                    "last_name": s["last_name"],
+                    "first_name": s["first_name"],
+                    "classes": BEClass.objects.get_or_create(class_name=s["class_name"])[0] if s.get("class_name") else None,      
+                }
+            )
+        return Response({"message": "Students created successfully", "Code": 200})
+    except Exception as e:
+        return Response({"message": f"Error creating students: {str(e)}", "Code": 500})
 
 @api_view(["POST"])
 def create_writing_tasks(request):
     from datetime import datetime
     tasks = request.data.get("tasks", [])
-    for t in tasks:
-        student = Student.objects.filter(student_name=t["student_name"]).first()
-        if student:
-            try:
-                # Try parsing DD/MM/YYYY HH:MM
-                started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
-            except ValueError:
+    try:
+        for t in tasks:
+            student = Student.objects.filter(student_name=t["student_name"]).first()
+            if student:
                 try:
-                    # Try parsing ISO format fallback (already valid input)
-                    started_time = datetime.fromisoformat(t["started_time"])
+                    # Try parsing DD/MM/YYYY HH:MM
+                    started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
                 except ValueError:
-                    return Response({
-                        "message": f"Invalid date format: {t['started_time']}",
-                        "Code": 400
-                    })
+                    try:
+                        # Try parsing ISO format fallback (already valid input)
+                        started_time = datetime.fromisoformat(t["started_time"])
+                    except ValueError:
+                        return Response({
+                            "message": f"Invalid date format: {t['started_time']}",
+                            "Code": 400
+                        })
 
-            WritingTask.objects.get_or_create(
-                student_name=student,
-                trait=t["trait"],
-                defaults={
-                "started_time":started_time,
-                "response":t["response"],
-                "words_count":int(t["words_count"]),
-                }
-            )
-    return Response({"message": "Writing tasks created successfully", "Code": 200})
+                WritingTask.objects.get_or_create(
+                    student_name=student,
+                    trait=t["trait"],
+                    defaults={
+                    "started_time":started_time,
+                    "response":t["response"],
+                    "words_count":int(t["words_count"]) if t.get("words_count") else 0,
+                    }
+                )
+        return Response({"message": "Writing tasks created successfully", "Code": 200})
+    except Exception as e:
+        return Response({"message": f"Error creating writing tasks: {str(e)}", "Code": 500})

@@ -26,7 +26,6 @@ import RatersTableUI from "../uis/RaterTable";
 import { Toast } from "primereact/toast";
 import ChipInput from "../uis/ChipInput";
 import DialogUi from "../uis/DialogUi";
-import { Panel } from "primereact/panel";
 import { ImportData } from "../uis/ImportData";
 
 
@@ -38,10 +37,10 @@ export function AdminDashboard() {
 
 
   useEffect(() => {
+
     setIsProcess(true);
     const getInitialData = async () => {
       const result = await getInitialAssessmentData();
-      console.log(result.length)
       if (result.length === 0) {
         setIsProcess(false);
         return;

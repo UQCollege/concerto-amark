@@ -38,3 +38,6 @@ terraform.*
 */.terraform/*
 variables.tf
 */.terraform.*
+
+# local bash scripts
+ECR.sh

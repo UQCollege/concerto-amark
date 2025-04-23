@@ -6,11 +6,35 @@ import { UserDashboard } from "./pages/UserDashboard";
 import Home from "./pages/Home";
 
 import { Navigate } from "react-router-dom";
-import { useAppSelector } from "./store/hooks";
+import { useAppSelector, useAppDispatch } from "./store/hooks";
+import { setToken } from "./features/auth/authSlice";
 import ClassDashboard from "./pages/ClassDashboard";
-
+import { useEffect } from "react";
+const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
 function App() {
+  const dispatch = useAppDispatch(); 
+ useEffect(() => {
 
+
+    if (isAuthDisabled) {
+      const devToken = "FAKE_DEV_TOKEN";
+      localStorage.setItem("access_token", devToken);
+      dispatch(setToken(devToken));
+    } else {
+
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("access_token") || localStorage.getItem("access_token");
+
+      if (token) {
+        dispatch(setToken(token));
+        localStorage.setItem("access_token", token);
+        window.history.replaceState({}, document.title, "/");
+      }
+
+
+    }
+  }, [dispatch]);
+  
   const router = createBrowserRouter([
     {
       path: "/",

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { TD } from "../../utils/transformApiData"
+import { TD, transformApiData } from "../../utils/transformApiData"
 import { createTaskInTable, deleteTaskInTable, updateTasksTable } from "../../utils/apiService";
-
+import { AppDispatch } from "../../store/store";
 
 
 const initialState: TD[] = []
@@ -43,15 +43,12 @@ const taskAllocationSlice = createSlice({
                 updateTasksTable({ idList: [id], raterName })
             }
         },
-        createNewTask: (state, action: PayloadAction<{studentName?: string; trait?: string; raterName?:string; completed:false}>) => {
-            const { studentName, trait, raterName } = action.payload
-            if (!studentName || !trait || !raterName) {
-                console.error("Missing required fields: studentName, trait, or raterName");
-                return;
-            }
-            createTaskInTable({student_name: studentName, trait: trait, rater_name: raterName})
-            //todo: get new task push to state
+        addTask: (state, action: PayloadAction<TD>) => {
+            // Add the new task to the state
+            console.log("addTask");
+            state.push(action.payload);
         },
+      
         selectedTasks: (state, action: PayloadAction<number[]>) => {
             const selectedId = action.payload
             for (const num of selectedId) {
@@ -77,5 +74,33 @@ const taskAllocationSlice = createSlice({
     }
 });
 
-export const { setTasks, updateTasks, selectedTasks, cancelSelectedTasks, removeTasks, createNewTask } = taskAllocationSlice.actions
+export const { setTasks, updateTasks, selectedTasks, cancelSelectedTasks, removeTasks, addTask } = taskAllocationSlice.actions
 export default taskAllocationSlice.reducer
+
+// Async thunk for creating a new task
+export const createNewTask =
+    (data: { studentName?: string | undefined; trait?: string | undefined; raterName?: string | undefined }) =>
+    async (dispatch: AppDispatch) => {
+        const { studentName, trait, raterName } = data;
+
+        if (!studentName || !trait || !raterName) {
+            console.error("Missing required fields: studentName, trait, or raterName");
+            return;
+        }
+
+        try {
+            const response = await createTaskInTable({
+                student_name: studentName,
+                trait: trait,
+                rater_name: raterName,
+            });
+            const tdResponse = transformApiData(Array.isArray(response) ? response : [response]);
+
+            if (response) {
+                // Dispatch the addTask action to update the state
+                dispatch(addTask(tdResponse[0]));
+            }
+        } catch (error) {
+            console.error("Error creating task: ", error);
+        }
+    };

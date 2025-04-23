@@ -1,14 +1,14 @@
 import { DataTable, DataTableRowEditCompleteEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
-import { useState, useRef, use } from "react";
+import { useState, useRef } from "react";
 import { InputText } from "primereact/inputtext";
 import OptionsEditor from "./OptionsEditor";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Toolbar } from "primereact/toolbar";
 import { type TD } from "../utils/transformApiData";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { useAppDispatch} from "../store/hooks";
 import "primereact/resources/primereact.min.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
@@ -43,11 +43,7 @@ export default function DataTableUI({
   taskData,
   fieldNames,
 }: DataTableUIProps) {
-  // for set task to all raters
-  const [selectAllRaters, setSelectAllRaters] = useState(false);
-
   const dispatch = useAppDispatch();
-
   // DataTable functions
   // createnew, Select, bulk edit
   const [selected, setSelected] = useState<TD[] | null>();
@@ -116,21 +112,19 @@ export default function DataTableUI({
     setSubmitted(false);
     setNewRecord(undefined);
   };
-  const saveANew = () => {
+  const saveANew = async () => {
     if (!newRecord?.studentName || !newRecord.raterName || !newRecord.trait) {
       setSubmitted(true);
       return;
     }
-
-    dispatch(createNewTask(newRecord));
+    
+   dispatch(createNewTask(newRecord));
     setCreateNewDialog(false);
     setNewRecord(undefined);
     setSubmitted(false);
   };
 
-  const saveAllNew = () => {
-    alert("This will assign this task to all raters");
-  };
+
 
   const onRadioInputChange = (e: RadioButtonChangeEvent) => {
     setNewRecord((state) => ({ ...state, trait: e.value, completed: false }));
@@ -432,7 +426,7 @@ export default function DataTableUI({
           <Button
             label="Save"
             icon="pi pi-check"
-            onClick={!selectAllRaters ? saveANew : saveAllNew}
+            onClick={saveANew}
           />
         </div>
       </Dialog>

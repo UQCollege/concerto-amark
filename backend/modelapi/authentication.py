@@ -61,7 +61,7 @@ class CognitoJWTAuthentication(BaseAuthentication):
         if settings.USE_FAKE_AUTH: #local development without cognito
             if not hasattr(self, "_devuser"):
                 self._devuser, _ = CustomUser.objects.get_or_create(
-                    username="devUser",
+                    username="devuser",
                     defaults={
                         "rater_digital_id": "uniqueId",
                         "active": True,

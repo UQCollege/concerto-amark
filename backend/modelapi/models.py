@@ -144,7 +144,9 @@ class AssessmentTask(Audit):
     completed = models.BooleanField(default=False)
     comments = models.CharField(max_length=250, null=True)
     
-
+    def delete(self, *args, **kwargs):
+        # Perform a real delete instead of setting active to False
+        super().delete(*args, **kwargs)
     
 
     def __str__(self):

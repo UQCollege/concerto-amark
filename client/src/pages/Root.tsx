@@ -3,37 +3,14 @@ import Sidebar from "../uis/Sidebar";
 import { SidebarItem } from "../uis/Sidebar";
 import { Flag, Home, Layers, LayoutDashboard, LogOut, BookOpenCheck } from "lucide-react";
 import { PrimeReactProvider } from "primereact/api";
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { setToken } from "../features/auth/authSlice";
+// import { useEffect } from "react";
+import { useAppSelector } from "../store/hooks";
+// import { setToken } from "../features/auth/authSlice";
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
 
 
 const Root = () => {
-
-  const dispatch = useAppDispatch();
-
-  useEffect(() => {
-
-    if (isAuthDisabled) {
-      const devToken = "FAKE_DEV_TOKEN";
-      localStorage.setItem("access_token", devToken);
-      dispatch(setToken(devToken));
-    } else {
-
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get("access_token") || localStorage.getItem("access_token");
-
-      if (token) {
-        dispatch(setToken(token));
-        localStorage.setItem("access_token", token);
-        window.history.replaceState({}, document.title, "/");
-      }
-
-
-    }
-  }, [dispatch]);
 
   const userData = useAppSelector((state) => state.auth)
 
@@ -47,16 +24,16 @@ const Root = () => {
 
           <SidebarItem icon={<Home size={20} />} text="Home" alert link="/" />
           {isAdmin && (
-            <SidebarItem icon={<LayoutDashboard size={20} />} text="Admin Board" active link="/admin" />
+            <SidebarItem icon={<LayoutDashboard size={20} />} text={`${name}'s Admin Borad`} active link="/admin" />
           )}
           <SidebarItem
             icon={<BookOpenCheck size={20} />}
-            text={name}
+            text={`${name}'s Writing Assessments`}
             link={`/raters/${name}`} //
           />
           <SidebarItem
             icon={<Layers size={20} />}
-            text={name}
+            text={`${name}'s Classes`}
             link={`/classes/${name}`} //
           />
           <SidebarItem icon={<Flag size={20} />} text="" link="" />
