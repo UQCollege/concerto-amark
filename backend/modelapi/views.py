@@ -154,17 +154,24 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         Example: GET /api/review-assignments/?rater_name=Rater1&id=123
         """
         rater_name = request.GET.get('rater_name')
-        task_id = request.GET.get('id')
+        task_id = request.GET.get('id', None)
+
 
         if rater_name:
             rater = get_object_or_404(CustomUser, username=rater_name)
+            print("rater", rater)
             if rater.usertype != "Rater" or not rater.active:
                 return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
-            queryset = AssessmentTask.objects.filter(
-                rater=rater, 
-                writing_task__trait=f"Writing {rater.task_access}",
-                active=True 
-            )
+            print(f"Writing {rater.task_access}")
+            try:
+                queryset = AssessmentTask.objects.filter(
+                    rater=rater, 
+                    writing_task__trait__iexact=f"Writing {rater.task_access}",
+                    active=True 
+                )
+            except Exception as e:
+                print(f"Error fetching tasks for rater {rater_name}: {e}")
+                return Response({"message": "No tasks found for this rater", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
         elif request.user.is_superuser:
             queryset = AssessmentTask.objects.filter(
                 active=True, 
@@ -242,8 +249,9 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.update_by = request.user  # 👈 Track the user who deleted
-        instance.delete()
+        instance.update_by = request.user 
+        instance.active = False
+        instance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

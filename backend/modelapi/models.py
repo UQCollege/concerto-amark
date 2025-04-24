@@ -90,7 +90,7 @@ class WritingTask(Audit):
             raise ValueError("No active raters available.")
 
         # Check if task already assigned
-        existing_tasks = AssessmentTask.objects.filter(writing_task=self)
+        existing_tasks = AssessmentTask.objects.filter(writing_task=self, active=True)
         if existing_tasks.count() >= 2:
             return  # Already fully assigned
 

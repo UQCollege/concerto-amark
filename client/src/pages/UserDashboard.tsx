@@ -69,7 +69,8 @@ export function UserDashboard() {
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
-
+      console.log("tasks", tasks.length);
+      console.log("tasks", tasks[0]);
       dispatch(initialRating(tasks));
       const currentTaskId = tasks[0]?.id;
       setCurrentTaskId(currentTaskId);
@@ -231,7 +232,10 @@ export function UserDashboard() {
           <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3>
           <h3 className="text-left mb-2">{currentTask.startedTime}</h3>
           <hr />
-          <p className="block w-full text-left whitespace-pre-line leading-5 mt-2 text-lg">{currentTask.response}</p>
+            <div
+              className="block w-full text-left whitespace-pre-line leading-5 mt-2 text-lg"
+              dangerouslySetInnerHTML={{ __html: currentTask.response }}
+            ></div>
         </div>
       </div>
     </div>

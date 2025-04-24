@@ -68,6 +68,7 @@ export const getUserTasks = async (name: string) => {
 
     try {
         const response = await apiService.get(`/allocated-tasks/?rater_name=${name}`);
+        console.log("rater: ", name)
         return response.data;
     } catch (error) {
         console.error("Error fetching data: ", error);
