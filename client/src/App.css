@@ -89,8 +89,8 @@ td {
   /* No outline */
   background: transparent;
   /* Transparent background to match the wrapper */
-  flex-grow: 1;
-  min-width: 80px;
+  width: fit-content;
+  min-width: 200px;
   margin-top: 5px;
   /* Small gap for better visual separation */
   padding: 5px 8px;

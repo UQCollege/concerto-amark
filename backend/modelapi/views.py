@@ -261,13 +261,15 @@ def assign_raters_view(request):
     """
     View to assign raters to a writing task.
     """
-
-    tasks = WritingTask.objects.all()
-    for task in tasks:
-        raters = CustomUser.objects.filter(usertype="Rater", active=True)  # Fetch all available raters
-        task.assign_raters(raters)   
     
-    return JsonResponse({"message": "Raters assigned successfully", "Code": 200})
+    tasks = WritingTask.objects.all()
+    try:
+        for task in tasks:
+            raters = CustomUser.objects.filter(usertype="Rater", active=True)  # Fetch all available raters
+            task.assign_raters(raters)   
+        return JsonResponse({"message": "successfully allcated tasks", "Code": 200})
+    except Exception as e:
+        return JsonResponse({"message": f"Error allocating tasks: {str(e)}", "Code": 500})
 
 from collections import defaultdict
 

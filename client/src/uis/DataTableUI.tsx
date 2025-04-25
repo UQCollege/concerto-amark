@@ -8,7 +8,7 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Toolbar } from "primereact/toolbar";
 import { type TD } from "../utils/transformApiData";
-import { useAppDispatch} from "../store/hooks";
+import { useAppDispatch } from "../store/hooks";
 import "primereact/resources/primereact.min.css";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
@@ -117,8 +117,8 @@ export default function DataTableUI({
       setSubmitted(true);
       return;
     }
-    
-   dispatch(createNewTask(newRecord));
+
+    dispatch(createNewTask(newRecord));
     setCreateNewDialog(false);
     setNewRecord(undefined);
     setSubmitted(false);
@@ -188,7 +188,7 @@ export default function DataTableUI({
     const _data = [...taskData];
     const { newData, index } = e;
     _data[index] = newData as TD;
-    console.log("input text", _data[index]);
+
     setSelected(null);
     setDisplaySelected(false);
     dispatch(updateTasks(_data[index] as TD));

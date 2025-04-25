@@ -2,7 +2,7 @@
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { jsPDF } from "jspdf";
-import { Rating, RatingAspects } from "../apiTypes";
+
 
 export interface Writing {
     id: number;
@@ -20,6 +20,48 @@ export interface StudentData {
     writings: Writing[];
 }
 
+/**
+ * Strips actual HTML tags from a string safely using DOM parsing.
+ * @param html - The HTML string to clean.
+ * @returns Plain text content.
+ */
+const extractTextFromHTML = (html: string): string => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    return doc.body.textContent?.trim() ?? "";
+};
+
+/**
+ * Generates a PDF blob from the given content.
+ * @param content - The text content to include in the PDF.
+ * @param fileName - The name of the file to be generated.
+ * @returns A Blob representing the generated PDF.
+ */
+export const generatePDF = (content: string): Blob => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const maxLineWidth = pageWidth - margin * 2;
+
+    const lines = pdf.splitTextToSize(content, maxLineWidth);
+    let cursorY = margin;
+
+    for (const line of lines) {
+        if (cursorY + 10 > pageHeight - margin) {
+            pdf.addPage();
+            cursorY = margin;
+        }
+        pdf.text(line, margin, cursorY);
+        cursorY += 10;
+    }
+
+    return pdf.output("blob");
+};
+/**
+ * Downloads a zip file containing PDFs of students' writings.
+ * @param dataArray - An array of student data containing their writings.
+ */
 export const downloadWritingsZip = async (dataArray: StudentData[]) => {
     const zip = new JSZip();
 
@@ -28,16 +70,16 @@ export const downloadWritingsZip = async (dataArray: StudentData[]) => {
 
         for (const writing of data.writings) {
             const pdf = new jsPDF();
+            const extractResponse = extractTextFromHTML(writing.response);
             const content = `
-student full name: ${fullName}
-started_time: ${writing.started_time}
-word_count: ${writing.words_count}
-response: ${writing.response}
+                Student Full Name: ${fullName}
+                Started Time: ${writing.started_time}
+                Word Count: ${writing.words_count}
+                Response:
+                ${extractResponse}
             `.trim();
 
-            pdf.text(content, 10, 10);
-            const pdfBlob = pdf.output("blob");
-
+            const pdfBlob = generatePDF(content);
             const fileName = `${writing.trait.replace(/\s+/g, "_")}_${fullName}.pdf`;
             zip.file(`${fullName}/${fileName}`, pdfBlob);
         }
@@ -60,9 +102,13 @@ export interface DownloadData {
     words_count: number;
     started_time: string;
 };
+/**
+ * Downloads a PDF file with the provided data.
+ * @param data - The data to be included in the PDF.
+ */
 export const downloadPDF = async (data: DownloadData) => {
     const pdf = new jsPDF();
-
+    const extractResponse = extractTextFromHTML(data.response);
     const content = `
 Student Name: ${data.student_name}
 Rater Name: ${data.rater_name}
@@ -73,13 +119,12 @@ Ratings:
   - VOC: ${data.voc ?? "N/A"}
   - COCO: ${data.coco ?? "N/A"}
 Comments: ${data.comments}
-Response: ${data.response}
+Response: ${extractResponse}
 Words Count: ${data.words_count}
 Started Time: ${data.started_time}
     `.trim();
 
-    pdf.text(content, 10, 10);
-    const pdfBlob = pdf.output("blob");
+    const pdfBlob = generatePDF(content);
 
     const fileName = `${data.trait.replace(/\s+/g, "_")}_${data.student_name.replace(/\s+/g, "_")}.pdf`;
     saveAs(pdfBlob, fileName);

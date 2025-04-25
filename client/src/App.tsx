@@ -12,8 +12,8 @@ import ClassDashboard from "./pages/ClassDashboard";
 import { useEffect } from "react";
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
 function App() {
-  const dispatch = useAppDispatch(); 
- useEffect(() => {
+  const dispatch = useAppDispatch();
+  useEffect(() => {
 
 
     if (isAuthDisabled) {
@@ -34,7 +34,9 @@ function App() {
 
     }
   }, [dispatch]);
-  
+  const isAdmin = useAppSelector((state) => state.auth.groups).includes("Admin")
+  const isRater = useAppSelector((state) => state.auth.groups).includes("Rater")
+  const isTeacher = useAppSelector((state) => state.auth.groups).includes("Teacher")
   const router = createBrowserRouter([
     {
       path: "/",
@@ -44,15 +46,15 @@ function App() {
         {
           path: "/admin",
           element: (
-            useAppSelector((state) => state.auth.groups).includes("Admin") ? (
+            isAdmin ? (
               <AdminDashboard />
             ) : (
               <Navigate to="/" />
             )
           ),
         },
-        { path: "/raters/:name", element: <UserDashboard /> }, //todo: add class task page
-        { path: "/classes/:name", element: <ClassDashboard /> }, //todo: add class task page
+        { path: "/raters/:name", element: (isRater ? <UserDashboard /> : <Navigate to="/" />) },
+        { path: "/classes/:name", element: (isTeacher ? <ClassDashboard /> : <Navigate to="/" />) }, //todo: remove to Another App
       ],
     },
   ]);

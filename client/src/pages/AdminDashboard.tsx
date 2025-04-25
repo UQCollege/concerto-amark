@@ -27,11 +27,20 @@ import { Toast } from "primereact/toast";
 import ChipInput from "../uis/ChipInput";
 import DialogUi from "../uis/DialogUi";
 import { ImportData } from "../uis/ImportData";
+import { SelectButton, SelectButtonChangeEvent } from "primereact/selectbutton";
 
-
+interface JustifyOption {
+  label: string;
+  value: string;
+}
 export function AdminDashboard() {
   const [showDialog, setShowDialog] = useState(false)
   const [isProcess, setIsProcess] = useState(false);
+  const options: JustifyOption[] = [{ label: 'W 1', value: 'Writing 1' }, { label: 'W 2', value: 'Writing 2' }];
+  const buttonTemplate = (option: JustifyOption) => {
+    return <span >{option.label}</span>;
+  }
+  const [traitValue, setValue] = useState(options[0].value);
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
 
@@ -160,11 +169,13 @@ export function AdminDashboard() {
 
             </label>
             <div className="pi pi-arrow-right"></div>
-            <div>
 
+            <div className="flex items-center gap-2">
               <ChipInput chips={chips} setChips={setChips} />
-              <Button onClick={async () => { await assignToAll({ studentNames: chips }) }}>Manual choose 3 Students</Button>{" "}
+              <SelectButton value={traitValue} onChange={(e: SelectButtonChangeEvent) => setValue(e.value)} options={options} itemTemplate={buttonTemplate} optionLabel="label" />
+              <Button onClick={async () => { await assignToAll({ studentNames: chips, trait: traitValue }) }}>Tasks for All, click!</Button>{" "}
             </div>
+
             <div className="pi pi-arrow-right"></div>
             <div className="flex flex-row items-center gap-2">
               <Button onClick={handleFetchResult}>tasks allocating</Button>

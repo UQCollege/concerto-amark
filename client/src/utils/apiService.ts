@@ -26,7 +26,7 @@ export const getClassWritings = async (name: string) => {
     try {
         console.log("teacher_name: ", name)
         const response = await apiService.get(`/tasks/?teacher_name=${name}`)
-        
+
 
         return response.data
     } catch (error) {
@@ -55,7 +55,12 @@ export const getInitialAssessmentData = async (id?: number) => {
 
 export const getAssessmentData = async () => {
     try {
-        await apiService.get("/assign-tasks");
+        const allocating = await apiService.get("/assign-tasks");
+        if (allocating.data.Code === 500) {
+            alert(`${allocating.data.message}, refresh the page`);
+            return []
+
+        }
         const response = await
             apiService.get("/allocated-tasks");
         return response.data;
@@ -122,11 +127,9 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
     }
 }
 
-export const assignToAll = async (data: { studentNames: string[] }): Promise<void> => {
+export const assignToAll = async (data: { studentNames: string[], trait: string }): Promise<void> => {
     try {
-        console.log(data)
         await apiService.post("/assign-all/", data)
-
     } catch (error) {
         console.error(error)
     }
@@ -143,7 +146,7 @@ export const uploadData = async <T>(
         });
 
         return response.data.message || "Upload successful";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         const msg =
             error.response?.data?.message || error.message || "Upload failed";
