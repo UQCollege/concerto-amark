@@ -125,7 +125,7 @@ class WritingTaskViewSet(viewsets.ModelViewSet):
             students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
 
             for student in students:
-                writings = student.writingtask_set.all()
+                writings = student.writingtask_set.filter(trait=None).order_by('started_time')
                 student_writings = {
                     "student": student.student_name,
                     "first_name": student.first_name,
@@ -325,6 +325,7 @@ def verify_view(request):
     })
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser]) 
 def assign_to_all(request):
     """
     View to assign certain tasks to all raters.
@@ -369,52 +370,73 @@ def clear_tasks_view(request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAdminUser]) 
 def create_students(request):
     students = request.data.get("students", [])
     try:
+        existed_students = Student.objects.in_bulk(field_name='student_name')
         for s in students:
-            Student.objects.get_or_create(
-                student_name=s["student_name"],
-                defaults={
-                    "last_name": s["last_name"],
-                    "first_name": s["first_name"],
-                    "classes": BEClass.objects.get_or_create(class_name=s["class_name"])[0] if s.get("class_name") else None,      
-                }
-            )
+            student_name = s.get("student_name")
+
+            be_class = None
+            if s.get("class_name"):
+                be_class, _ = BEClass.objects.get_or_create(class_name=s["class_name"])
+            
+            existed_student = existed_students.get(student_name)
+            if existed_student:
+                existed_student.last_name = s["last_name"]
+                existed_student.first_name = s["first_name"]
+                existed_student.classes = be_class
+                existed_student.save()
+            else:
+                Student.objects.create(
+                    student_name=student_name,
+                    last_name=s["last_name"],
+                    first_name=s["first_name"],
+                    classes= be_class,
+                )
+            
         return Response({"message": "Students created successfully", "Code": 200})
     except Exception as e:
         return Response({"message": f"Error creating students: {str(e)}", "Code": 500})
 
 @api_view(["POST"])
+@permission_classes([IsAdminUser]) 
 def create_writing_tasks(request):
     from datetime import datetime
     tasks = request.data.get("tasks", [])
     try:
+        # prefetch all students
+        existed_students = Student.objecets.in_bulk(field_name='student_name')
+        writing_tasks_objs = []
         for t in tasks:
-            student = Student.objects.filter(student_name=t["student_name"]).first()
-            if student:
+            student = existed_students.get(t["student_name"])
+            if not student:
+                continue
+            
+            try:
+                # Try parsing DD/MM/YYYY HH:MM
+                started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
+            except ValueError:
                 try:
-                    # Try parsing DD/MM/YYYY HH:MM
-                    started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
+                    # Try parsing ISO format fallback (already valid input)
+                    started_time = datetime.fromisoformat(t["started_time"])
                 except ValueError:
-                    try:
-                        # Try parsing ISO format fallback (already valid input)
-                        started_time = datetime.fromisoformat(t["started_time"])
-                    except ValueError:
-                        return Response({
-                            "message": f"Invalid date format: {t['started_time']}",
-                            "Code": 400
-                        })
+                    return Response({
+                        "message": f"Invalid date format: {t['started_time']}",
+                        "Code": 400
+                    })
 
-                WritingTask.objects.get_or_create(
-                    student_name=student,
-                    trait=t["trait"],
-                    defaults={
-                    "started_time":started_time,
-                    "response":t["response"],
-                    "words_count":int(t["words_count"]) if t.get("words_count") else 0,
-                    }
-                )
-        return Response({"message": "Writing tasks created successfully", "Code": 200})
+            writing_tasks_objs.append(WritingTask(
+                student_name=student,
+                trait=t["trait"],
+                started_time=started_time,
+                response=t["response"],
+                words_count=int(t["words_count"]) if t.get("words_count") else 0,
+            ))
+            
+            # Bulk create writing tasks
+            WritingTask.objects.bulk_create(writing_tasks_objs, batch_size=400) # Adjust batch size
+        return Response({"message": f"{len(writing_tasks_objs)} Writing tasks created successfully", "Code": 200})
     except Exception as e:
         return Response({"message": f"Error creating writing tasks: {str(e)}", "Code": 500})
