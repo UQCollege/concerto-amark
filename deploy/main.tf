@@ -58,6 +58,10 @@ resource "aws_iam_instance_profile" "ec2_profile" {
   name = "amark-ec2-profile"
   role = aws_iam_role.ec2_role.name
 }
+data "aws_ip_ranges" "cloudfront" {
+  services = ["CLOUDFRONT"]
+  regions  = ["GLOBAL"]
+}
 
 resource "aws_security_group" "amark_sg" {
   name        = "amark-security-group"
@@ -68,7 +72,7 @@ resource "aws_security_group" "amark_sg" {
     from_port   = 8000
     to_port     = 8000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = data.aws_ip_ranges.cloudfront.cidr_blocks #["0.0.0.0/0"]
   }
 
   egress {
@@ -82,7 +86,7 @@ resource "aws_security_group" "amark_sg" {
 resource "aws_instance" "amark_ec2" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t3.medium"
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   subnet_id                   = data.aws_subnets.vpc_subnets.ids[0]
   vpc_security_group_ids      = [aws_security_group.amark_sg.id]
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
@@ -91,11 +95,13 @@ resource "aws_instance" "amark_ec2" {
 
   user_data = <<-EOF
               #!/bin/bash
+
               apt update -y
               apt install -y docker.io docker-compose awscli
               usermod -aG docker ubuntu
               systemctl enable docker
 
+             
               mkdir -p /home/ubuntu/amark-app/db
               cd /home/ubuntu/amark-app
 
@@ -121,8 +127,8 @@ resource "aws_instance" "amark_ec2" {
               DEBUG=False
               DJANGO_SECRET_KEY=${var.secret_key}
               ALLOWED_HOSTS='*'
-              CORS_ALLOW_ALL_ORIGINS=True
-              CORS_ORIGIN_ALLOW_ORIGINS='*'
+              CORS_ALLOW_ALL_ORIGINS=False
+              CORS_ALLOWED_ORIGINS=${var.cors_origin_allow}
               DJANGO_SUPERUSER_USERNAME=admin
               DJANGO_SUPERUSER_EMAIL=admin@example.com
               DJANGO_SUPERUSER_PASSWORD=adminpassword
@@ -130,6 +136,7 @@ resource "aws_instance" "amark_ec2" {
               COGNITO_REGION='ap-southeast-2'
               USERPOOL_ID=${var.userpool_id}
               APP_CLIENT_ID=${var.app_client_id}
+              CSRF_TRUSTED_ORIGINS=${var.csfr_trusted_origins}
               EOL
 
               cat <<EOL > start-amark.sh
@@ -167,6 +174,19 @@ resource "aws_instance" "amark_ec2" {
   }
 }
 
-output "instance_public_ip" {
-  value = aws_instance.amark_ec2.public_ip
+
+resource "aws_eip" "amark_eip" {
+  associate_with_private_ip = null
+  tags = {
+    Name = "AmarkEIP"
+  }
+}
+
+resource "aws_eip_association" "amark_eip_assoc" {
+  instance_id   = aws_instance.amark_ec2.id
+  allocation_id = aws_eip.amark_eip.id
+}
+
+output "elastic_ip" {
+  value = aws_eip.amark_eip.public_ip
 }

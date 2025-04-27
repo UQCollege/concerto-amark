@@ -18,6 +18,8 @@ apiService.interceptors.request.use((config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers["X-Custom-Origin"] = "my-secure-header";
+
     return config;
 });
 

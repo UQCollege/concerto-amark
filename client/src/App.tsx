@@ -18,16 +18,16 @@ function App() {
 
     if (isAuthDisabled) {
       const devToken = "FAKE_DEV_TOKEN";
-      localStorage.setItem("access_token", devToken);
+      sessionStorage.setItem("access_token", devToken);
       dispatch(setToken(devToken));
     } else {
 
       const params = new URLSearchParams(window.location.search);
-      const token = params.get("access_token") || localStorage.getItem("access_token");
+      const token = params.get("access_token") || sessionStorage.getItem("access_token");
 
       if (token) {
         dispatch(setToken(token));
-        localStorage.setItem("access_token", token);
+        sessionStorage.setItem("access_token", token);
         window.history.replaceState({}, document.title, "/");
       }
 
