@@ -46,7 +46,7 @@ export const ImportData = () => {
         }
     };
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex gap-4">
             <div>
                 <Button onClick={() => studentInputRef.current?.click()}>
                     Upload Students CSV

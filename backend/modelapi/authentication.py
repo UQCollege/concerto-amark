@@ -60,13 +60,14 @@ class CognitoJWTAuthentication(BaseAuthentication):
     def authenticate(self, request):
         if settings.USE_FAKE_AUTH: #local development without cognito
             if not hasattr(self, "_devuser"):
+
                 self._devuser, _ = CustomUser.objects.get_or_create(
-                    username="devuser",
+                    username=os.environ.get("DEV_USER_NAME", "devuser"),
                     defaults={
-                        "rater_digital_id": "uniqueId",
+                        "rater_digital_id": "uniqueId0",
                         "active": True,
                         "task_access": 1,
-                        "usertype" : "Admin",
+                        "usertype" : os.environ.get("DEV_USER_TYPE", "Admin"),
                         "is_superuser" : True,
                     }
                 )

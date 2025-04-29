@@ -14,7 +14,7 @@ const Root = () => {
 
   const userData = useAppSelector((state) => state.auth)
 
-  const name = isAuthDisabled ? import.meta.env.VITE_LOCALDEV_RATER : (userData?.user || "");
+  const name = isAuthDisabled ? import.meta.env.VITE_LOCALDEV : (userData?.user || "");
   const isAdmin = userData.groups.includes("Admin") || userData.groups.includes("Admin-Rater");
   const isTeacher = userData.groups.includes("Teacher");
 

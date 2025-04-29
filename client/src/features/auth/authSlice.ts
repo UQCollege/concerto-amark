@@ -24,8 +24,8 @@ export const authSlice = createSlice({
         setToken: (state, action) => {
             state.token = action.payload;
             if (isAuthDisabled) { // for local development
-                state.user = "devuser"
-                state.groups = ["Admin"]
+                state.user = import.meta.env.VITE_LOCALDEV
+                state.groups = [import.meta.env.VITE_LOCALDEV_TYPE]
             } else {
 
                 try {
