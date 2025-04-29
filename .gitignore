@@ -41,3 +41,4 @@ variables.tf
 
 # local bash scripts
 ECR.sh
+*.csv

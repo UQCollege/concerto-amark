@@ -69,7 +69,6 @@ export const downloadWritingsZip = async (dataArray: StudentData[]) => {
         const fullName = `${data.last_name}${data.first_name}`;
 
         for (const writing of data.writings) {
-            const pdf = new jsPDF();
             const extractResponse = extractTextFromHTML(writing.response);
             const content = `
                 Student Full Name: ${fullName}
@@ -107,7 +106,6 @@ export interface DownloadData {
  * @param data - The data to be included in the PDF.
  */
 export const downloadPDF = async (data: DownloadData) => {
-    const pdf = new jsPDF();
     const extractResponse = extractTextFromHTML(data.response);
     const content = `
 Student Name: ${data.student_name}

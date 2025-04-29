@@ -6,9 +6,10 @@ from collections import Counter
 
 class BEClass(models.Model):
     class_name = models.IntegerField(unique=True, primary_key=True)
+    class_code = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
-        return f'BEClass: {self.class_name}'
+        return f'{self.class_code} - {self.class_name}'
 
 class CustomUser(AbstractUser):
     # an option for chosing the user type
@@ -62,9 +63,14 @@ class WritingTask(Audit):
     WritingTask model represents the writing tasks that raters will review.
     The data is from Concerto database: assessResponse_Writingtask table.
     '''
+    TRAIT_CHOICES = (
+        ('Writing 1', 'Writing 1'),
+        ('Writing 2', 'Writing 2'),
+        ('Weekly Writing', 'Weekly Writing'),
 
+    )
     started_time = models.DateTimeField()
-    trait = models.CharField(max_length=100, null=True)
+    trait = models.CharField(max_length=25, choices=TRAIT_CHOICES, null=True)
     student_name = models.ForeignKey(Student, on_delete=models.CASCADE)
     assign_all = models.BooleanField(default=False)
     response = models.TextField()
