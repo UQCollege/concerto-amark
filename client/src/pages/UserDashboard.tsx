@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getUserTasks } from "../utils/apiService";
 import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 
 import MarkOption from "../uis/MarkOption";
 import { SelectOptionType } from "../uis/MarkOption";
@@ -22,6 +23,7 @@ import {
   completeAndUpdate,
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../apiTypes";
+import { Divider } from "primereact/divider";
 
 
 
@@ -37,10 +39,12 @@ export function UserDashboard() {
   const currentUser = name ? name : ""
   const [currentTaskId, setCurrentTaskId] = useState<number | undefined>();
   const [expanded, setExpanded] = useState(true);
-
+  const [showDialog, setShowDialog] = useState(false);
+  const dialogLastSubmit = () => {
+    setShowDialog(true)
+  }
 
   const assessData: AssessData[] = [...useAppSelector((state) => state.assess)];
-
   const dispatch = useAppDispatch();
 
   const currentTask = assessData.find((task) => task.id === currentTaskId);
@@ -69,8 +73,7 @@ export function UserDashboard() {
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
-      console.log("tasks", tasks.length);
-      console.log("tasks", tasks[0]);
+
       dispatch(initialRating(tasks));
       const currentTaskId = tasks[0]?.id;
       setCurrentTaskId(currentTaskId);
@@ -138,21 +141,13 @@ export function UserDashboard() {
     );
   }
 
-
-
-
-
   return (
     <div className="">
-
-
       <div className="flex items-center h-[100vh]">
         <div
           className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
             }`}
         >
-          {/* Sidbar info */}
-
           <div className="text-2xl">
             <div className="flex gap-5 justify-between">
 
@@ -201,10 +196,11 @@ export function UserDashboard() {
                 rows={8}
               />
             </div>
-            <div>
+            <div className="flex gap-2">
               <Button onClick={handleRevert}> Last</Button>
+    
               <Button
-                onClick={isAllSelected ? handleSubmit : () => { }}
+                onClick={isLastTask? dialogLastSubmit:handleSubmit}
                 className={
                   !isAllSelected
                     ? "bg-red-200 cursor-not-allowed opacity-50"
@@ -216,8 +212,6 @@ export function UserDashboard() {
               </Button>
             </div>
           </div>
-
-
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
@@ -238,6 +232,22 @@ export function UserDashboard() {
             ></div>
         </div>
       </div>
+      <Dialog onHide={() => setShowDialog(false)} visible={showDialog} header="Confirm" footer={
+        <div className="flex gap-2">
+          <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={() => setShowDialog(false)} />
+          <Button label="Submit" icon="pi pi-check" className="p-button-danger" onClick={handleSubmit} />
+        </div>
+      }>
+        <p>Are you sure you want to submit the final assessment?</p>
+        <Divider />
+        <ul>
+         {assessData.map((result, idx)=><li key={idx}>coco: {result.ratings.coco} gra {result.ratings.gra} ta: {result.ratings.ta} voc: {result.ratings.voc} comments {result.comments}<Divider /></li>)} 
+      
+        </ul>
+        <p>Once submitted, you will not be able to change your assessment.</p>
+        <p>Click "Submit" to confirm.</p>
+
+      </Dialog>
     </div>
   );
 }
