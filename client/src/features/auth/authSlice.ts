@@ -12,7 +12,7 @@ interface User {
 }
 
 const initialState: User = {
-    token: localStorage.getItem("access_token") || null,
+    token: sessionStorage.getItem("access_token") || null,
     user: null,
     groups: [] as UserType[],
 };
@@ -49,7 +49,7 @@ export const authSlice = createSlice({
             state.token = null;
             state.user = null;
             state.groups = [];
-            localStorage.removeItem("access_token");
+            sessionStorage.removeItem("access_token");
         },
     },
 });

@@ -65,7 +65,10 @@
             client_id: OIDC_CONFIG.client_id,
             redirect_uri: OIDC_CONFIG.redirect_uri,
             response_type: "code",
-            scope: "email openid phone"
+            scope: "email openid phone", //Todo: offline_access after moving authen to backend
+            extraQueryParams: {
+                max_age: 28800 // 8 hours in seconds
+            }
         };
 
         const userManager = new UserManager({ ...cognitoAuthConfig });
@@ -91,8 +94,8 @@
             try {
                 const user = await userManager.getUser();
                 if (user && user.id_token && user.access_token) {
-                    localStorage.setItem("access_token", user.access_token);
-                    localStorage.setItem("id_token", user.id_token);
+                    sessionStorage.setItem("access_token", user.access_token);
+                    sessionStorage.setItem("id_token", user.id_token);
                     const dashboardBtn = document.getElementById("goToDashboard");
                     if (dashboardBtn) {
                         dashboardBtn.onclick = () => {

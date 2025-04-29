@@ -1,3 +1,7 @@
+variable "vpcID" {
+  default = ""
+}
+
 variable "key_name" {
   default = "amark-key"
 }
@@ -21,4 +25,17 @@ variable "userpool_id" {
 variable "app_client_id" {
   description = "Cognito app Client Id"
   type        = string
+}
+
+variable "domain_name" {
+  description = "Domain name for the CloudFront distribution"
+  type        = string
+  default     = ""
+
+}
+variable "cors_origin_allow" {
+  default = "http://XXXX.s3-website-ap-southeast-2.amazonaws.com"
+}
+variable "csfr_trusted_origins" {
+  default = "https://XXXXX.cloudfront.net"
 }

@@ -18,16 +18,15 @@ apiService.interceptors.request.use((config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers["X-Custom-Origin"] = "my-secure-header";
+
     return config;
 });
 
 // Get Method
 export const getClassWritings = async (name: string) => {
     try {
-        console.log("teacher_name: ", name)
         const response = await apiService.get(`/tasks/?teacher_name=${name}`)
-
-
         return response.data
     } catch (error) {
         console.error(error)
