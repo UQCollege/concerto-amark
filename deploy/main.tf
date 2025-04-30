@@ -58,22 +58,25 @@ resource "aws_iam_instance_profile" "ec2_profile" {
   name = "amark-ec2-profile"
   role = aws_iam_role.ec2_role.name
 }
+
 data "aws_ip_ranges" "cloudfront" {
   services = ["CLOUDFRONT"]
   regions  = ["GLOBAL"]
+}
+locals {
+  cloudfront_ips = data.aws_ip_ranges.cloudfront.cidr_blocks
+
+  # Split list into chunks of 60 (or fewer)
+  cloudfront_chunks = [
+    for i in range(0, length(local.cloudfront_ips), 60) :
+    slice(local.cloudfront_ips, i, i + 60)
+  ]
 }
 
 resource "aws_security_group" "amark_sg" {
   name        = "amark-security-group"
   description = "Allow 8000 access"
   vpc_id      = data.aws_vpc.custom.id
-
-  ingress {
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = data.aws_ip_ranges.cloudfront.cidr_blocks #["0.0.0.0/0"]
-  }
 
   egress {
     from_port   = 0
@@ -82,8 +85,23 @@ resource "aws_security_group" "amark_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+# Create one ingress rule per chunk of 60 IPs
+resource "aws_security_group_rule" "cloudfront_ingress_rules" {
+  for_each = { for idx, chunk in local.cloudfront_chunks : idx => chunk }
+
+  type              = "ingress"
+  from_port         = 8000
+  to_port           = 8000
+  protocol          = "tcp"
+  cidr_blocks       = each.value
+  security_group_id = aws_security_group.amark_sg.id
+  description       = "Allow CloudFront IPs chunk ${each.key}"
+}
 
 resource "aws_instance" "amark_ec2" {
+  depends_on = [
+    aws_security_group_rule.cloudfront_ingress_rules
+  ]
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t3.medium"
   associate_public_ip_address = false
@@ -190,4 +208,9 @@ resource "aws_eip_association" "amark_eip_assoc" {
 
 output "elastic_ip" {
   value = aws_eip.amark_eip.public_ip
+}
+
+
+output "cloudfront_chunks_count" {
+  value = length(local.cloudfront_chunks)
 }
