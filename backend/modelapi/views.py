@@ -3,7 +3,6 @@ from django.http import JsonResponse
 
 # Create your views here.
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.permissions import BasePermission
 from rest_framework import viewsets
 from rest_framework.response import Response
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
@@ -325,18 +324,19 @@ def verify_view(request):
     })
 
 @api_view(['POST'])
-@permission_classes([IsAdminUser]) 
 def assign_to_all(request):
     """
     View to assign certain tasks to all raters.
     """
-
+    
+    print("user: ", request.user.is_superuser, request.user)
     if request.user.is_superuser == False:
         return JsonResponse({"message": "No permission", "Code":403})
     student_names = request.data.get("studentNames", [])
+    writing_trait = request.data.get("trait", None)
     if not student_names:
         return JsonResponse({"message": "No student names provided", "Code": 400})
-    tasks = WritingTask.objects.filter(student_name__in=student_names)
+    tasks = WritingTask.objects.filter(student_name__in=student_names, trait=writing_trait)
 
     for task in tasks:
         task.assign_all = True
@@ -370,8 +370,10 @@ def clear_tasks_view(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAdminUser]) 
 def create_students(request):
+    if request.user.is_superuser == False:
+        return JsonResponse({"message": "No permission", "Code":403})
+    
     students = request.data.get("students", [])
     try:
         existed_students = Student.objects.in_bulk(field_name='student_name')
@@ -401,8 +403,9 @@ def create_students(request):
         return Response({"message": f"Error creating students: {str(e)}", "Code": 500})
 
 @api_view(["POST"])
-@permission_classes([IsAdminUser]) 
 def create_writing_tasks(request):
+    if request.user.is_superuser == False:
+        return JsonResponse({"message": "No permission", "Code":403})
     from datetime import datetime
     tasks = request.data.get("tasks", [])
     try:

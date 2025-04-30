@@ -18,7 +18,7 @@ apiService.interceptors.request.use((config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
-    config.headers["X-Custom-Origin"] = "my-secure-header";
+    config.headers["X-Custom-Origin"] =import.meta.env.VITE_CUSTOM_ORIGIN;
 
     return config;
 });
