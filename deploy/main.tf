@@ -137,6 +137,7 @@ resource "aws_instance" "amark_ec2" {
               USERPOOL_ID=${var.userpool_id}
               APP_CLIENT_ID=${var.app_client_id}
               CSRF_TRUSTED_ORIGINS=${var.csfr_trusted_origins}
+              CUSTOM_ORIGIN_HEADER=${var.my-secure-header}
               EOL
 
               cat <<EOL > start-amark.sh
