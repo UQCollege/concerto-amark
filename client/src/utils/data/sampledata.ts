@@ -6,7 +6,7 @@ export const extrConcertoData = [
     trait: "",
     response: "This is test example 1",
     login: "",
-    studentName: "",
+    studentCode: "",
   },
   {
 
@@ -17,7 +17,7 @@ export const sampleApiData = [
   {
     id: 0,
     trait: "Writing 1",
-    studentName: "1",
+    studentCode: "1",
     raterDigitalId: "",
     raterName: "Alice1",
     startedTime: "2025-02-27",
@@ -33,7 +33,7 @@ export const sampleApiData = [
   {
     id: 1,
     trait: "Writing 2",
-    studentName: "1",
+    studentCode: "1",
     raterDigitalId: "",
     raterName: "Alice2",
     startedTime: "2025-02-28",
@@ -49,7 +49,7 @@ export const sampleApiData = [
   {
     id: 2,
     trait: "Writing 1",
-    studentName: "1",
+    studentCode: "1",
     raterDigitalId: "",
     raterName: "Alice3",
     startedTime: "2025-02-27",
@@ -65,7 +65,7 @@ export const sampleApiData = [
   {
     id: 3,
     trait: "Writing 2",
-    studentName: "1",
+    studentCode: "1",
     raterDigitalId: "",
     raterName: "Alice4",
     startedTime: "2025-02-28",
@@ -81,7 +81,7 @@ export const sampleApiData = [
   {
     id: 4,
     trait: "Writing 1",
-    studentName: "2",
+    studentCode: "2",
     raterDigitalId: "",
     raterName: "Alice1",
     startedTime: "2025-02-27",
@@ -97,7 +97,7 @@ export const sampleApiData = [
   {
     id: 5,
     trait: "Writing 2",
-    studentName: "2",
+    studentCode: "2",
     raterDigitalId: "",
     raterName: "Alice2",
     startedTime: "2025-02-28",
@@ -113,7 +113,7 @@ export const sampleApiData = [
   {
     id: 6,
     trait: "Writing 1",
-    studentName: "2",
+    studentCode: "2",
     raterDigitalId: "",
     raterName: "Alice3",
     startedTime: "2025-02-27",
@@ -129,7 +129,7 @@ export const sampleApiData = [
   {
     id: 7,
     trait: "Writing 2",
-    studentName: "2",
+    studentCode: "2",
     raterDigitalId: "",
     raterName: "Alice4",
     startedTime: "2025-02-28",
@@ -145,7 +145,7 @@ export const sampleApiData = [
   {
     id: 8,
     trait: "Writing 1",
-    studentName: "3",
+    studentCode: "3",
     raterDigitalId: "",
     raterName: "Alice1",
     startedTime: "2025-02-27",
@@ -161,7 +161,7 @@ export const sampleApiData = [
   {
     id: 9,
     trait: "Writing 2",
-    studentName: "3",
+    studentCode: "3",
     raterDigitalId: "",
     raterName: "Alice2",
     startedTime: "2025-02-28",
@@ -177,7 +177,7 @@ export const sampleApiData = [
   {
     id: 10,
     trait: "Writing 1",
-    studentName: "3",
+    studentCode: "3",
     raterDigitalId: "",
     raterName: "Alice3",
     startedTime: "2025-02-27",
@@ -193,7 +193,7 @@ export const sampleApiData = [
   {
     id: 11,
     trait: "Writing 2",
-    studentName: "3",
+    studentCode: "3",
     raterDigitalId: "",
     raterName: "Alice4",
     startedTime: "2025-02-28",
@@ -209,7 +209,7 @@ export const sampleApiData = [
   {
     id: 12,
     trait: "Writing 1",
-    studentName: "4",
+    studentCode: "4",
     raterDigitalId: "",
     raterName: "Alice1",
     startedTime: "2025-02-27",
@@ -225,7 +225,7 @@ export const sampleApiData = [
   {
     id: 13,
     trait: "Writing 2",
-    studentName: "4",
+    studentCode: "4",
     raterDigitalId: "",
     raterName: "Alice2",
     startedTime: "2025-02-28",
@@ -241,7 +241,7 @@ export const sampleApiData = [
   {
     id: 14,
     trait: "Writing 1",
-    studentName: "4",
+    studentCode: "4",
     raterDigitalId: "",
     raterName: "Alice3",
     startedTime: "2025-02-27",
@@ -257,7 +257,7 @@ export const sampleApiData = [
   {
     id: 15,
     trait: "Writing 2",
-    studentName: "4",
+    studentCode: "4",
     raterDigitalId: "",
     raterName: "Alice4",
     startedTime: "2025-02-28",
@@ -277,7 +277,7 @@ export const sampleApiData = [
 export const sampleTaskData = [{
 
   id: 0,
-  studentName: "1",
+  studentCode: "1",
   raterDigitalId: "",
   raterName: "Alice1",
   startedTime: "2025-02-27",
@@ -293,7 +293,7 @@ export const sampleTaskData = [{
 },
 {
   id: 1,
-  studentName: "2",
+  studentCode: "2",
   raterDigitalId: "",
   raterName: "Alice2",
   startedTime: "2025-02-27",
@@ -309,7 +309,7 @@ export const sampleTaskData = [{
 },
 {
   id: 2,
-  studentName: "3",
+  studentCode: "3",
   raterDigitalId: "",
   raterName: "Alice1",
   startedTime: "2025-02-27",
@@ -325,7 +325,7 @@ export const sampleTaskData = [{
 },
 {
   id: 3,
-  studentName: "4",
+  studentCode: "4",
   raterDigitalId: "",
   raterName: "Alice1",
   startedTime: "2025-02-27",

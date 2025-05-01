@@ -92,7 +92,27 @@ export const getRatersFromDB = async () => {
 }
 
 // Post Method
-export const createTaskInTable = async (data: { student_name: string; trait: string; rater_name: string }) => {
+export const uploadZipFile = async (file: File | undefined) =>{
+    if(!file)return
+    const formData = new FormData();
+    formData.append("file", file);
+    console.log("file: ", formData)
+
+    const response = await apiService.post("/upload-zip/", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        }
+ })
+    if (response.status === 200){
+        console.log("upload done!")
+    }else{
+        console.log("upload failed")
+    }
+    return response.data
+
+}
+
+export const createTaskInTable = async (data: { student_code: string; trait: string; rater_name: string }) => {
     try {
         const response = await apiService.post("/allocated-tasks/", data);
         return response.data;
@@ -108,6 +128,8 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
             const raterData = {
                 name: rater.raterName,
                 rater_digital_id: rater.raterDigitalId,
+                first_name:rater.firstName || "",
+                last_name:rater.lastName || "",
                 active: true,
                 password: 'test123', // Default password
             };
@@ -119,6 +141,8 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
         if (response.data.Code === 409) {
             console.log(response.data.message);
         }
+        alert(response.data.message);
+
 
     } catch (error) {
         console.error("Error creating raters: ", error);
@@ -126,7 +150,7 @@ export const writeRatersToDatabase = async (raters: RaterList[]): Promise<void> 
     }
 }
 
-export const assignToAll = async (data: { studentNames: string[], trait: string }): Promise<void> => {
+export const assignToAll = async (data: { studentCodes: string[], trait: string }): Promise<void> => {
     try {
         await apiService.post("/assign-all/", data)
     } catch (error) {

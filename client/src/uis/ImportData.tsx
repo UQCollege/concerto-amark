@@ -12,8 +12,8 @@ export const ImportData = () => {
         if (!file) return;
 
         try {
-            const students = await parseCsvFile(file, ([student_name, last_name, first_name, classes]) => ({
-                student_name,
+            const students = await parseCsvFile(file, ([student_code, last_name, first_name, classes]) => ({
+                student_code,
                 last_name,
                 first_name,
                 classes,
@@ -31,10 +31,10 @@ export const ImportData = () => {
         if (!file) return;
 
         try {
-            const tasks = await parseCsvFile(file, ([started_time, trait, student_name, response, words_count]) => ({
+            const tasks = await parseCsvFile(file, ([started_time, trait, student_code, response, words_count]) => ({
                 started_time,
                 trait,
-                student_name,
+                student_code,
                 response,
                 words_count: Number(words_count),
             }));

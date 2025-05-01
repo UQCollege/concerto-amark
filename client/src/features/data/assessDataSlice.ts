@@ -12,7 +12,7 @@ export interface RatingAspects {
 
 export interface AssessData {
   id: number;
-  studentName: string;
+  studentCode: string;
   trait: string;
   startedTime: string;
   response: string;

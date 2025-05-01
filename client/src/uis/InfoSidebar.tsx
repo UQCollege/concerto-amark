@@ -49,7 +49,7 @@ export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
     return (
       <>
         <span>
-          {info.studentName} - {info.trait} Score: {info.ratings.ta}-
+          {info.studentCode} - {info.trait} Score: {info.ratings.ta}-
         </span>
         <span>{info.ratings.gra}-</span>
         <span>{info.ratings.voc}-</span>

@@ -6,7 +6,7 @@ from collections import Counter
 
 class BEClass(models.Model):
     class_name = models.IntegerField(unique=True, primary_key=True)
-    class_code = models.CharField(max_length=20, null=True, blank=True)
+    class_desc = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
         return f'{self.class_code} - {self.class_name}'
@@ -49,13 +49,14 @@ class Audit(models.Model):
         self.save(*args, **kwargs)  # Call save to update the active field
 
 class Student(Audit):
-    student_name = models.CharField(max_length=50, unique=True, primary_key=True)
+    student_code = models.CharField(max_length=50, unique=True, primary_key=True)
+    student_digital_id = models.CharField(max_length=50, null=True, blank=True)
     last_name = models.CharField(max_length=100, null=True) 
     first_name = models.CharField(max_length=100, null=True)
     classes=models.ForeignKey(BEClass, on_delete=models.SET_NULL, related_name="student_classes", null=True)
     
     def __str__(self):
-        return self.student_name
+        return self.student_code
 
 
 class WritingTask(Audit):
@@ -71,13 +72,13 @@ class WritingTask(Audit):
     )
     started_time = models.DateTimeField()
     trait = models.CharField(max_length=25, choices=TRAIT_CHOICES, null=True)
-    student_name = models.ForeignKey(Student, on_delete=models.CASCADE)
+    student_code = models.ForeignKey(Student, on_delete=models.CASCADE)
     assign_all = models.BooleanField(default=False)
     response = models.TextField()
     words_count= models.IntegerField(null=True)
 
     def __str__(self):
-        return f"{self.trait} in test on #{self.started_time} by {self.student_name}"
+        return f"{self.trait} in test on #{self.started_time} by {self.student_code}"
 
 
     def assign_raters(self, raters):
@@ -102,7 +103,7 @@ class WritingTask(Audit):
 
         assigned_rater_ids = set(existing_tasks.values_list("rater_id", flat=True))
         excluded_raters = set(
-            AssessmentTask.objects.filter(writing_task__student_name=self.student_name)
+            AssessmentTask.objects.filter(writing_task__student_code=self.student_code)
             .values_list("rater_id", flat=True)
         )
 
