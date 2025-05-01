@@ -40,5 +40,5 @@ variables.tf
 */.terraform.*
 
 # local bash scripts
-ECR.sh
 *.csv
+config.sh
