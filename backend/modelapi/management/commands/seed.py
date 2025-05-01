@@ -13,7 +13,7 @@ class Command(BaseCommand):
     def seed_student(self):
         students = ["s0"+str(i) for i in range(500) ] 
         for student in students:
-            Student.objects.get_or_create(student_name = student, first_name='firstn'+student, last_name='lastn'+student)   
+            Student.objects.get_or_create(student_code = student, first_name='firstn'+student, last_name='lastn'+student)   
 
     def seed_writing_tasks(self):
         students =Student.objects.all()  # Add more users as needed
@@ -29,7 +29,7 @@ class Command(BaseCommand):
                 response = f"This is test example {i + 1} for User {student}"
 
                 writing_tasks_data.append({
-                    'student_name': student,
+                    'student_code': student,
                     'trait': task_trait,
                     'started_time': started_time,
                     'response': response,

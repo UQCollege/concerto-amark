@@ -12,7 +12,7 @@ class WritingTaskSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class AssessmentTaskSerializer(serializers.ModelSerializer):
-    student_name = serializers.CharField(source='writing_task.student_name', read_only=True)
+    student_code = serializers.CharField(source='writing_task.student_code', read_only=True)
     rater_name = serializers.CharField(source='rater.username', read_only=True)
     rater_digital_id = serializers.CharField(source='rater.rater_digital_id', read_only=True)
     trait = serializers.CharField(source='writing_task.trait', read_only=True)
@@ -22,6 +22,6 @@ class AssessmentTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AssessmentTask
-        fields = ['id', 'student_name', 'trait', 'started_time', 'rater_name', 'rater_digital_id', 'response', 'words_count', 'ta', 'gra', 'voc', 'coco', 'completed', 'comments']
+        fields = ['id', 'student_code', 'trait', 'started_time', 'rater_name', 'rater_digital_id', 'response', 'words_count', 'ta', 'gra', 'voc', 'coco', 'completed', 'comments']
     
     

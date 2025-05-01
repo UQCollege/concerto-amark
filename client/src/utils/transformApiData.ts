@@ -3,7 +3,7 @@ import { ApiData, Rating } from "../apiTypes";
 // TD: Task distribution
 export interface TD {
   id: number;
-  studentName: string;
+  studentCode: string;
   trait: string;
   rater: string;
   raterName: string;
@@ -22,7 +22,7 @@ export function transformApiData(data: ApiData[]): TD[] {
     id: entry.id,
     selected: false,
     trait: entry.trait,
-    studentName: entry.student_name,
+    studentCode: entry.student_code,
     startedTime: entry.started_time,
     rater: entry.rater_digital_id,
     raterName: entry.rater_name,
@@ -40,7 +40,7 @@ export function toMatrix(data: TD[]): Record<string, Record<string, string>> {
   const matrix: Record<string, Record<string, string>> = {};
 
   data.forEach((entry) => {
-    const rowKey = `${entry.studentName}_${entry.trait}`;
+    const rowKey = `${entry.studentCode}_${entry.trait}`;
     if (!matrix[rowKey]) {
       matrix[rowKey] = {};
     }

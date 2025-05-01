@@ -9,7 +9,7 @@ export interface Writing {
     started_time: string;
     trait: string;
     response: string;
-    student_name: string;
+    student_code: string;
     words_count: number;
 }
 
@@ -89,7 +89,7 @@ export const downloadWritingsZip = async (dataArray: StudentData[]) => {
 };
 
 export interface DownloadData {
-    student_name: string;
+    student_code: string;
     rater_name: string;
     trait: string;
     ta: number | null;
@@ -108,7 +108,7 @@ export interface DownloadData {
 export const downloadPDF = async (data: DownloadData) => {
     const extractResponse = extractTextFromHTML(data.response);
     const content = `
-Student Name: ${data.student_name}
+Student Name: ${data.student_code}
 Rater Name: ${data.rater_name}
 Trait: ${data.trait}
 Ratings:
@@ -124,6 +124,6 @@ Started Time: ${data.started_time}
 
     const pdfBlob = generatePDF(content);
 
-    const fileName = `${data.trait.replace(/\s+/g, "_")}_${data.student_name.replace(/\s+/g, "_")}.pdf`;
+    const fileName = `${data.trait.replace(/\s+/g, "_")}_${data.student_code.replace(/\s+/g, "_")}.pdf`;
     saveAs(pdfBlob, fileName);
 };

@@ -79,18 +79,18 @@ export default taskAllocationSlice.reducer
 
 // Async thunk for creating a new task
 export const createNewTask =
-    (data: { studentName?: string | undefined; trait?: string | undefined; raterName?: string | undefined }) =>
+    (data: { studentCode?: string | undefined; trait?: string | undefined; raterName?: string | undefined }) =>
     async (dispatch: AppDispatch) => {
-        const { studentName, trait, raterName } = data;
+        const { studentCode, trait, raterName } = data;
 
-        if (!studentName || !trait || !raterName) {
-            console.error("Missing required fields: studentName, trait, or raterName");
+        if (!studentCode || !trait || !raterName) {
+            console.error("Missing required fields: studentCode, trait, or raterName");
             return;
         }
 
         try {
             const response = await createTaskInTable({
-                student_name: studentName,
+                student_code: studentCode,
                 trait: trait,
                 rater_name: raterName,
             });
