@@ -1,6 +1,6 @@
 from django.test import TestCase
 from collections import Counter
-from .models import WritingTask, CustomUser, AssessmentTask
+from .models import WritingTask, CustomUser, AssessmentTask, Student
 
 class AssignRatersMultipleTasksTestCase(TestCase):
     def setUp(self):
@@ -10,7 +10,7 @@ class AssignRatersMultipleTasksTestCase(TestCase):
             for i in range(10)
         ]
 
-        self.students = ['s'+str(i) for i in range(20)]
+        self.students = [Student.objects.create(student_code=str(i)) for i in range(20)]
         self.tasks = []
 
         # Create 2 tasks per student: writing task 1 and 2
@@ -18,14 +18,14 @@ class AssignRatersMultipleTasksTestCase(TestCase):
             task1 = WritingTask.objects.create(
                 started_time="2024-01-01T10:00:00Z",
                 trait="writing task 1",
-                student_name=student,
+                student_code=student,
                 response=f"{student}'s response 1",
                 words_count=100,
             )
             task2 = WritingTask.objects.create(
                 started_time="2024-01-01T11:00:00Z",
                 trait="writing task 2",
-                student_name=student,
+                student_code=student,
                 response=f"{student}'s response 2",
                 words_count=120,
             )
@@ -42,12 +42,12 @@ class AssignRatersMultipleTasksTestCase(TestCase):
         # Check uniqueness of raters per student
         for student in self.students:
             task1_raters = AssessmentTask.objects.filter(
-                writing_task__student_name=student,
+                writing_task__student_code=student,
                 writing_task__trait="writing task 1"
             ).values_list("rater_id", flat=True)
 
             task2_raters = AssessmentTask.objects.filter(
-                writing_task__student_name=student,
+                writing_task__student_code=student,
                 writing_task__trait="writing task 2"
             ).values_list("rater_id", flat=True)
 

@@ -99,7 +99,7 @@ export default function DataTableUI({
   const [createNewDialog, setCreateNewDialog] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [newRecord, setNewRecord] = useState<{
-    studentName?: string;
+    studentCode?: string;
     trait?: string;
     raterName?: string;
     completed: false;
@@ -113,7 +113,7 @@ export default function DataTableUI({
     setNewRecord(undefined);
   };
   const saveANew = async () => {
-    if (!newRecord?.studentName || !newRecord.raterName || !newRecord.trait) {
+    if (!newRecord?.studentCode || !newRecord.raterName || !newRecord.trait) {
       setSubmitted(true);
       return;
     }
@@ -340,18 +340,18 @@ export default function DataTableUI({
           <label htmlFor="name" className="font-bold">
           </label>
           <InputText
-            id="studentName"
+            id="studentCode"
             onChange={(e) =>
               setNewRecord((state) => ({
                 ...state,
-                studentName: e.target.value,
+                studentCode: e.target.value,
                 completed: false,
               }))
             }
             required
             autoFocus
             className={classNames({
-              "p-invalid": submitted && !newRecord?.studentName,
+              "p-invalid": submitted && !newRecord?.studentCode,
             })}
           />
         </div>
@@ -405,7 +405,7 @@ export default function DataTableUI({
 
           </div>
         </div>
-        {submitted && !newRecord?.studentName && (
+        {submitted && !newRecord?.studentCode && (
           <small className="p-error">Name is required.</small>
         )}
         {submitted && !newRecord?.raterName && (

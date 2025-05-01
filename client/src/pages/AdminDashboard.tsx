@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchRaters, createRaters } from "../features/data/ratersUpdateSlice";
 
@@ -17,6 +17,7 @@ import {
   getAssessmentData,
   getInitialAssessmentData,
   updateRater,
+  uploadZipFile,
   verify,
 } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
@@ -55,7 +56,7 @@ export function AdminDashboard() {
         return;
       }
       const newTaskData = transformApiData(result).sort((a: TD, b: TD) => {
-        return Number(a.studentName) - Number(b.studentName);
+        return Number(a.studentCode) - Number(b.studentCode);
       });
       dispatch(setTasks(newTaskData));
       setIsProcess(false);
@@ -72,14 +73,20 @@ export function AdminDashboard() {
         ? sampleApiData
         : await getAssessmentData();
     const newTaskData = transformApiData(result).sort((a: TD, b: TD) => {
-      return Number(a.studentName) - Number(b.studentName);
+      return Number(a.studentCode) - Number(b.studentCode);
     });
 
     dispatch(setTasks(newTaskData));
     setIsProcess(false);
   };
 
-
+  const uploadBundleHandler = async (e: React.ChangeEvent<HTMLInputElement>) =>{
+    setIsProcess(true)
+    const file = e.target.files?.[0];
+    const response = await uploadZipFile(file);
+    alert(response.message);
+    setIsProcess(false)
+  }
   const createRaterList = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsProcess(true)
     const file = e.target.files?.[0];
@@ -93,13 +100,14 @@ export function AdminDashboard() {
       const records = rows
         .slice(headerIndex, headerIndex + maxRows)
         .map((row) => {
-          console.log(row);
-          const [name, rater_digital_id] = row
+             const [name, rater_digital_id, first_name, last_name] = row
             .split(",")
             .map((col) => col.trim());
           return {
             raterName: name,
             raterDigitalId: rater_digital_id,
+            firstName: first_name || "",
+            lastName: last_name || "",
             active: true,
           };
         });
@@ -154,6 +162,20 @@ export function AdminDashboard() {
 
             </div>
             <div className="pi pi-arrow-right"></div>
+            <label
+              htmlFor="bundlefiles"
+              className="cursor-pointer bg-blue-600 text-white px-2 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+            >
+              Upload bundle files
+              <input
+                id="bundlefiles"
+                type="file"
+                onChange={uploadBundleHandler}
+                className="hidden"
+                multiple
+              />
+
+            </label>
 
             <label
               htmlFor="raterlist"
@@ -173,7 +195,7 @@ export function AdminDashboard() {
             <div className="flex items-center gap-2">
               <ChipInput chips={chips} setChips={setChips} />
               <SelectButton value={traitValue} onChange={(e: SelectButtonChangeEvent) => setValue(e.value)} options={options} itemTemplate={buttonTemplate} optionLabel="label" />
-              <Button onClick={async () => { await assignToAll({ studentNames: chips, trait: traitValue }) }}>Tasks for All, click!</Button>{" "}
+              <Button onClick={async () => { await assignToAll({ studentCodes: chips, trait: traitValue }) }}>Tasks for All, click!</Button>{" "}
             </div>
 
             <div className="pi pi-arrow-right"></div>
@@ -201,7 +223,7 @@ export function AdminDashboard() {
                 taskData={taskData}
                 fieldNames={[
                   "id",
-                  "studentName",
+                  "studentCode",
                   "trait",
                   "startedTime",
                   "rater",

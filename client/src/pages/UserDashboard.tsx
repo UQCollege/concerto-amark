@@ -58,7 +58,7 @@ export function UserDashboard() {
       const tasks: AssessData[] = data
         .map((task: ApiData) => ({
           id: task.id,
-          studentName: task.student_name,
+          studentCode: task.student_code,
           trait: task.trait,
           startedTime: task.started_time,
           response: task.response,
@@ -221,7 +221,7 @@ export function UserDashboard() {
         </button>
 
         <div className="w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] bg-gray-100 text-black line-height-3 shadow-2">
-          <h3 className="text-left mb-2">{currentTask.studentName}</h3>
+          <h3 className="text-left mb-2">{currentTask.studentCode}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
           <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3>
           <h3 className="text-left mb-2">{currentTask.startedTime}</h3>

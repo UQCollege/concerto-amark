@@ -10,7 +10,7 @@ export type AppThunk<ReturnType = void> = ThunkAction<
 // Type from DB
 export type ApiData = {
     id: number;
-    student_name: string;
+    student_code: string;
     trait: string;
     rater_digital_id: string;
     rater_name: string;
@@ -29,7 +29,7 @@ export type ApiData = {
 // Type save to DB
 export type TaskAPI = {
     id: number;
-    studentName: string;
+    studentCode: string;
     trait: string;
     raterDigitalId: string;
     raterName: string;

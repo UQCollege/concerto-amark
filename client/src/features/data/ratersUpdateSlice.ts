@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
 // Types - this is a combined query result, totalTasks is not a data column
-export type RaterList = { raterName: string; raterDigitalId: string; active: boolean; totalTasks?: number}; 
+export type RaterList = { raterName: string; firstName?:string; lastName?:string; raterDigitalId: string; active: boolean; totalTasks?: number}; 
 
 export interface RaterListUpdatePayLoad {
     prev: RaterList;
@@ -51,6 +51,7 @@ const ratersUpdateSlice = createSlice({
                 return action.payload;
             })
             .addCase(createRaters.fulfilled, (state, action: PayloadAction<RaterList[]>) => {
+                console.log(createRaters.fulfilled)
                 return action.payload;
             })
             .addCase(deleteRater.fulfilled, (state, action: PayloadAction<string>) => {

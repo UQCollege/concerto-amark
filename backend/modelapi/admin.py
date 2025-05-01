@@ -9,7 +9,7 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'student_name', 'trait', 'started_time', 'response']  # Show columns in list view
+    list_display = ['id', 'student_code', 'trait', 'started_time', 'response']  # Show columns in list view
 
 @admin.register(AssessmentTask)
 class AssessmentTaskAdmin(admin.ModelAdmin):
@@ -20,7 +20,7 @@ class AssessmentTaskAdmin(admin.ModelAdmin):
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ['student_name', 'first_name', 'last_name', 'classes']  # Show columns in list view
+    list_display = ['student_code', 'first_name', 'last_name', 'classes']  # Show columns in list view
 
 
 @admin.register(BEClass)
