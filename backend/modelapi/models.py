@@ -9,7 +9,7 @@ class BEClass(models.Model):
     class_desc = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
-        return f'{self.class_code} - {self.class_name}'
+        return f'{self.class_desc} - {self.class_name}'
 
 class CustomUser(AbstractUser):
     # an option for chosing the user type

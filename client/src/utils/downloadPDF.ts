@@ -80,7 +80,7 @@ export const downloadWritingsZip = async (dataArray: StudentData[]) => {
 
             const pdfBlob = generatePDF(content);
             const fileName = `${writing.trait.replace(/\s+/g, "_")}_${fullName}.pdf`;
-            zip.file(`${fullName}/${fileName}`, pdfBlob);
+            zip.file(`${fileName}`, pdfBlob);
         }
     }
 

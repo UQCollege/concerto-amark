@@ -127,7 +127,7 @@ class WritingTaskViewSet(viewsets.ModelViewSet):
             students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
 
             for student in students:
-                writings = student.writingtask_set.filter(trait=None).order_by('started_time')
+                writings = student.writingtask_set.filter(trait="Weekly Writing").order_by('started_time')
                 student_writings = {
                     "student": student.student_code,
                     "first_name": student.first_name,
