@@ -2,26 +2,6 @@ provider "aws" {
   region = "ap-southeast-2"
 }
 
-data "aws_vpc" "custom" {
-  id = var.vpcID
-}
-
-data "aws_subnets" "vpc_subnets" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.custom.id]
-  }
-
-
-  filter {
-    name   = "availability-zone"
-    values = ["ap-southeast-2a"]
-  }
-}
-locals {
-  selected_subnet_id = data.aws_subnets.vpc_subnets.ids[0]
-}
-
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"]
@@ -31,52 +11,41 @@ data "aws_ami" "ubuntu" {
     values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
 }
-
-resource "aws_iam_role" "ec2_role" {
+data "aws_iam_role" "ec2_role" {
   name = "amark-ec2-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        },
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
+}
+data "aws_security_group" "amark_sg" {
+  name   = "amark-security-group"
+  vpc_id = var.vpcID
 }
 
-resource "aws_iam_role_policy_attachment" "ecr_readonly" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
 
-resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "amark-ec2-profile"
-  role = aws_iam_role.ec2_role.name
+data "aws_iam_instance_profile" "ec2_profile" {
+  name="amark-ec2-profile"
 }
-
-data "aws_ip_ranges" "cloudfront" {
-  services = ["CLOUDFRONT"]
-  regions  = ["GLOBAL"]
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
 }
-locals {
-  cloudfront_ips = data.aws_ip_ranges.cloudfront.cidr_blocks
-
-  # Split list into chunks of 60 (or fewer)
-  cloudfront_chunks = [
-    for i in range(0, length(local.cloudfront_ips), 60) :
-    slice(local.cloudfront_ips, i, i + 60)
-  ]
-}
-
 resource "aws_security_group" "amark_sg" {
-  name        = "amark-security-group"
+  name        = "amark-security-group-private"
   description = "Allow 8000 access"
-  vpc_id      = data.aws_vpc.custom.id
+  vpc_id      = var.vpcID
+
+  ingress {
+    description = "Allow from CloudFront"
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+  }
+
+  ingress {
+    description = "Allow Local Access"
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = [var.my_ip_cidr]
+  }
 
   egress {
     from_port   = 0
@@ -85,31 +54,20 @@ resource "aws_security_group" "amark_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-# Create one ingress rule per chunk of 60 IPs
-resource "aws_security_group_rule" "cloudfront_ingress_rules" {
-  for_each = { for idx, chunk in local.cloudfront_chunks : idx => chunk }
 
-  type              = "ingress"
-  from_port         = 8000
-  to_port           = 8000
-  protocol          = "tcp"
-  cidr_blocks       = each.value
-  security_group_id = aws_security_group.amark_sg.id
-  description       = "Allow CloudFront IPs chunk ${each.key}"
-}
 
 resource "aws_instance" "amark_ec2" {
-  depends_on = [
-    aws_security_group_rule.cloudfront_ingress_rules
-  ]
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3.medium"
-  associate_public_ip_address = false
-  subnet_id                   = data.aws_subnets.vpc_subnets.ids[0]
+  instance_type               = "t3.small"
+  subnet_id                   = var.private_subnet_id
   vpc_security_group_ids      = [aws_security_group.amark_sg.id]
-  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  iam_instance_profile        = data.aws_iam_instance_profile.ec2_profile.name
   key_name                    = var.key_name
 
+  metadata_options {
+    http_tokens   = "required"
+    http_endpoint = "enabled"
+  }
 
   user_data = <<-EOF
               #!/bin/bash
@@ -194,23 +152,3 @@ resource "aws_instance" "amark_ec2" {
 }
 
 
-resource "aws_eip" "amark_eip" {
-  associate_with_private_ip = null
-  tags = {
-    Name = "AmarkEIP"
-  }
-}
-
-resource "aws_eip_association" "amark_eip_assoc" {
-  instance_id   = aws_instance.amark_ec2.id
-  allocation_id = aws_eip.amark_eip.id
-}
-
-output "elastic_ip" {
-  value = aws_eip.amark_eip.public_ip
-}
-
-
-output "cloudfront_chunks_count" {
-  value = length(local.cloudfront_chunks)
-}

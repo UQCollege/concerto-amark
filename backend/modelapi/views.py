@@ -1,4 +1,4 @@
-
+from django.db import transaction
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
@@ -412,37 +412,53 @@ def create_writing_tasks(request):
     tasks = request.data.get("tasks", [])
     try:
         # prefetch all students
-        existed_students = Student.objecets.in_bulk(field_name='student_code')
+        existed_students = Student.objects.in_bulk(field_name='student_code')
+        print("existed_students", existed_students)
         writing_tasks_objs = []
-        for t in tasks:
-            student = existed_students.get(t["student_code"])
-            if not student:
-                continue
-            
-            try:
-                # Try parsing DD/MM/YYYY HH:MM
-                started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
-            except ValueError:
-                try:
-                    # Try parsing ISO format fallback (already valid input)
-                    started_time = datetime.fromisoformat(t["started_time"])
-                except ValueError:
-                    return Response({
-                        "message": f"Invalid date format: {t['started_time']}",
-                        "Code": 400
-                    })
 
-            writing_tasks_objs.append(WritingTask(
-                student_code=student,
-                trait=t["trait"],
-                started_time=started_time,
-                response=t["response"],
-                words_count=int(t["words_count"]) if t.get("words_count") else 0,
-            ))
-            
+        with transaction.atomic():
+            for t in tasks:
+                print(t["student_code"])
+                student = existed_students.get(t["student_code"])
+                print("student", student)
+                if not student:
+                    continue
+                
+                try:
+                    # Try parsing DD/MM/YYYY HH:MM
+                    started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
+                except ValueError:
+                    try:
+                        # Try parsing ISO format fallback (already valid input)
+                        started_time = datetime.fromisoformat(t["started_time"])
+                    except ValueError:
+                        return Response({
+                            "message": f"Invalid date format: {t['started_time']}",
+                            "Code": 400
+                        })
+
+                writing_tasks_objs.append(WritingTask(
+                    student_code=student,
+                    trait=t["trait"],
+                    started_time=started_time,
+                    response=t["response"],
+                    words_count=int(t["words_count"]) if t.get("words_count") else 0,
+                ))
+            existing_keys = set(
+        WritingTask.objects.filter(
+            student_code__in=[w.student_code for w in writing_tasks_objs],
+            trait__in=[w.trait for w in writing_tasks_objs],
+            started_time__in=[w.started_time for w in writing_tasks_objs],
+            ).values_list("student_code_id", "started_time", "trait")
+        )
+        unique_objs = [
+            w for w in writing_tasks_objs
+            if (w.student_code.student_code, w.started_time, w.trait) not in existing_keys
+            ]
             # Bulk create writing tasks
-            WritingTask.objects.bulk_create(writing_tasks_objs, batch_size=400) # Adjust batch size
-        return Response({"message": f"{len(writing_tasks_objs)} Writing tasks created successfully", "Code": 200})
+        with transaction.atomic():
+            WritingTask.objects.bulk_create(unique_objs, batch_size=400) # Adjust batch size
+        return Response({"message": f"{len(unique_objs)} Writing tasks created successfully", "Code": 200})
     except Exception as e:
         return Response({"message": f"Error creating writing tasks: {str(e)}", "Code": 500})
 
@@ -489,7 +505,7 @@ def handle_upload_file(request):
                 words_count=task["words_count"]
             ))
 
-        WritingTask.objects.bulk_create(writing_task_objs)
+        WritingTask.objects.bulk_create(writing_task_objs, batch_size=400, ignore_conflicts=True)
         return JsonResponse({"message": "File parsed done!", "Code": 200})
 
     except Exception as e:
