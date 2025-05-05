@@ -27,7 +27,7 @@ export const ImportData = () => {
           student_code,
           last_name,
           first_name,
-          classes,
+          class_name:classes,
         })
       );
       const message = await uploadData("/students/", "students", students);
@@ -55,7 +55,7 @@ export const ImportData = () => {
           words_count: Number(words_count),
         })
       );
-      console.log(tasks);
+     
       const message = await uploadData("/writing-tasks/", "tasks", tasks);
       alert(message);
     } catch (err) {

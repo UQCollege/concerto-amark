@@ -125,9 +125,9 @@ class WritingTaskViewSet(viewsets.ModelViewSet):
             teacher = get_object_or_404(CustomUser, username=teacher_name, classes__gt=0)
             query_class = teacher.classes
             students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
-
+   
             for student in students:
-                writings = student.writingtask_set.filter(trait="Weekly Writing").order_by('started_time')
+                writings = student.writingtask_set.filter(trait="Weekly Writing").order_by('started_time')    
                 student_writings = {
                     "student": student.student_code,
                     "first_name": student.first_name,
@@ -257,14 +257,14 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-    
+# Allocate Writing tasks to raters 
 @permission_classes([IsAdminUser])
 def assign_raters_view(request):
     """
     View to assign raters to a writing task.
     """
     
-    tasks = WritingTask.objects.all()
+    tasks = WritingTask.objects.all().exclude(trait="Weekly Writing")
     try:
         for task in tasks:
             raters = CustomUser.objects.filter(usertype="Rater", active=True)  # Fetch all available raters
@@ -385,6 +385,7 @@ def create_students(request):
 
             be_class = None
             if s.get("class_name"):
+                print(s["class_name"])
                 be_class, _ = BEClass.objects.get_or_create(class_name=s["class_name"])
             
             existed_student = existed_students.get(student_code)
@@ -413,44 +414,43 @@ def create_writing_tasks(request):
     try:
         # prefetch all students
         existed_students = Student.objects.in_bulk(field_name='student_code')
-        print("existed_students", existed_students)
+    
         writing_tasks_objs = []
 
-        with transaction.atomic():
-            for t in tasks:
-                print(t["student_code"])
-                student = existed_students.get(t["student_code"])
-                print("student", student)
-                if not student:
-                    continue
-                
+        for t in tasks:
+            print(t["student_code"])
+            student = existed_students.get(t["student_code"])
+            print("student", student)
+            if not student:
+                continue
+            
+            try:
+                # Try parsing DD/MM/YYYY HH:MM
+                started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
+            except ValueError:
                 try:
-                    # Try parsing DD/MM/YYYY HH:MM
-                    started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
+                    # Try parsing ISO format fallback (already valid input)
+                    started_time = datetime.fromisoformat(t["started_time"])
                 except ValueError:
-                    try:
-                        # Try parsing ISO format fallback (already valid input)
-                        started_time = datetime.fromisoformat(t["started_time"])
-                    except ValueError:
-                        return Response({
-                            "message": f"Invalid date format: {t['started_time']}",
-                            "Code": 400
-                        })
+                    return Response({
+                        "message": f"Invalid date format: {t['started_time']}",
+                        "Code": 400
+                    })
 
-                writing_tasks_objs.append(WritingTask(
-                    student_code=student,
-                    trait=t["trait"],
-                    started_time=started_time,
-                    response=t["response"],
-                    words_count=int(t["words_count"]) if t.get("words_count") else 0,
-                ))
-            existing_keys = set(
-        WritingTask.objects.filter(
-            student_code__in=[w.student_code for w in writing_tasks_objs],
-            trait__in=[w.trait for w in writing_tasks_objs],
-            started_time__in=[w.started_time for w in writing_tasks_objs],
-            ).values_list("student_code_id", "started_time", "trait")
-        )
+            writing_tasks_objs.append(WritingTask(
+                student_code=student,
+                trait=t["trait"],
+                started_time=started_time,
+                response=t["response"],
+                words_count=int(t["words_count"]) if t.get("words_count") else 0,
+            ))
+        existing_keys = set(
+            WritingTask.objects.filter(
+                student_code__in=[w.student_code for w in writing_tasks_objs],
+                trait__in=[w.trait for w in writing_tasks_objs],
+                started_time__in=[w.started_time for w in writing_tasks_objs],
+                ).values_list("student_code_id", "started_time", "trait")
+            )
         unique_objs = [
             w for w in writing_tasks_objs
             if (w.student_code.student_code, w.started_time, w.trait) not in existing_keys
