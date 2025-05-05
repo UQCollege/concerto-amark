@@ -1,0 +1,18 @@
+aws_region:
+account_id:
+aws_profile:
+
+# Backend
+bastion_instance_id: i-xxxxxxxxxxxxxxxxx
+bastion_host:
+bastion_user: ec2-user
+
+backend_private_ip: 10.0.1.100
+backend_user: ec2-user
+app_dir: /home/ec2-user/myapp # Path to the app directory on backend EC2
+start_script: ./start.sh
+
+# Frontend
+frontend_dir: ../frontend # Relative path to your frontend source
+s3_bucket:
+cloudfront_distribution_id:

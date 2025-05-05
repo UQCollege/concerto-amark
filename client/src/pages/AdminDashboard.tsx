@@ -17,7 +17,6 @@ import {
   getAssessmentData,
   getInitialAssessmentData,
   updateRater,
-  uploadZipFile,
   verify,
 } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
@@ -37,6 +36,7 @@ interface JustifyOption {
 export function AdminDashboard() {
   const [showDialog, setShowDialog] = useState(false);
   const [isProcess, setIsProcess] = useState(false);
+
   const options: JustifyOption[] = [
     { label: "W 1", value: "Writing 1" },
     { label: "W 2", value: "Writing 2" },
@@ -81,15 +81,7 @@ export function AdminDashboard() {
     setIsProcess(false);
   };
 
-  const uploadBundleHandler = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setIsProcess(true);
-    const file = e.target.files?.[0];
-    const response = await uploadZipFile(file);
-    alert(response.message);
-    setIsProcess(false);
-  };
+ 
   const createRaterList = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsProcess(true);
     const file = e.target.files?.[0];
@@ -170,19 +162,8 @@ export function AdminDashboard() {
           <div className="flex justify-between">
             <div className="flex items-center  gap-3">
               <div className="flex flex-row items-center gap-2">
-                <label
-                  htmlFor="bundlefiles"
-                  className="cursor-pointer bg-blue-400 text-white px-2 py-2 rounded-lg shadow hover:bg-blue-300 transition"
-                >
-                  Upload bundle files
-                  <input
-                    id="bundlefiles"
-                    type="file"
-                    onChange={uploadBundleHandler}
-                    className="hidden"
-                    multiple
-                  />
-                </label>
+               
+               
                 <ImportData />
               </div>
               <div className="pi pi-arrow-right"></div>

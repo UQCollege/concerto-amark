@@ -11,39 +11,36 @@ data "aws_ami" "ubuntu" {
     values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
 }
+
 data "aws_iam_role" "ec2_role" {
   name = "amark-ec2-role"
 }
-data "aws_security_group" "amark_sg" {
-  name   = "amark-security-group"
-  vpc_id = var.vpcID
-}
-
 
 data "aws_iam_instance_profile" "ec2_profile" {
-  name="amark-ec2-profile"
+  name = "amark-ec2-profile"
 }
 data "aws_ec2_managed_prefix_list" "cloudfront" {
   name = "com.amazonaws.global.cloudfront.origin-facing"
 }
-resource "aws_security_group" "amark_sg" {
+
+resource "aws_security_group" "amark_sg_private" {
   name        = "amark-security-group-private"
-  description = "Allow 8000 access"
+  description = "Allow CloudFront and bastion access"
   vpc_id      = var.vpcID
 
   ingress {
-    description = "Allow from CloudFront"
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
+    description     = "Allow from CloudFront"
+    from_port       = 8000
+    to_port         = 8000
+    protocol        = "tcp"
     prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
   }
 
   ingress {
     description = "Allow Local Access"
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = [var.my_ip_cidr]
   }
 
@@ -56,13 +53,13 @@ resource "aws_security_group" "amark_sg" {
 }
 
 
-resource "aws_instance" "amark_ec2" {
-  ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3.small"
-  subnet_id                   = var.private_subnet_id
-  vpc_security_group_ids      = [aws_security_group.amark_sg.id]
-  iam_instance_profile        = data.aws_iam_instance_profile.ec2_profile.name
-  key_name                    = var.key_name
+resource "aws_instance" "amark_ec2_private" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.medium"
+  subnet_id              = var.private_subnet_id
+  vpc_security_group_ids = [aws_security_group.amark_sg_private.id]
+  iam_instance_profile   = data.aws_iam_instance_profile.ec2_profile.name
+  key_name               = var.key_name
 
   metadata_options {
     http_tokens   = "required"
@@ -147,8 +144,16 @@ resource "aws_instance" "amark_ec2" {
               EOF
 
   tags = {
-    Name = "AmarkAppServer"
+    Name = "AmarkAPIServer"
   }
 }
 
-
+output "ec2_id" {
+  value = aws_instance.amark_ec2_private.id
+}
+output "ec2_private_ip" {
+  value = aws_instance.amark_ec2_private.private_ip
+}
+output "ec2_private_dns" {
+  value = aws_instance.amark_ec2_private.private_dns
+}
