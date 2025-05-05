@@ -35,8 +35,6 @@ function App() {
     }
   }, [dispatch]);
   const isAdmin = useAppSelector((state) => state.auth.groups).includes("Admin")
-  const isRater = useAppSelector((state) => state.auth.groups).includes("Rater")
-  const isTeacher = useAppSelector((state) => state.auth.groups).includes("Teacher")
   const router = createBrowserRouter([
     {
       path: "/",
@@ -53,8 +51,8 @@ function App() {
             )
           ),
         },
-        { path: "/raters/:name", element: (isRater ? <UserDashboard /> : <Navigate to="/" />) },
-        { path: "/classes/:name", element: (isTeacher ? <ClassDashboard /> : <Navigate to="/" />) }, //todo: remove to Another App
+        { path: "/raters/:name", element: <UserDashboard />  },
+        { path: "/classes/:name", element: <ClassDashboard /> }, //todo: remove to Another App
       ],
     },
   ]);

@@ -42,3 +42,6 @@ variables.tf
 # local bash scripts
 *.csv
 config.sh
+deploy/ECR.sh
+terraform/export.sh
+ansible/group_vars/all.yml

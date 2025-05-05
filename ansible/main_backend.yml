@@ -1,0 +1,39 @@
+- name: Backend deploy: Push image + trigger EC2 start script
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - group_vars/all.yml
+
+  tasks:
+    - name: Push Docker image to ECR (SSO-aware)
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} |
+        docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ aws_region }}.amazonaws.com &&
+        docker tag {{ docker_image }} {{ account_id }}.dkr.ecr.{{ aws_region }}.amazonaws.com/{{ ecr_repo_name }} &&
+        docker push {{ account_id }}.dkr.ecr.{{ aws_region }}.amazonaws.com/{{ ecr_repo_name }}
+      environment:
+        AWS_PROFILE: "{{ my-sso-profile }}"
+
+    - name: Start bastion instance
+      amazon.aws.ec2_instance:
+        instance_ids: [ "{{ bastion_instance_id }}" ]
+        region: "{{ aws_region }}"
+        state: running
+
+    - name: Wait for SSH on bastion
+      wait_for:
+        host: "{{ bastion_host }}"
+        port: 22
+        timeout: 300
+
+    - name: Restart backend app via Bastion
+      shell: |
+        cd {{ app_dir }}
+        docker-compose down
+        {{ start_script }}
+      delegate_to: "{{ backend_private_ip }}"
+      remote_user: "{{ backend_user }}"
+      vars:
+        ansible_ssh_common_args: >-
+          -o ProxyJump={{ bastion_user }}@{{ bastion_host }}
+

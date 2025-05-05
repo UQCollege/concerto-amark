@@ -9,7 +9,7 @@ class BEClass(models.Model):
     class_desc = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
-        return f'{self.class_desc} - {self.class_name}'
+        return f'{self.class_name} - {self.class_name}'
 
 class CustomUser(AbstractUser):
     # an option for chosing the user type
@@ -76,6 +76,7 @@ class WritingTask(Audit):
     assign_all = models.BooleanField(default=False)
     response = models.TextField()
     words_count= models.IntegerField(null=True)
+
 
     def __str__(self):
         return f"{self.trait} in test on #{self.started_time} by {self.student_code}"
