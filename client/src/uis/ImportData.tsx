@@ -43,19 +43,17 @@ export const ImportData = () => {
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     try {
       const tasks: WritingTask[] = await parseCsvFile(
         file,
         ([started_time, trait, student_code, response, words_count]) => ({
           started_time,
           trait,
-          student_code: student_code.toString(),
+          student_code,
           response,
           words_count: Number(words_count),
         })
       );
-     
       const message = await uploadData("/writing-tasks/", "tasks", tasks);
       alert(message);
     } catch (err) {

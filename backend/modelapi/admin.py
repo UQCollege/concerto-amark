@@ -5,7 +5,7 @@ from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'rater_digital_id', 'active', 'classes', 'task_access']  # Add any fields you want to see
+    list_display = ['id', 'username', 'first_name', 'last_name','rater_digital_id', 'active', 'classes', 'task_access']  # Add any fields you want to see
 
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):

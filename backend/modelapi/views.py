@@ -381,7 +381,7 @@ def create_students(request):
     try:
         existed_students = Student.objects.in_bulk(field_name='student_code')
         for s in students:
-            student_code = s.get("student_code")
+            student_code = str(s.get("student_code"))
 
             be_class = None
             if s.get("class_name"):
@@ -417,10 +417,9 @@ def create_writing_tasks(request):
     
         writing_tasks_objs = []
 
-        for t in tasks:
-            print(t["student_code"])
-            student = existed_students.get(t["student_code"])
-            print("student", student)
+        for t in tasks: 
+            student = existed_students.get(str(t["student_code"])) 
+
             if not student:
                 continue
             
