@@ -42,8 +42,12 @@ class RaterViewSet(viewsets.ModelViewSet):
 
         for rater in raters:
             rater_name = rater['name']
+            classes=None
+            if rater.get('class_name', None):
+                classes, _=BEClass.objects.get_or_create(class_name=int(rater.get('class_name', None)))
             if rater_name not in existed_raters:
                 # Create a new rater if it doesn't exist
+
                 CustomUser.objects.create(
                     username=rater_name,
                     first_name=rater['first_name'],
@@ -51,6 +55,7 @@ class RaterViewSet(viewsets.ModelViewSet):
                     rater_digital_id=rater['rater_digital_id'],
                     usertype='Rater',
                     active=rater.get('active', True),
+                    classes=classes,
                     task_access=rater.get('task_access', 1),
                 )
             else:
@@ -60,6 +65,7 @@ class RaterViewSet(viewsets.ModelViewSet):
                     existing_rater.active = True
                     existing_rater.task_access = rater.get('task_access', 1)
                     existing_rater.rater_digital_id = rater['rater_digital_id']
+                    existing_rater.classes=classes
                     existing_rater.save()
 
         return Response({"message": "Raters processed successfully", "Code": 200})
@@ -332,14 +338,18 @@ def assign_to_all(request):
     View to assign certain tasks to all raters.
     """
     
-    print("user: ", request.user.is_superuser, request.user)
     if request.user.is_superuser == False:
         return JsonResponse({"message": "No permission", "Code":403})
     student_codes = request.data.get("studentCodes", [])
     writing_trait = request.data.get("trait", None)
+
+    if not writing_trait:
+        return JsonResponse({"message": "No Writing Day selected", "Code": 400}) 
+ 
     if not student_codes:
         return JsonResponse({"message": "No student names provided", "Code": 400})
     tasks = WritingTask.objects.filter(student_code__in=student_codes, trait=writing_trait)
+
 
     for task in tasks:
         task.assign_all = True

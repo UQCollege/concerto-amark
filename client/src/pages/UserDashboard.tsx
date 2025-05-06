@@ -17,15 +17,11 @@ import {
   setRating,
   setComment,
   type AssessData,
-
-
   initialRating,
   completeAndUpdate,
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../apiTypes";
 import { Divider } from "primereact/divider";
-
-
 
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
@@ -39,6 +35,7 @@ export function UserDashboard() {
   const currentUser = name ? name : ""
   const [currentTaskId, setCurrentTaskId] = useState<number | undefined>();
   const [expanded, setExpanded] = useState(true);
+  const [lightMode, setLightMode] = useState(false)
   const [showDialog, setShowDialog] = useState(false);
   const dialogLastSubmit = () => {
     setShowDialog(true)
@@ -219,17 +216,30 @@ export function UserDashboard() {
         >
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
-
-        <div className="w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] bg-gray-100 text-black line-height-3 shadow-2">
+        <div
+          className={`w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] line-height-3 shadow-2 ${
+            lightMode ? "bg-[#35454c] text-[#f7f9f9]" : "bg-gray-100 text-black"
+          }`}
+        >
+          <div className="flex justify-end">
+            <Button
+              rounded
+              outlined
+              className="border-solid border-2 border-gray-300"
+              onClick={() => setLightMode(!lightMode)}
+            >
+              {lightMode ? <i className="pi pi-sun"></i> : <i className="pi pi-moon"></i>}
+            </Button>
+          </div>
           <h3 className="text-left mb-2">{currentTask.studentCode}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
           <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3>
           <h3 className="text-left mb-2">{currentTask.startedTime}</h3>
           <hr />
-            <div
-              className="block w-full text-left whitespace-pre-line leading-5 mt-2 text-lg"
-              dangerouslySetInnerHTML={{ __html: currentTask.response }}
-            ></div>
+          <div
+            className="block w-full text-left whitespace-pre-line leading-7 mt-5 text-lg overflow-y-auto max-h-[70vh]"
+            dangerouslySetInnerHTML={{ __html: currentTask.response }}
+          ></div>
         </div>
       </div>
       <Dialog onHide={() => setShowDialog(false)} visible={showDialog} header="Confirm" footer={

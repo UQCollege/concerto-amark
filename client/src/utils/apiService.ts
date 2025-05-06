@@ -160,7 +160,8 @@ export const writeRatersToDatabase = async (
         rater_digital_id: rater.raterDigitalId,
         first_name: rater.firstName || "",
         last_name: rater.lastName || "",
-        active: true,
+        active: rater.active,
+        class_name: rater.className,
         password: "test123", // Default password
       };
 
@@ -180,11 +181,14 @@ export const writeRatersToDatabase = async (
 export const assignToAll = async (data: {
   studentCodes: string[];
   trait: string;
-}): Promise<void> => {
+}): Promise<string> => {
   try {
-    await apiService.post("/assign-all/", data);
+    const response = await apiService.post("/assign-all/", data);
+    return response.data.message
   } catch (error) {
     console.error(error);
+    const errorMsg = `Error ${error}`
+    return errorMsg
   }
 };
 

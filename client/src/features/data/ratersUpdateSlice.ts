@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
 // Types - this is a combined query result, totalTasks is not a data column
-export type RaterList = { raterName: string; firstName?:string; lastName?:string; raterDigitalId: string; active: boolean; totalTasks?: number}; 
+export type RaterList = { raterName: string; firstName?:string; lastName?:string; raterDigitalId: string; active: boolean; totalTasks?: number; className?:number}; 
 
 export interface RaterListUpdatePayLoad {
     prev: RaterList;
