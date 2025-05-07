@@ -194,7 +194,7 @@ export function UserDashboard() {
               />
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleRevert}> Last</Button>
+              <Button onClick={handleRevert}> <i className="pi pi-arrow-left"></i></Button>
 
               <Button
                 onClick={isLastTask ? dialogLastSubmit : handleSubmit}
@@ -205,7 +205,7 @@ export function UserDashboard() {
                 }
                 disabled={!isAllSelected}
               >
-                {isLastTask ? "Submit Final Assessment" : "Next ( Save )"}
+                {isLastTask ? "Submit Final Assessment" : <span> <i className="pi pi-arrow-right" /> <i className="pi pi-save" /> </span>}
               </Button>
             </div>
           </div>
