@@ -21,7 +21,7 @@ class RaterViewSet(viewsets.ModelViewSet):
     serializer_class = RaterSerializer
 
     def list (self, request):
-        if request.user.is_superuser == "False":
+        if not request.user.is_superuser:
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
 
         raters=CustomUser.objects.filter(usertype='Rater').order_by('username')
@@ -35,7 +35,7 @@ class RaterViewSet(viewsets.ModelViewSet):
             
     
     def create(self, request):
-        if request.user.is_superuser == "False":
+        if not request.user.is_superuser:
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
         raters = request.data.get('raters', [])  # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
         existed_raters = CustomUser.objects.filter(usertype='Rater').in_bulk(field_name='username')
@@ -74,7 +74,7 @@ class RaterViewSet(viewsets.ModelViewSet):
         """
         Delete a rater by digital Id.
         """
-        if request.user.is_superuser == "False":
+        if not request.user.is_superuser:
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
         rater_digital_id = request.data.get('rater_digital_id')
 
@@ -87,7 +87,7 @@ class RaterViewSet(viewsets.ModelViewSet):
         return Response({"message": "Rater deleted successfully", "Code": 200}, status=status.HTTP_204_NO_CONTENT)
     
     def update(self, request):
-        if request.user.is_superuser == False:
+        if not request.user.is_superuser:
             return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN) # Ensure permissions are checked
         
         if request.user.is_superuser:
@@ -167,10 +167,10 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
 
         if rater_name:
             rater = get_object_or_404(CustomUser, username=rater_name)
-            print("rater", rater)
+            
             if rater.usertype != "Rater" or not rater.active:
                 return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
-            print(f"Writing {rater.task_access}")
+            
             try:
                 queryset = AssessmentTask.objects.filter(
                     rater=rater, 
@@ -384,7 +384,7 @@ def clear_tasks_view(request):
 
 @api_view(["POST"])
 def create_students(request):
-    if request.user.is_superuser == False:
+    if not request.user.is_superuser:
         return JsonResponse({"message": "No permission", "Code":403})
     
     students = request.data.get("students", [])

@@ -195,9 +195,9 @@ export function UserDashboard() {
             </div>
             <div className="flex gap-2">
               <Button onClick={handleRevert}> Last</Button>
-    
+
               <Button
-                onClick={isLastTask? dialogLastSubmit:handleSubmit}
+                onClick={isLastTask ? dialogLastSubmit : handleSubmit}
                 className={
                   !isAllSelected
                     ? "bg-red-200 cursor-not-allowed opacity-50"
@@ -217,9 +217,8 @@ export function UserDashboard() {
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
         <div
-          className={`w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] line-height-3 shadow-2 ${
-            lightMode ? "bg-[#35454c] text-[#f7f9f9]" : "bg-gray-100 text-black"
-          }`}
+          className={`w-[60vw] h-full card border-1 surface-100 p-4 font-[Arial] line-height-3 shadow-2 ${lightMode ? "bg-[#35454c] text-[#f7f9f9]" : "bg-gray-100 text-black"
+            }`}
         >
           <div className="flex justify-end">
             <Button
@@ -250,9 +249,13 @@ export function UserDashboard() {
       }>
         <p>Are you sure you want to submit the final assessment?</p>
         <Divider />
-        <ul>
-         {assessData.map((result, idx)=><li key={idx}>coco: {result.ratings.coco} gra {result.ratings.gra} ta: {result.ratings.ta} voc: {result.ratings.voc} comments {result.comments}<Divider /></li>)} 
-      
+        <ul className="max-h-[300px] overflow-y-auto">
+          {assessData.map((result, idx) => (
+            <li key={idx}>
+              coco: {result.ratings.coco} gra: {result.ratings.gra} ta: {result.ratings.ta} voc: {result.ratings.voc} comments: {result.comments}
+              <Divider />
+            </li>
+          ))}
         </ul>
         <p>Once submitted, you will not be able to change your assessment.</p>
         <p>Click "Submit" to confirm.</p>
