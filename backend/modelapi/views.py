@@ -384,8 +384,9 @@ def clear_tasks_view(request):
 
 @api_view(["POST"])
 def create_students(request):
+    print(f"User is superuser: {request.user.is_superuser}") 
     if not request.user.is_superuser:
-        return JsonResponse({"message": "No permission", "Code":403})
+        return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
     
     students = request.data.get("students", [])
     try:
@@ -395,18 +396,17 @@ def create_students(request):
 
             be_class = None
             if s.get("class_name"):
-                print(s["class_name"])
+    
                 be_class, _ = BEClass.objects.get_or_create(class_name=s["class_name"])
             
             existed_student = existed_students.get(student_code)
             if existed_student:
-                existed_student.last_name = s["last_name"]
-                existed_student.first_name = s["first_name"]
                 existed_student.classes = be_class
                 existed_student.save()
             else:
                 Student.objects.create(
                     student_code=student_code,
+                    student_digital_id = s["student_digital_id"],
                     last_name=s["last_name"],
                     first_name=s["first_name"],
                     classes= be_class,

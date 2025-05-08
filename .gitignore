@@ -1,3 +1,5 @@
+cypress
+
 # Logs
 logs
 *.log
@@ -43,5 +45,6 @@ variables.tf
 *.csv
 config.sh
 deploy/ECR.sh
-terraform/export.sh
 ansible/group_vars/all.yml
+ansible/export.sh
+ansible/export.sh
