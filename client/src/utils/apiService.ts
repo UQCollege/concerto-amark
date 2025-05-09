@@ -3,7 +3,7 @@ import { RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
 import { getAccessToken } from "./auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_AUTH_DISABLED? import.meta.env.VITE_API_URL_LOCAL : import.meta.env.VITE_API_URL;
 
 const apiService = axios.create({
   baseURL: API_BASE_URL,
