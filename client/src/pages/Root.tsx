@@ -16,7 +16,7 @@ const Root = () => {
 
   const name = isAuthDisabled ? import.meta.env.VITE_LOCALDEV : (userData?.user || "");
   const isAdmin = userData.groups.includes("Admin") || userData.groups.includes("Admin-Rater");
-  const isTeacher = userData.groups.includes("Teacher");
+
 
   return (
     <PrimeReactProvider>
@@ -25,20 +25,20 @@ const Root = () => {
 
           <SidebarItem icon={<Home size={20} />} text="Home" alert link="/" />
           {isAdmin && (
-            <SidebarItem icon={<LayoutDashboard size={20} />} text={`${name}'s Admin Borad`} active link="/admin" />
+            <SidebarItem icon={<LayoutDashboard size={20} />} text={`${name}'s Admin Board`} active link="/admin" />
           )}
           <SidebarItem
             icon={<BookOpenCheck size={20} />}
             text={`${name}'s Writing Assessments`}
             link={`/raters/${name}`} //
           />
-          {isTeacher &&
+      
             <SidebarItem
               icon={<Layers size={20} />}
               text={`${name}'s Classes`}
               link={`/classes/${name}`} //
             />
-          }
+     
           <SidebarItem icon={<Flag size={20} />} text="" link="" />
           <hr className="my-3" />
           <SidebarItem icon={<LogOut size={20} />} text="Log Out" link={import.meta.env.VITE_LOGOUT_URL} />

@@ -1,0 +1,32 @@
+- name: Frontend deploy npm build + S3 sync
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - group_vars/all.yml
+
+  tasks:
+    - name: Check if node_modules exists
+      stat:
+        path: "{{ frontend_dir }}/node_modules"
+      register: node_modules_dir
+      
+    - name: Install dependencies
+      command: npm install
+      args:
+        chdir: "{{ frontend_dir }}"
+      when: not node_modules_dir.stat.exists
+
+    - name: Build frontend
+      command: npm run build
+      args:
+        chdir: "{{ frontend_dir }}"
+
+    - name: Upload dist/ to S3 bucket
+      command: >
+        aws s3 sync {{ frontend_dir }}/dist/ s3://{{ s3_bucket }} --delete
+
+    - name: Invalidate CloudFront cache (if configured)
+      command: >
+        aws cloudfront create-invalidation --distribution-id {{ cloudfront_distribution_id }}
+        --paths "/*"
+      when: cloudfront_distribution_id is defined

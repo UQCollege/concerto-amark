@@ -5,11 +5,11 @@ from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'username', 'rater_digital_id', 'active', 'classes', 'task_access']  # Add any fields you want to see
+    list_display = ['id', 'username', 'first_name', 'last_name','rater_digital_id', 'active', 'classes', 'task_access']  # Add any fields you want to see
 
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'student_code', 'trait', 'started_time', 'response']  # Show columns in list view
+    list_display = ['id', 'student_code', 'trait', 'started_time', 'response', 'update_by', 'update_date']  # Show columns in list view
 
 @admin.register(AssessmentTask)
 class AssessmentTaskAdmin(admin.ModelAdmin):
@@ -20,9 +20,9 @@ class AssessmentTaskAdmin(admin.ModelAdmin):
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ['student_code', 'first_name', 'last_name', 'classes']  # Show columns in list view
+    list_display = ['student_code', 'first_name', 'last_name', 'classes', 'update_by', 'update_date']  # Show columns in list view
 
 
 @admin.register(BEClass)
 class BEClassAdmin(admin.ModelAdmin):
-    list_display = ['class_name']  # Show columns in list view
+    list_display = ['class_desc', 'class_name']  # Show columns in list view

@@ -1,0 +1,22 @@
+aws_region: 
+account_id: 
+my_aws_profile:
+ 
+# Backend
+bastion_instance_id: i-xxxxxxxx
+bastion_host: xx.xx.xx.xx
+bastion_user: ubuntu
+path-to-keyfile: /absolute/path/to/<key>.pem
+ 
+docker_image: <backend-img>:latest
+ecr_repo_name: <img>:latest
+ 
+backend_private_ip: <ip>
+backend_user: ubuntu
+app_dir: /home/ubuntu/XXX # Path to the app directory on backend EC2
+start_script: ./startscript.sh
+ 
+# Frontend
+frontend_dir: /home/local/filepath/client # Relative path to your frontend source
+s3_bucket: S3bucketName
+cloudfront_distribution_id:

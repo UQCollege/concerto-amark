@@ -1,0 +1,44 @@
+- name: Part 1 - Push image and start Bastion
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - group_vars/all.yml
+
+  tasks:
+    - name: Push Docker image to AWS ECR (SSO-aware)
+      shell: |
+        aws ecr get-login-password --region {{ aws_region }} |
+        docker login --username AWS --password-stdin {{ account_id }}.dkr.ecr.{{ aws_region }}.amazonaws.com &&
+        docker tag {{ docker_image }} {{ account_id }}.dkr.ecr.{{ aws_region }}.amazonaws.com/{{ ecr_repo_name }} &&
+        docker push {{ account_id }}.dkr.ecr.{{ aws_region }}.amazonaws.com/{{ ecr_repo_name }}
+      environment:
+        AWS_PROFILE: "{{ my_aws_profile }}"
+
+    - name: Start Bastion EC2 instance
+      amazon.aws.ec2_instance:
+        instance_ids: [ "{{ bastion_instance_id }}" ]
+        region: "{{ aws_region }}"
+        state: running
+
+    - name: Wait for SSH on Bastion
+      wait_for:
+        host: "{{ bastion_host }}"
+        port: 22
+        state: started
+        delay: 5
+        timeout: 300
+
+- name: Part 2 - Restart backend from Bastion
+  hosts: bastion
+  gather_facts: false
+  vars_files:
+    - group_vars/all.yml
+
+  tasks:
+    - name: SSH into app EC2 and restart backend
+      shell: |
+        ssh -i /home/{{ bastion_user }}/app.pem -o StrictHostKeyChecking=no {{ backend_user }}@{{ backend_private_ip }} <<EOF
+        cd {{ app_dir }}
+        docker-compose down
+        {{ start_script }}
+        EOF

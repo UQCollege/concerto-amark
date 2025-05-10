@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@types/cypress": "^0.1.6",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.17",
+    "cypress": "^14.3.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "test": "cypress run"
+  }
+}

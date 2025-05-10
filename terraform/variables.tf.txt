@@ -50,3 +50,9 @@ variable "domain_name" {
 variable "my-secure-header" {
   default = ""
 }
+
+variable "my_ip_cidr" {
+  description = "Bastion ec2 IPs"
+  type        = string
+  default     = ""
+}
