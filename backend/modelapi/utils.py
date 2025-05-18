@@ -52,21 +52,23 @@ def parse_zip_and_extract_texts(file, base_dir):
 
 def parse_lines(lines):
     try:
-        pattern1 = r"(\d+)-s(\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})"
+        pattern1 = r"(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})"
         pattern2 = r"(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})"
 
         first_line = lines[0]
         match = re.match(pattern1, first_line) or re.match(pattern2, first_line)
         if not match:
             return None
-
+        student_can=""
+        student_digital_id=""
         if len(match.groups()) == 4:
             student_can = match.group(1)
-            student_fullname = match.group(3)
+            student_digital_id= match.group(2)
+            student_fullname = match.group(3).lower()
             date = match.group(4)
         else:
-            student_can = match.group(1)
-            student_fullname = match.group(2)
+            student_digital_id = match.group(1)
+            student_fullname = match.group(2).lower()
             date = match.group(3)
 
         trait = re.search(r"Writing \d{1}", lines[1]).group()
@@ -76,6 +78,7 @@ def parse_lines(lines):
 
         return {
             "student_can": student_can,
+            "student_digital_id":student_digital_id,
             "student_fullname": student_fullname,
             "trait": trait,
             "class_name": class_name,

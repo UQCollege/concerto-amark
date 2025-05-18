@@ -477,7 +477,8 @@ def handle_upload_file(request):
     file = request.FILES.get("file")
     if not file:
         return JsonResponse({"message": "No file", "Code": 400})
-
+    
+    students_not_found=[]
     try:
         parsed_tasks, error = parse_zip_and_extract_texts(file, settings.BASE_DIR)
         if error:
@@ -485,18 +486,27 @@ def handle_upload_file(request):
 
         writing_task_objs = []
         for task in parsed_tasks:
-            # Get or create BEClass
-            class_obj, _ = BEClass.objects.get_or_create(class_name=task["class_name"])
+            try:
+                student_first_name = task['student_fullname'].split()[0] or ""
+                student_last_name = task['student_fullname'].split()[1] or ""
+            except Exception as e:
+                return JsonResponse({"message": f"studnent full name parse error: {str(e)}", "Code": 500})
 
-            # Get or create Student
-            student_obj, _ = Student.objects.get_or_create(
-                student_code=task["student_can"],
-                defaults={
-                    'last_name': task["student_fullname"].split(" ")[0],
-                    'first_name': task["student_fullname"].split(" ")[1],
-                    'classes': class_obj
-                }
-            )
+            # # Get or create BEClass
+            # class_obj, _ = BEClass.objects.get_or_create(class_name=task["class_name"])
+
+            student_objs = Student.objects.filter(student_digital_id = task["student_digital_id"])
+            if not student_objs.exists():
+                print(student_objs)
+                student_objs = Student.objects.filter(first_name=student_first_name, last_name = student_last_name)
+
+            if not student_objs.exists():
+                students_not_found.append({"can":task["student_can"], "digital_id":task["student_digital_id"], "fullname": task['student_fullname']})
+                continue
+
+            student_obj = student_objs[0]
+            
+            # if cannot find, search full name and class
 
             # Skip if writing task already exists
             if WritingTask.objects.filter(
@@ -515,7 +525,7 @@ def handle_upload_file(request):
             ))
 
         WritingTask.objects.bulk_create(writing_task_objs, batch_size=400, ignore_conflicts=True)
-        return JsonResponse({"message": "File parsed done!", "Code": 200})
+        return JsonResponse({"message": f"File parsed done!, Not found: f{students_not_found}", "Code": 200})
 
     except Exception as e:
-        return JsonResponse({"message": str(e), "Code": 500})
+        return JsonResponse({"message": f"parse get error: {str(e)}", "Code": 500})
