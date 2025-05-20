@@ -3,6 +3,8 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 
+import re
+
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -384,7 +386,7 @@ def clear_tasks_view(request):
 
 @api_view(["POST"])
 def create_students(request):
-    print(f"User is superuser: {request.user.is_superuser}") 
+
     if not request.user.is_superuser:
         return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
     
@@ -410,6 +412,7 @@ def create_students(request):
                     last_name=s["last_name"],
                     first_name=s["first_name"],
                     classes= be_class,
+                    student_can=s["student_can"],
                 )
             
         return Response({"message": "Students created successfully", "Code": 200})
@@ -420,6 +423,8 @@ def create_students(request):
 def create_writing_tasks(request):
     
     from datetime import datetime
+
+
     tasks = request.data.get("tasks", [])
     try:
         # prefetch all students
@@ -471,6 +476,7 @@ def create_writing_tasks(request):
     except Exception as e:
         return Response({"message": f"Error creating writing tasks: {str(e)}", "Code": 500})
 
+
 @api_view(["POST"])
 @superuser_required
 def handle_upload_file(request):
@@ -480,27 +486,34 @@ def handle_upload_file(request):
     
     students_not_found=[]
     try:
-        parsed_tasks, error = parse_zip_and_extract_texts(file, settings.BASE_DIR)
+        parsed_tasks, non_parseable_files, error = parse_zip_and_extract_texts(file, settings.BASE_DIR)
         if error:
             return JsonResponse({"message": error, "Code": 400})
 
         writing_task_objs = []
         for task in parsed_tasks:
             try:
-                student_first_name = task['student_fullname'].split()[0] or ""
-                student_last_name = task['student_fullname'].split()[1] or ""
+                student_first_name = task['student_fullname'].split()[0] if len(task['student_fullname'].split()) > 0 else ""
+                student_last_name = task['student_fullname'].split()[1] if len(task['student_fullname'].split()) > 1 else ""
             except Exception as e:
                 return JsonResponse({"message": f"studnent full name parse error: {str(e)}", "Code": 500})
 
             # # Get or create BEClass
             # class_obj, _ = BEClass.objects.get_or_create(class_name=task["class_name"])
+            
+            student_objs = Student.objects.none()
+            if task["student_digital_id"] and re.match(r"^s\d{7}$", task["student_digital_id"]):
+                student_objs = Student.objects.filter(student_digital_id=task["student_digital_id"])
 
-            student_objs = Student.objects.filter(student_digital_id = task["student_digital_id"])
+            if not student_objs.exists() and task["student_can"] != "":
+                student_objs = Student.objects.filter(student_can = task["student_can"])
+               
+            
             if not student_objs.exists():
-                print(student_objs)
-                student_objs = Student.objects.filter(first_name=student_first_name, last_name = student_last_name)
+                student_objs = Student.objects.filter(first_name=student_first_name, last_name = student_last_name, classes__class_name=task["class_name"])
 
-            if not student_objs.exists():
+
+            if not student_objs.exists() or len(student_objs) > 1:
                 students_not_found.append({"can":task["student_can"], "digital_id":task["student_digital_id"], "fullname": task['student_fullname']})
                 continue
 
@@ -525,7 +538,7 @@ def handle_upload_file(request):
             ))
 
         WritingTask.objects.bulk_create(writing_task_objs, batch_size=400, ignore_conflicts=True)
-        return JsonResponse({"message": f"File parsed done!, Not found: f{students_not_found}", "Code": 200})
+        return JsonResponse({"message": f"File parsed done!, Not found: {students_not_found}, Files cannot be parsed:{non_parseable_files}", "Code": 200})
 
     except Exception as e:
         return JsonResponse({"message": f"parse get error: {str(e)}", "Code": 500})

@@ -51,6 +51,7 @@ class Audit(models.Model):
 class Student(Audit):
     student_code = models.CharField(max_length=50, unique=True, primary_key=True)
     student_digital_id = models.CharField(max_length=50, null=True, blank=True)
+    student_can = models.CharField(max_length=50, null=True, blank=True)
     last_name = models.CharField(max_length=100, null=True) 
     first_name = models.CharField(max_length=100, null=True)
     classes=models.ForeignKey(BEClass, on_delete=models.SET_NULL, related_name="student_classes", null=True)
@@ -76,6 +77,9 @@ class WritingTask(Audit):
     assign_all = models.BooleanField(default=False)
     response = models.TextField()
     words_count= models.IntegerField(null=True)
+
+    class Meta:
+        unique_together = ('trait', 'student_code', 'started_time')
 
 
     def __str__(self):

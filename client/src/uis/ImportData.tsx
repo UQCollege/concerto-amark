@@ -23,12 +23,13 @@ export const ImportData = () => {
     try {
       const students = await parseCsvFile(
         file,
-        ([student_code, student_digital_id, last_name, first_name, classes]) => ({
+        ([student_code, student_digital_id, last_name, first_name, classes, student_can]) => ({
           student_code,
           student_digital_id,
           last_name,
           first_name,
           class_name:classes,
+          student_can,
         })
       );
       const message = await uploadData("/students/", "students", students);

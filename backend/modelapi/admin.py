@@ -20,7 +20,7 @@ class AssessmentTaskAdmin(admin.ModelAdmin):
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ['student_code', 'student_digital_id',  'first_name', 'last_name', 'classes', 'update_by', 'update_date']  # Show columns in list view
+    list_display = ['student_code', 'student_digital_id', 'student_can',  'first_name', 'last_name', 'classes', 'update_by', 'update_date']  # Show columns in list view
 
 
 @admin.register(BEClass)

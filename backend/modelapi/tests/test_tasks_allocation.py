@@ -1,6 +1,6 @@
 from django.test import TestCase
 from collections import Counter
-from .models import WritingTask, CustomUser, AssessmentTask, Student
+from ..models import WritingTask, CustomUser, AssessmentTask, Student
 
 class AssignRatersMultipleTasksTestCase(TestCase):
     def setUp(self):

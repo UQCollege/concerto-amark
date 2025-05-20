@@ -22,6 +22,7 @@ def parse_zip_and_extract_texts(file, base_dir):
     unzip_dir = os.path.join(base_dir, "staticfiles", "unzipped")
     os.makedirs(unzip_dir, exist_ok=True)
     parsed_results = []
+    non_parseable_files=[]
 
     try:
         with ZipFile(file, 'r') as zip_file:
@@ -45,19 +46,23 @@ def parse_zip_and_extract_texts(file, base_dir):
                     task_data = parse_lines(lines)
                     if task_data:
                         parsed_results.append(task_data)
+                    else:
+                        non_parseable_files.append(file_name)
     finally:
         shutil.rmtree(unzip_dir, ignore_errors=True)
 
-    return parsed_results, None
+    return parsed_results, non_parseable_files, None
 
 def parse_lines(lines):
     try:
         # Patterns for matching student info
         patterns = [
-            r"(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})",
-            r"(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})",
-            r"-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})",
-            r"^(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)+)\s+(\d{4}-\d{2}-\d{2})$",
+            r"(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s1234567 firstname lastname 2025-02-03
+            r"(\d+)-(s)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s firstname lastname 2025-02-03
+            r"(\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1 firstname lastname 2025-02-03
+            r"(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., s1234567 firstname lastname 2025-02-03
+            r"-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., -s1234567 firstname lastname 2025-02-03
+           
         ]
 
         first_line = lines[0]
@@ -77,8 +82,9 @@ def parse_lines(lines):
             student_fullname = match.group(3).lower()
             date = match.group(4)
         else:
-            student_can = None
-            student_digital_id = match.group(1)
+
+            student_can = match.group(1) if "s" not in match.group(1) else ""
+            student_digital_id = match.group(1) if "s" in match.group(1) else ""
             student_fullname = match.group(2).lower()
             date = match.group(3)
 

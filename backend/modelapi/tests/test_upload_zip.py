@@ -38,22 +38,30 @@ class MultipleDocxInZipTests(TestCase):
     # Prepare varied test data for 3 students
         students_data = [
             {
-                "can": "", "id": "s1111111", "name": "Alice Smith", "date": "2025-01-01",
+                "can": "", "id": "s1111111", "name": "First Last", "date": "2025-01-01",
                 "trait": "Writing 1", "class": 10, "words": 280,
-                "response": "Climate change is a growing concern around the globe."
-            },
-            {
-                "can": "", "id": "-s2222222", "name": "Bob Johnson", "date": "2025-02-02",
-                "trait": "Writing 2", "class": 20, "words": 310,
-                "response": "Technology has transformed the way we live and work."
-            },
-            {
-                "can": "123", "id": "-s3333333", "name": "Carol Davis", "date": "2025-03-03",
-                "trait": "Writing 3", "class": 30, "words": 290,
                 "response": "Education is the cornerstone of a progressive society."
             },
-            
-            
+            {
+                "can": "", "id": "-s1111112", "name": "First Last", "date": "2025-02-02",
+                "trait": "Writing 2", "class": 9, "words": 280,
+                "response": "Education is the cornerstone of a progressive society."
+            },
+            {
+                "can": "123", "id": "-s1111113", "name": "First Last", "date": "2025-03-03",
+                "trait": "Writing 3", "class": 8, "words": 280,
+                "response": "Education is the cornerstone of a progressive society."
+            },
+            {
+                "can": "45", "id": "-s", "name": "First Last", "date": "2025-03-03",
+                "trait": "Writing 3", "class": 7, "words": 280,
+                "response": "Education is the cornerstone of a progressive society."
+            },
+            {
+                "can": "12", "id": "", "name": "First Last", "date": "2025-03-03",
+                "trait": "Writing 3", "class": 6, "words": 280,
+                "response": "Education is the cornerstone of a progressive society."
+            },
         ]
 
 
@@ -61,6 +69,7 @@ class MultipleDocxInZipTests(TestCase):
         expected_results = []
     
         for i, student in enumerate(students_data, start=1):
+           
             lines = [
                 f"{student['can']}{student['id']} {student['name']} {student['date']} \n",
                 f"Exam: Teacher X - {student['trait']} - (01-25) Tuesday 4 February \n",
@@ -69,7 +78,7 @@ class MultipleDocxInZipTests(TestCase):
                 student['response']
             ]
             expected_results.append({
-                "student_can": student["can"] or None,
+                "student_can": student["can"],
                 "student_digital_id": student["id"].replace("-", ""),
                 "student_fullname": student["name"].lower(),
                 "trait": student["trait"],
@@ -83,12 +92,12 @@ class MultipleDocxInZipTests(TestCase):
             docx_files.append((f"{i}.docx", docx_path))
 
         zip_path = self._create_zip_with_files(docx_files)
-        results, error = parse_zip_and_extract_texts(zip_path, self.base_dir)
+        results, non_parseable_files, error = parse_zip_and_extract_texts(zip_path, self.base_dir)
 
         self.assertIsNone(error)
-        self.assertEqual(len(results), 3)
+        self.assertEqual(len(results), len(students_data))
 
-        results_sorted = sorted(results, key=lambda x: x["student_digital_id"])
-        expected_sorted = sorted(expected_results, key=lambda x: x["student_digital_id"])
+        results_sorted = sorted(results, key=lambda x: x["student_digital_id"] if x["student_digital_id"] != None else x["student_can"])
+        expected_sorted = sorted(expected_results, key=lambda x: x["student_digital_id"] if x["student_digital_id"] != None else x["student_can"])
 
         self.assertEqual(results_sorted, expected_sorted)
