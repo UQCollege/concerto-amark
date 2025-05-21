@@ -12,7 +12,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
-from .utils import parse_zip_and_extract_texts, parse_zip_and_extract_pdf, superuser_required
+from .utils import parse_zip_and_extract_texts, superuser_required
 
 class RaterViewSet(viewsets.ModelViewSet):
     """
@@ -486,7 +486,7 @@ def handle_upload_file(request):
     
     students_not_found=[]
     try:
-        parsed_tasks, non_parseable_files, error = parse_zip_and_extract_pdf(file, settings.BASE_DIR)
+        parsed_tasks, non_parseable_files, error = parse_zip_and_extract_texts(file, settings.BASE_DIR)
         if error:
             return JsonResponse({"message": error, "Code": 400})
 
@@ -514,7 +514,7 @@ def handle_upload_file(request):
 
 
             if not student_objs.exists() or len(student_objs) > 1:
-                students_not_found.append({"can":task["student_can"], "digital_id":task["student_digital_id"], "fullname": task['student_fullname'], "trait": task["trait"], "class_name": task["class_name"]})
+                students_not_found.append({"can":task["student_can"], "digital_id":task["student_digital_id"], "fullname": task['student_fullname']})
                 continue
 
             student_obj = student_objs[0]

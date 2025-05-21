@@ -5,7 +5,6 @@ from zipfile import ZipFile, is_zipfile
 from docx2python import docx2python
 from functools import wraps
 from django.http import JsonResponse
-import pdfplumber
 
 def superuser_required(view_func):
         @wraps(view_func)
@@ -54,71 +53,23 @@ def parse_zip_and_extract_texts(file, base_dir):
 
     return parsed_results, non_parseable_files, None
 
-def parse_zip_and_extract_pdf(file, base_dir):
-    if not is_zipfile(file):
-        return [], "Uploaded file is not a valid zip file"
 
-    unzip_dir = os.path.join(base_dir, "staticfiles", "unzipped")
-    os.makedirs(unzip_dir, exist_ok=True)
-    parsed_results = []
-    non_parseable_files = []
-
-    try:
-        with ZipFile(file, 'r') as zip_file:
-            zip_file.extractall(unzip_dir)
-
-        extracted_files = os.listdir(unzip_dir)
-        if not extracted_files:
-            return [], "No files found in the zip archive"
-
-        for root, _, files in os.walk(unzip_dir):
-            for file_name in files:
-                file_path = os.path.join(root, file_name)
-                if not os.path.isfile(file_path) or not file_name.lower().endswith('.pdf'):
-                    continue
-
-                try:
-                    with pdfplumber.open(file_path) as pdf:
-                        text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-                        lines = [line.strip() for line in text.split('\n') if line.strip()]
-
-                        if not lines:
-                            non_parseable_files.append(file_name)
-                            continue
-                        print("parsed lines: ", lines)
-                        task_data = parse_lines(lines)
-                        if task_data:
-                            parsed_results.append(task_data)
-                        else:
-                            non_parseable_files.append(file_name)
-                except Exception:
-                    non_parseable_files.append(file_name)
-
-    finally:
-        shutil.rmtree(unzip_dir, ignore_errors=True)
-
-    return parsed_results, non_parseable_files, None
 
 
 
 def parse_lines(lines):
     try:
         # Patterns for matching student info
-        # patterns = [
-        #     r"(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s1234567 firstname lastname 2025-02-03
-        #     r"(\d+)-(s)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s firstname lastname 2025-02-03
-        #     r"(\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1 firstname lastname 2025-02-03
-        #     r"(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., s1234567 firstname lastname 2025-02-03
-        #     r"-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., -s1234567 firstname lastname 2025-02-03
+        patterns = [
+            r"(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s1234567 firstname lastname 2025-02-03
+            r"(\d+)-(s)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s firstname lastname 2025-02-03
+            r"(\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1 firstname lastname 2025-02-03
+            r"(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., s1234567 firstname lastname 2025-02-03
+            r"-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., -s1234567 firstname lastname 2025-02-03
            
-        # ]
-
-        patterns = [r"(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]*)*)", r"(\d+)(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]*)*)", r"(\d+)(\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]*)*)" ]
+        ]
 
         first_line = lines[0]
-        date_line = lines[1]
-        trait_line = lines[3]
-        class_line = lines[3]
         match = None
         for pattern in patterns:
             match = re.match(pattern, first_line)
@@ -129,17 +80,22 @@ def parse_lines(lines):
             return None
 
         # Extract student info
-        # if len(match.groups()) == 4:
-        student_can = match.group(1)
-        student_digital_id = match.group(2)
-        student_fullname = match.group(3).lower()
-      
+        if len(match.groups()) == 4:
+            student_can = match.group(1)
+            student_digital_id = match.group(2)
+            student_fullname = match.group(3).lower()
+            date = match.group(4)
+        else:
+
+            student_can = match.group(1) if "s" not in match.group(1) else ""
+            student_digital_id = match.group(1) if "s" in match.group(1) else ""
+            student_fullname = match.group(2).lower()
+            date = match.group(3)
+
         # Extract trait, class, word count, and response
-        date = date_line
-        print("date: ", date)
-        trait_match = re.search(r"Writing \d{1}", lines[3])
-        class_match = re.search(r"Class:\s*(\d+)", lines[3])
-        word_count_match = re.search(r'Number of words:\s*(\d+)', lines[4])
+        trait_match = re.search(r"Writing \d{1}", lines[1])
+        class_match = re.search(r"Class:\s*(\d+)", lines[2])
+        word_count_match = re.search(r'Number of words:\s*(\d+)', lines[3])
 
         if not (trait_match and class_match and word_count_match):
             return None
@@ -147,7 +103,7 @@ def parse_lines(lines):
         trait = trait_match.group()
         class_name = int(class_match.group(1))
         word_count = int(word_count_match.group(1))
-        response = "\n".join(lines[6:])
+        response = "\n".join(lines[4:])
 
         return {
             "student_can": student_can,
