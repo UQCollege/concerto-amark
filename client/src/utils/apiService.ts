@@ -31,7 +31,7 @@ apiService.interceptors.request.use(
 apiService.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 500) {
       const detail = error.response.data?.detail || "Unauthorized access";
       alert(detail);
       alert("Please logout and login again.");
