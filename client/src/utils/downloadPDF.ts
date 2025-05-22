@@ -170,14 +170,14 @@ export const downloadPDF = async (data: DownloadData) => {
         "Rater Name": data.rater_name,
         Trait: data.trait,
 
-TA: data.ta?.toString() ?? "N/A",
-GRA: data.gra?.toString() ?? "N/A",
+  TA: data.ta?.toString() ?? "N/A",
+  GRA: data.gra?.toString() ?? "N/A",
   VOC: data.voc?.toString() ?? "N/A",
   COCO: data.coco?.toString() ?? "N/A",
-  Comments: data.comments,
-  Response: extractResponse,
+  Comments: data.comments ?? "N/A",
   "Words Count": data.words_count.toString(),
   "Started Time": data.started_time,
+  Content: extractResponse,
 }
     
 

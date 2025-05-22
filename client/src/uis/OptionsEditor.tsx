@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { InputText } from 'primereact/inputtext';
-import { ColumnEditorOptions } from 'primereact/column';
-
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { useAppSelector } from '../store/hooks';
-
 
 type OptionsEditorDialogProps = {
   value?: string;
   onChange?: (value: string) => void;
 };
 
-type OptionsEditorTableProps = ColumnEditorOptions;
+type OptionsEditorTableProps = {
+  rowData: Record<string, unknown>;
+  column: { field: string };
+  editorCallback?: (value: string) => void;
+};
 
 type OptionsEditorProps = OptionsEditorDialogProps | OptionsEditorTableProps;
 
@@ -21,32 +22,30 @@ const OptionsEditor = (props: OptionsEditorProps) => {
     value: rater.raterName,
     active: rater.active,
   }));
-  const [filteredOptions, setFilteredOptions] = useState(raters);
 
-  const onFilter = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const query = event.target.value.toLowerCase();
+  const isTableContext = (p: OptionsEditorProps): p is OptionsEditorTableProps =>
+    'rowData' in p && 'column' in p;
+
+  const initialValue = isTableContext(props)
+    ? (typeof props.rowData?.[props.column?.field] === 'string' ? props.rowData?.[props.column?.field] as string : undefined)
+    : props.value;
+
+  const [selectedValue, setSelectedValue] = useState<string | undefined>(initialValue);
+  const [filterText, setFilterText] = useState('');
+  const [filteredOptions, setFilteredOptions] = useState(
+    raters.filter((r) => r.active)
+  );
+
+  const handleFilterInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value.toLowerCase();
+    setFilterText(e.target.value);
     setFilteredOptions(
-      raters.filter((rater) => rater.active === true).filter((option) => option.label.toLowerCase().includes(query))
+      raters.filter((r) => r.active && r.label.toLowerCase().includes(query))
     );
   };
 
-  // Determine context and extract props accordingly
-  const isTableContext = (p: OptionsEditorProps): p is ColumnEditorOptions =>
-    'rowData' in p && 'column' in p;
-
-  let currentValue: string | undefined = undefined;
-
-  if (isTableContext(props)) {
-    const { column, rowData } = props;
-    const col = column as { field?: string }; // 
-    if (col.field && rowData && typeof col.field === 'string') {
-      currentValue = rowData[col.field];
-    }
-  } else {
-    currentValue = props.value;
-  }
-
-  const handleChange = (e: DropdownChangeEvent) => {
+  const handleDropdownChange = (e: DropdownChangeEvent) => {
+    setSelectedValue(e.value);
     if (isTableContext(props)) {
       props.editorCallback?.(e.value);
     } else {
@@ -54,21 +53,50 @@ const OptionsEditor = (props: OptionsEditorProps) => {
     }
   };
 
+  const handleClear = () => {
+    setSelectedValue(undefined);
+    setFilterText('');
+    setFilteredOptions(raters.filter((r) => r.active));
+    if (isTableContext(props)) {
+      props.editorCallback?.('');
+    } else {
+      props.onChange?.('');
+    }
+  };
+
   return (
     <div>
-      <InputText
-        placeholder="Search a rater name"
-        onInput={onFilter}
-        className="mb-2"
-      />
-      <Dropdown
-        value={currentValue}
-        options={filteredOptions}
-        onChange={handleChange}
-        placeholder="Click to Select a rater"
-        itemTemplate={(option) => <p>{option.label}</p>}
-      />
+      {selectedValue ? (
+        <div className="flex align-items-center justify-content-between border-1 p-2 border-round surface-border">
+          <span>{selectedValue}</span>
+          <button
+            type="button"
+            className="p-button p-button-text p-button-danger p-ml-2"
+            onClick={handleClear}
+          >
+            ×
+          </button>
+        </div>
+      ) : (
+        <>
+          <InputText
+            placeholder="Search a rater name"
+            value={filterText}
+            onChange={handleFilterInput}
+            className="mb-2 w-full"
+          />
+          <Dropdown
+            value={selectedValue}
+            options={filteredOptions}
+            onChange={handleDropdownChange}
+            placeholder="Click to select"
+            itemTemplate={(option) => <p>{option.label}</p>}
+            className="w-full"
+          />
+        </>
+      )}
     </div>
   );
 };
+
 export default OptionsEditor;

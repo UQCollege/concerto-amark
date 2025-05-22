@@ -68,6 +68,8 @@ class WritingTask(Audit):
     TRAIT_CHOICES = (
         ('Writing 1', 'Writing 1'),
         ('Writing 2', 'Writing 2'),
+        ('Writing 3', 'Writing 3'),
+        ('Writing 4', 'Writing 4'),
         ('Weekly Writing', 'Weekly Writing'),
 
     )

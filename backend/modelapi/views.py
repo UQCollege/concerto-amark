@@ -64,7 +64,7 @@ class RaterViewSet(viewsets.ModelViewSet):
                 # Check if the existing rater is inactive and reactivate it
                 existing_rater = existed_raters[rater_name]
                 if not existing_rater.active:
-                    existing_rater.active = True
+                    existing_rater.active = rater.get('active', True)
                     existing_rater.task_access = rater.get('task_access', 1)
                     existing_rater.rater_digital_id = rater['rater_digital_id']
                     existing_rater.classes=classes
@@ -128,25 +128,27 @@ class WritingTaskViewSet(viewsets.ModelViewSet):
 
         teacher_name = request.GET.get('teacher_name', None)
         context = []
+        try:
+            if teacher_name:
+                teacher = get_object_or_404(CustomUser, username=teacher_name, classes__gt=0)
+                query_class = teacher.classes
+                students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
+    
+                for student in students:
+                    writings = student.writingtask_set.filter(trait="Weekly Writing").order_by('started_time')    
+                    student_writings = {
+                        "student": student.student_code,
+                        "first_name": student.first_name,
+                        "last_name": student.last_name,
+                        "writings": WritingTaskSerializer(writings, many=True).data
+                    }
+                    context.append(student_writings)
+            else:
+                context = WritingTaskSerializer(self.queryset, many=True).data
 
-        if teacher_name:
-            teacher = get_object_or_404(CustomUser, username=teacher_name, classes__gt=0)
-            query_class = teacher.classes
-            students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
-   
-            for student in students:
-                writings = student.writingtask_set.filter(trait="Weekly Writing").order_by('started_time')    
-                student_writings = {
-                    "student": student.student_code,
-                    "first_name": student.first_name,
-                    "last_name": student.last_name,
-                    "writings": WritingTaskSerializer(writings, many=True).data
-                }
-                context.append(student_writings)
-        else:
-            context = WritingTaskSerializer(self.queryset, many=True).data
-
-        return Response(context)
+            return Response(context)
+        except Exception as e:
+            return Response({"message": f"Error fetching class writings {e}", "Code":404})
                 
 
 
@@ -176,7 +178,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
             try:
                 queryset = AssessmentTask.objects.filter(
                     rater=rater, 
-                    writing_task__trait__iexact=f"Writing {rater.task_access}",
+                    writing_task__trait__in=[f"Writing {rater.task_access}", f"Writing {int(rater.task_access)+2}"],
                     active=True 
                 )
             except Exception as e:
@@ -218,11 +220,10 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
                     comments=None,
                     update_by=request.user)
                 serializer = self.get_serializer(writing_task)
-                print(f"successfully create the Writing task {writing_task.id} assigned to rater {rater.username}")
+
                 return Response(serializer.data, status=201)
             except Exception as e:
-                print(f"Error creating review assignment: {e}")
-                return Response({"message": "Error creating review assignment", "Code": 500})        
+                return Response({"message": f"Error creating review assignment {e}", "Code": 500})        
         return Response({"message": "Invalid data", "Code": 400})
 
 
@@ -339,18 +340,22 @@ def assign_to_all(request):
     """
     View to assign certain tasks to all raters.
     """
-    
+    created_tasks=0
     if request.user.is_superuser == False:
         return JsonResponse({"message": "No permission", "Code":403})
     student_codes = request.data.get("studentCodes", [])
-    writing_trait = request.data.get("trait", None)
+    writing_day = request.data.get("writingDay", None)
+    writing_trait_dict={
+        "day1":["Writing 1", "Writing 3"],
+        "day2":["Writing 2", "Writing 4"],
+    }
 
-    if not writing_trait:
+    if not writing_day:
         return JsonResponse({"message": "No Writing Day selected", "Code": 400}) 
  
     if not student_codes:
         return JsonResponse({"message": "No student names provided", "Code": 400})
-    tasks = WritingTask.objects.filter(student_code__in=student_codes, trait=writing_trait)
+    tasks = WritingTask.objects.filter(student_code__in=student_codes, trait__in=writing_trait_dict[writing_day])
 
 
     for task in tasks:
@@ -371,9 +376,8 @@ def assign_to_all(request):
                     completed=False,
                     comments=None,
                 )
-
-
-    return JsonResponse({"message": "Tasks assigned to all raters successfully", "Code": 200})
+                created_tasks += 1
+    return JsonResponse({"message": f"Tasks assigned to all raters successfully, created {created_tasks} extra tasks", "Code": 200})
             
 @permission_classes([IsAdminUser]) 
 def clear_tasks_view(request):
@@ -498,36 +502,37 @@ def handle_upload_file(request):
             except Exception as e:
                 return JsonResponse({"message": f"studnent full name parse error: {str(e)}", "Code": 500})
 
-            # # Get or create BEClass
-            # class_obj, _ = BEClass.objects.get_or_create(class_name=task["class_name"])
-            
             student_objs = Student.objects.none()
-            if task["student_digital_id"] and re.match(r"^s\d{7}$", task["student_digital_id"]):
-                student_objs = Student.objects.filter(student_digital_id=task["student_digital_id"])
-
-            if not student_objs.exists() and task["student_can"] != "":
-                student_objs = Student.objects.filter(student_can = task["student_can"])
-               
+            # Strict matching all fields
+            filters_strict = {}
+            if task.get("student_can"):
+                filters_strict["student_can__iexact"] = task["student_can"]
+            if task.get("student_digital_id"):
+                filters_strict["student_digital_id__iexact"] = task["student_digital_id"]
+            if student_first_name:
+                filters_strict["first_name__iexact"] = student_first_name
+            if student_last_name:
+                filters_strict["last_name__iexact"] = student_last_name
+            if task.get("class_name"):
+                filters_strict["classes__class_name"] = task["class_name"]
             
-            if not student_objs.exists():
-                student_objs = Student.objects.filter(first_name=student_first_name, last_name = student_last_name, classes__class_name=task["class_name"])
+            # Easy matching only student_can
+            filters_easy = {}
+            if task.get("student_can"):
+                filters_easy["student_can__iexact"] = task["student_can"]
 
+            student_objs = Student.objects.filter(**filters_strict)
+            if not student_objs.exists():
+                student_objs = Student.objects.filter(**filters_easy)
 
             if not student_objs.exists() or len(student_objs) > 1:
                 students_not_found.append({"can":task["student_can"], "digital_id":task["student_digital_id"], "fullname": task['student_fullname']})
                 continue
 
             student_obj = student_objs[0]
-            
-            # if cannot find, search full name and class
 
-            # Skip if writing task already exists
-            if WritingTask.objects.filter(
-                student_code=task["student_can"],
-                trait=task["trait"],
-                started_time=task["date"]
-            ).exists():
-                continue
+
+            # No need to check for duplicates here, as (student_code, trait, started_time) is unique in WritingTask
 
             writing_task_objs.append(WritingTask(
                 student_code=student_obj,
@@ -538,7 +543,7 @@ def handle_upload_file(request):
             ))
 
         WritingTask.objects.bulk_create(writing_task_objs, batch_size=400, ignore_conflicts=True)
-        return JsonResponse({"message": f"File parsed done!, Not found: {students_not_found}, Files cannot be parsed:{non_parseable_files}", "Code": 200})
+        return JsonResponse({"message": f"File parsed done!, created {len(writing_task_objs)} writing records. \nNot found: {students_not_found}, \nFiles cannot be parsed:{non_parseable_files}", "Code": 200})
 
     except Exception as e:
         return JsonResponse({"message": f"parse get error: {str(e)}", "Code": 500})

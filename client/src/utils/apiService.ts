@@ -46,9 +46,12 @@ apiService.interceptors.response.use(
 export const getClassWritings = async (name: string) => {
   try {
     const response = await apiService.get(`/tasks/?teacher_name=${name}`);
+    if (response.data.Code === 404){
+      alert(`No Class Writings for ${name}`)
+    }
     return response.data;
   } catch (error) {
-    console.error(error);
+    alert(`Error fetching data:${error} `);
   }
 };
 export const verify = async () => {
@@ -183,7 +186,7 @@ export const writeRatersToDatabase = async (
 
 export const assignToAll = async (data: {
   studentCodes: string[];
-  trait: string;
+  writingDay: string;
 }): Promise<string> => {
   try {
     const response = await apiService.post("/assign-all/", data);

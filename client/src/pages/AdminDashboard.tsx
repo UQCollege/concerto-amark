@@ -38,13 +38,13 @@ export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
 
   const options: JustifyOption[] = [
-    { label: "W 1", value: "Writing 1" },
-    { label: "W 2", value: "Writing 2" },
+    { label: "DAY 1", value: "day1" },
+    { label: "DAY 2", value: "day2" },
   ];
   const buttonTemplate = (option: JustifyOption) => {
     return <span>{option.label}</span>;
   };
-  const [traitValue, setValue] = useState(options[0].value);
+  const [dayValue, setDayValue] = useState(options[0].value);
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
 
@@ -186,8 +186,8 @@ export function AdminDashboard() {
               <div className="flex items-center gap-2">
                 <ChipInput chips={chips} setChips={setChips} />
                 <SelectButton
-                  value={traitValue}
-                  onChange={(e: SelectButtonChangeEvent) => setValue(e.value)}
+                  value={dayValue}
+                  onChange={(e: SelectButtonChangeEvent) => setDayValue(e.value)}
                   options={options}
                   itemTemplate={buttonTemplate}
                   optionLabel="label"
@@ -196,7 +196,7 @@ export function AdminDashboard() {
                   onClick={async () => {
                     const result = await assignToAll({
                       studentCodes: chips,
-                      trait: traitValue,
+                      writingDay: dayValue,
                     });
                     alert(result)
                   }}

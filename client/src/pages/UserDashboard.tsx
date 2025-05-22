@@ -181,7 +181,7 @@ export function UserDashboard() {
               </React.Fragment>
             ))}
 
-            <div className="flex flex-col justify-center items-center gap-3">
+            <div className="flex flex-col justify-center items-center">
               <label htmlFor="comment">Notes:</label>
 
               <textarea
@@ -190,7 +190,7 @@ export function UserDashboard() {
                 value={currentTask.comments}
                 onChange={(e) => handleCommentChange(e.target.value)}
                 placeholder="Enter your Notes here"
-                rows={8}
+                rows={4}
               />
             </div>
             <div className="flex gap-2">
@@ -233,12 +233,17 @@ export function UserDashboard() {
           <h3 className="text-left mb-2">{currentTask.studentCode}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
           <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3>
-          <h3 className="text-left mb-2">{currentTask.startedTime}</h3>
+            <h3 className="text-left mb-2">
+            {currentTask.startedTime
+              ? new Date(currentTask.startedTime).toLocaleDateString()
+              : ""}
+            </h3>
           <hr />
-          <div
-            className="block w-full text-left whitespace-pre-line leading-7 mt-5 text-lg overflow-y-auto max-h-[70vh]"
+            <div
+            className="block w-full whitespace-pre-line leading-[2rem] mt-5 text-xl overflow-y-auto max-h-[70vh] break-words"
+            style={{ textAlign: "justify" }}
             dangerouslySetInnerHTML={{ __html: currentTask.response }}
-          ></div>
+            ></div>
         </div>
       </div>
       <Dialog onHide={() => setShowDialog(false)} visible={showDialog} header="Confirm" footer={

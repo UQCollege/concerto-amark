@@ -38,30 +38,22 @@ class MultipleDocxInZipTests(TestCase):
     # Prepare varied test data for 3 students
         students_data = [
             {
-                "can": "", "id": "s1111111", "name": "First Last", "date": "2025-01-01",
+                "can": "123", "id": "-s1111111", "name": "First Last", "date": "2025-01-01",
                 "trait": "Writing 1", "class": 10, "words": 280,
                 "response": "Education is the cornerstone of a progressive society."
             },
+            
             {
-                "can": "", "id": "-s1111112", "name": "First Last", "date": "2025-02-02",
-                "trait": "Writing 2", "class": 9, "words": 280,
+                "can": "123", "id":"", "name": "First Last", "date": "2025-03-03",
+                "trait": "Writing 2", "class": 8, "words": 280,
                 "response": "Education is the cornerstone of a progressive society."
             },
             {
-                "can": "123", "id": "-s1111113", "name": "First Last", "date": "2025-03-03",
-                "trait": "Writing 3", "class": 8, "words": 280,
+                "can": "", "id": "", "name": "First Last", "date": "2025-03-03",
+                "trait": "Writing 1", "class": 7, "words": 280,
                 "response": "Education is the cornerstone of a progressive society."
             },
-            {
-                "can": "45", "id": "-s", "name": "First Last", "date": "2025-03-03",
-                "trait": "Writing 3", "class": 7, "words": 280,
-                "response": "Education is the cornerstone of a progressive society."
-            },
-            {
-                "can": "12", "id": "", "name": "First Last", "date": "2025-03-03",
-                "trait": "Writing 3", "class": 6, "words": 280,
-                "response": "Education is the cornerstone of a progressive society."
-            },
+           
         ]
 
 
@@ -77,6 +69,7 @@ class MultipleDocxInZipTests(TestCase):
                 f"Number of words: {student['words']} \n",
                 student['response']
             ]
+      
             expected_results.append({
                 "student_can": student["can"],
                 "student_digital_id": student["id"].replace("-", ""),
@@ -87,12 +80,13 @@ class MultipleDocxInZipTests(TestCase):
                 "response": student["response"],
                 "words_count": student["words"]
             })
-
+    
             docx_path = self._create_docx(lines)
             docx_files.append((f"{i}.docx", docx_path))
 
         zip_path = self._create_zip_with_files(docx_files)
         results, non_parseable_files, error = parse_zip_and_extract_texts(zip_path, self.base_dir)
+ 
 
         self.assertIsNone(error)
         self.assertEqual(len(results), len(students_data))

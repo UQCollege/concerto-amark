@@ -53,10 +53,6 @@ def parse_zip_and_extract_texts(file, base_dir):
 
     return parsed_results, non_parseable_files, None
 
-
-
-
-
 def parse_lines(lines):
     try:
         # Patterns for matching student info
@@ -66,6 +62,7 @@ def parse_lines(lines):
             r"(\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1 firstname lastname 2025-02-03
             r"(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., s1234567 firstname lastname 2025-02-03
             r"-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., -s1234567 firstname lastname 2025-02-03
+            r"([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., firstname lastname 2025-02-03
            
         ]
 
@@ -85,12 +82,17 @@ def parse_lines(lines):
             student_digital_id = match.group(2)
             student_fullname = match.group(3).lower()
             date = match.group(4)
-        else:
-
-            student_can = match.group(1) if "s" not in match.group(1) else ""
-            student_digital_id = match.group(1) if "s" in match.group(1) else ""
+        elif len(match.groups()) == 3:
+            # Use match.group(1) as student_can only if it matches 1-3 digits using regex
+            student_can = match.group(1) if re.match(r"^\d{1,3}$", match.group(1)) else ""
+            student_digital_id = match.group(1) if re.match(r"^s\d{7}$", match.group(1)) else ""
             student_fullname = match.group(2).lower()
             date = match.group(3)
+        elif len(match.groups()) == 2:
+            student_can = ""
+            student_digital_id = ""
+            student_fullname = match.group(1).lower()
+            date = match.group(2)
 
         # Extract trait, class, word count, and response
         trait_match = re.search(r"Writing \d{1}", lines[1])
