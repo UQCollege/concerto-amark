@@ -13,7 +13,7 @@ export const parseCsvFile = async <T>(
                 const result = Papa.parse<Record<string, string>>(text, {
                     header: true,
                     skipEmptyLines: true,
-                    dynamicTyping: true,
+                    dynamicTyping: false,
                     newline: "\n",
                     quoteChar: '"',
                 });
@@ -28,7 +28,8 @@ export const parseCsvFile = async <T>(
                     const cleanText = (str: string) =>
                         typeof str === "string"
                             ? str
-                            .replace(/\r\n/g, '\n') 
+                            .replace(/\r\n/g, '\n')
+                            .replace(/\r/g, '')
                             .replace(/\uFEFF/g, '') 
                             : str;
                     Object.keys(row).forEach((key) => {

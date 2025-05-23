@@ -103,7 +103,7 @@ export function AdminDashboard() {
             raterDigitalId: rater_digital_id,
             firstName: first_name || "",
             lastName: last_name || "",
-            active: active=="true",
+            active: active.toLowerCase()=="true",
             className: Number(class_name) || undefined,
           };
         });

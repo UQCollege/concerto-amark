@@ -33,8 +33,11 @@ function App() {
 
 
     }
+
   }, [dispatch]);
-  const isAdmin = useAppSelector((state) => state.auth.groups).includes("Admin")
+  const groups = useAppSelector((state) => state.auth.groups);
+  const isAdmin = groups.includes("Admin") || groups.includes("Admin-Rater");
+
   const router = createBrowserRouter([
     {
       path: "/",

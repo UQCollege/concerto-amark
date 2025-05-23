@@ -172,7 +172,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         if rater_name:
             rater = get_object_or_404(CustomUser, username=rater_name)
             
-            if rater.usertype != "Rater" or not rater.active:
+            if not rater.active:
                 return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
             
             try:
@@ -184,7 +184,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
             except Exception as e:
                 print(f"Error fetching tasks for rater {rater_name}: {e}")
                 return Response({"message": "No tasks found for this rater", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
-        elif request.user.is_superuser:
+        elif request.user.is_superuser or request.user.usertype == "Admin-Rater":
             queryset = AssessmentTask.objects.filter(
                 active=True, 
                 id=task_id
@@ -516,14 +516,22 @@ def handle_upload_file(request):
             if task.get("class_name"):
                 filters_strict["classes__class_name"] = task["class_name"]
             
-            # Easy matching only student_can
-            filters_easy = {}
+            # matching only student_can
+            filters_can = {}
             if task.get("student_can"):
-                filters_easy["student_can__iexact"] = task["student_can"]
+                filters_can["student_can__iexact"] = task["student_can"]
+            # matching only student_digital_id
+            filters_digital_id = {}
+            if task.get("student_digital_id"):
+                filters_digital_id["student_digital_id__iexact"] = task["student_digital_id"]
 
             student_objs = Student.objects.filter(**filters_strict)
-            if not student_objs.exists():
-                student_objs = Student.objects.filter(**filters_easy)
+
+            if not student_objs.exists() and task.get("student_can"):
+                student_objs = Student.objects.filter(**filters_can)
+
+            if not student_objs.exists() and task.get("student_digital_id"):
+                student_objs = Student.objects.filter(**filters_digital_id)
 
             if not student_objs.exists() or len(student_objs) > 1:
                 students_not_found.append({"can":task["student_can"], "digital_id":task["student_digital_id"], "fullname": task['student_fullname']})

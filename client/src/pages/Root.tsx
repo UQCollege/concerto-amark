@@ -16,7 +16,7 @@ const Root = () => {
 
   const name = isAuthDisabled ? import.meta.env.VITE_LOCALDEV : (userData?.user || "");
   const isAdmin = userData.groups.includes("Admin") || userData.groups.includes("Admin-Rater");
-
+  
 
   return (
     <PrimeReactProvider>

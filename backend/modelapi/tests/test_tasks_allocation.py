@@ -16,14 +16,14 @@ class AssignRatersMultipleTasksTestCase(TestCase):
         # Create 2 tasks per student: writing task 1 and 2
         for student in self.students:
             task1 = WritingTask.objects.create(
-                started_time="2024-01-01T10:00:00Z",
+                started_time="2024-01-01",
                 trait="writing task 1",
                 student_code=student,
                 response=f"{student}'s response 1",
                 words_count=100,
             )
             task2 = WritingTask.objects.create(
-                started_time="2024-01-01T11:00:00Z",
+                started_time="2024-01-01",
                 trait="writing task 2",
                 student_code=student,
                 response=f"{student}'s response 2",
