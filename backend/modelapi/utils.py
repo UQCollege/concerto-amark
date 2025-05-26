@@ -40,6 +40,7 @@ def parse_zip_and_extract_texts(file, base_dir):
 
                 with docx2python(file_path) as docx_content:
                     lines = [line.strip() for line in docx_content.text.split('\n') if line.strip()]
+
                     if not lines:
                         continue
 
@@ -57,21 +58,22 @@ def parse_lines(lines):
     try:
         # Patterns for matching student info
         patterns = [
-            r"(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s1234567 firstname lastname 2025-02-03
-            r"(\d+)-(s)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s firstname lastname 2025-02-03
-            r"(\d+)-\s*([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1- firstname lastname 2025-02-03 or 1-firstname lastname 2025-02-03
-            r"(\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1 firstname lastname 2025-02-03
-            r"(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., s1234567 firstname lastname 2025-02-03
-            r"-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., -s1234567 firstname lastname 2025-02-03
-            r"([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., firstname lastname 2025-02-03
+            r"(\d+)-(s\d+)\s+([a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s1234567 firstname lastname 2025-02-03
+            r"(\d+)-(s)\s+([a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s firstname lastname 2025-02-03
+            r"(\d+)-\s*([a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1- firstname lastname 2025-02-03 or 1-firstname lastname 2025-02-03
+            r"(\d+)\s+([a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1 firstname lastname 2025-02-03
+            r"(s\d+)\s+([a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., s1234567 firstname lastname 2025-02-03
+            r"-(s\d+)\s+([a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., -s1234567 firstname lastname 2025-02-03
+            r"([a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., firstname lastname 2025-02-03
            
         ]
 
         first_line = lines[0]
+
         match = None
         for pattern in patterns:
             match = re.match(pattern, first_line)
-            
+
             if match:
                 break
         if not match:

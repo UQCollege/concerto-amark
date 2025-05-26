@@ -36,9 +36,11 @@ class MultipleDocxInZipTests(TestCase):
 
     def test_multiple_different_docx_files(self):
     # Prepare varied test data for 3 students
+    # 259-s4936584 chengjue Su 2025-02-03
+    # 355-s4938562 Ruixiang Long 2025-02-03
         students_data = [
             {
-                "can": "123", "id": "-s1111111", "name": "First Last", "date": "2025-01-01",
+                "can": "355", "id": "-s4938562", "name": "Ruixiang Long", "date": "2025-03-03",
                 "trait": "Writing 1", "class": 10, "words": 280,
                 "response": "Education is the cornerstone of a progressive society."
             },
@@ -55,17 +57,17 @@ class MultipleDocxInZipTests(TestCase):
             },
           
             {
-                "can": "", "id": "", "name": "First Last", "date": "2025-03-03",
+                "can": "", "id": "", "name": "first Last", "date": "2025-03-03",
                 "trait": "Writing 1", "class": 7, "words": 280,
                 "response": "Education is the cornerstone of a progressive society."
             },
             {
-                "can": "", "id": "s1234567", "name": "First Last", "date": "2025-03-03",
+                "can": "321", "id": "-s0234567", "name": "first LT", "date": "2025-03-03",
                 "trait": "Writing 1", "class": 7, "words": 280,
                 "response": "Education is the cornerstone of a progressive society."
             },
             {
-                "can": "", "id": "s1234567", "name": "First Last", "date": "2025-03-03",
+                "can": "", "id": "s1234567", "name": "Ruixiang Long", "date": "2025-03-03",
                 "trait": "Writing 1", "class": 7, "words": 280,
                 "response": "Education is the cornerstone of a progressive society."
             },

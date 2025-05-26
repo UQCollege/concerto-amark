@@ -34,7 +34,7 @@ apiService.interceptors.response.use(
     if (error.response?.status === 500) {
       const detail = error.response.data?.detail || "Unauthorized access";
       alert(detail);
-      alert("Your session time out, your previous jobs has been saved, Please logout and login again.");
+      alert("Your session time out, Previous jobs has been saved, Please logout and login back to continue.");
       sessionStorage.removeItem("access_token");
     }
 

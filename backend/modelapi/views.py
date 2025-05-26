@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
@@ -550,8 +550,25 @@ def handle_upload_file(request):
                 words_count=task["words_count"]
             ))
 
-        WritingTask.objects.bulk_create(writing_task_objs, batch_size=400, ignore_conflicts=True)
-        return JsonResponse({"message": f"File parsed done!, created {len(writing_task_objs)} writing records. \nNot found: {students_not_found}, \nFiles cannot be parsed:{non_parseable_files}", "Code": 200})
+        duplicate_errors = []
+        created_count = 0
+
+        for writing_task in writing_task_objs:
+            try:
+                writing_task.save()
+                created_count += 1
+            except IntegrityError as e:
+                duplicate_errors.append({
+                    "student_code": writing_task.student_code.student_code,
+                    "trait": writing_task.trait,
+                    "started_time": writing_task.started_time,
+                    "error": str(e)
+                })
+
+        return JsonResponse({
+            "message": f"File parsed done!, created {created_count} writing records. duplicates: {duplicate_errors}. Not found students: {students_not_found}. Non-parseable files: {non_parseable_files}",    
+            "Code": 200 if not duplicate_errors else 207
+        })
 
     except Exception as e:
         return JsonResponse({"message": f"parse get error: {str(e)}", "Code": 500})
