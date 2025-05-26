@@ -59,6 +59,7 @@ def parse_lines(lines):
         patterns = [
             r"(\d+)-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s1234567 firstname lastname 2025-02-03
             r"(\d+)-(s)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1-s firstname lastname 2025-02-03
+            r"(\d+)-\s*([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1- firstname lastname 2025-02-03 or 1-firstname lastname 2025-02-03
             r"(\d+)\s+([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., 1 firstname lastname 2025-02-03
             r"(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., s1234567 firstname lastname 2025-02-03
             r"-(s\d+)\s+([A-Z][a-zA-Z]*(?:\s[A-Z][a-zA-Z]*)*)\s+(\d{4}-\d{2}-\d{2})", # e.g., -s1234567 firstname lastname 2025-02-03
@@ -77,6 +78,7 @@ def parse_lines(lines):
             return None
 
         # Extract student info
+
         if len(match.groups()) == 4:
             student_can = match.group(1)
             student_digital_id = match.group(2)
@@ -85,7 +87,7 @@ def parse_lines(lines):
         elif len(match.groups()) == 3:
             # Use match.group(1) as student_can only if it matches 1-3 digits using regex
             student_can = match.group(1) if re.match(r"^\d{1,3}$", match.group(1)) else ""
-            student_digital_id = match.group(1) if re.match(r"^s\d{7}$", match.group(1)) else ""
+            student_digital_id = match.group(1) if re.match(r"^s\d{7}$", match.group(1)) else ""    
             student_fullname = match.group(2).lower()
             date = match.group(3)
         elif len(match.groups()) == 2:
