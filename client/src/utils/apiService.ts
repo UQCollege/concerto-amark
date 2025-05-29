@@ -1,15 +1,16 @@
 import axios from "axios";
 import { RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
-import { getAccessToken } from "./auth";
+// import { getAccessToken } from "./auth";
 
 const API_BASE_URL = import.meta.env.VITE_AUTH_DISABLED == 'true'
   ? import.meta.env.VITE_API_URL_LOCAL
   : import.meta.env.VITE_API_URL;
 
 
-const apiService = axios.create({
+export const apiService = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, 
   headers: {
     "Content-Type": "application/json",
   },
@@ -17,10 +18,10 @@ const apiService = axios.create({
 
 apiService.interceptors.request.use(
   (config) => {
-    const token = getAccessToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // const token = getAccessToken();
+    // if (token) {
+    //   config.headers.Authorization = `Bearer ${token}`;
+    // }
     config.headers["X-Custom-Origin"] = import.meta.env.VITE_CUSTOM_ORIGIN;
 
     return config;

@@ -2,6 +2,7 @@ from django.db import transaction, IntegrityError
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.contrib.auth import login, logout
 
 import re
 
@@ -13,6 +14,27 @@ from rest_framework.decorators import api_view, permission_classes
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
 from .utils import parse_zip_and_extract_texts, superuser_required
+from .authentication import CognitoJWTAuthentication
+
+@api_view(["POST"])
+def bootstrap_user_from_token(request):
+    token = request.data.get("access_token")
+    if not token:
+        return Response({"error": "Missing access_token"}, status=400)
+
+    auth = CognitoJWTAuthentication()
+    try:
+        claims = auth._decode_jwt(token)
+        user, _ = auth.get_or_create_user(claims)
+        login(request, user)  #  Create Django session
+        return Response({"message": "Django login established"})
+    except Exception as e:
+        return Response({"error": str(e)}, status=401)
+
+@api_view(["POST"])
+def logout_view(request):
+    logout(request)
+    return Response({"message": "Logged out"})
 
 class RaterViewSet(viewsets.ModelViewSet):
     """

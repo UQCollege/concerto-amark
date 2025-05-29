@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from collections import Counter
+import os
 
 # Create your models here.
 
@@ -29,6 +30,13 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+    def save(self, *args, **kwargs):
+        if self.usertype == 'Admin':
+            self.set_password(os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'defaultpassword'))
+        else:
+            self.set_unusable_password()
+        super().save(*args, **kwargs)
     
 
 class Audit(models.Model):
