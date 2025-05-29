@@ -61,8 +61,13 @@ ROOT_URLCONF = 'amarkapi.urls'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'modelapi.authentication.CognitoJWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        # 'modelapi.authentication.CognitoJWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  #  Require login globally
+    ],
+
 }
 
 
@@ -131,7 +136,9 @@ USE_L10N = False
 AUTH_USER_MODEL = 'modelapi.CustomUser'
 USE_FAKE_AUTH = os.environ.get("USE_FAKE_AUTH", "True") == "True"
 
-
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 
 
