@@ -1,25 +1,35 @@
+import re
+import os
 from django.db import transaction, IntegrityError
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import login, logout
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
 
-import re
-import os
 
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from django.middleware.csrf import get_token
 
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
 from .utils import parse_zip_and_extract_texts, superuser_required
 from .authentication import CognitoJWTAuthentication
 
+
+@ensure_csrf_cookie
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_csrf_token(request):
+    return JsonResponse({"csrftoken": get_token(request)})
+
+
 @api_view(["POST"])
 def bootstrap_user_from_token(request):
+
     # DEVELOPMENT MODE (local login without Cognito)
     if getattr(settings, "USE_FAKE_AUTH", False):
         dev_username = os.environ.get("DEV_USER_NAME", "devuser")
@@ -32,7 +42,7 @@ def bootstrap_user_from_token(request):
                 "is_superuser": True,
             },
         )
-        print("user", user)
+
         login(request, user)
         response = Response({"message": "Django login established"})
         response["X-CSRFToken"] = get_token(request)
@@ -40,6 +50,7 @@ def bootstrap_user_from_token(request):
 
     # PRODUCTION MODE (with Cognito token)
     token = request.data.get("access_token")
+
     if not token:
         return Response({"error": "Missing access_token"}, status=400)
 
@@ -210,7 +221,7 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         Allows filtering by rater_name or task_id via query parameters.
         Example: GET /api/review-assignments/?rater_name=Rater1&id=123
         """
-        rater_name = request.GET.get('rater_name')
+        rater_name = request.GET.get('rater_name') 
         task_id = request.GET.get('id', None)
 
 

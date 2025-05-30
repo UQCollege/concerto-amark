@@ -10,7 +10,7 @@ import { useAppSelector, useAppDispatch } from "./store/hooks";
 import { setToken } from "./features/auth/authSlice";
 import ClassDashboard from "./pages/ClassDashboard";
 import { useEffect } from "react";
-import {apiService} from "./utils/apiService";
+import { apiService, establishDjangoSession } from "./utils/apiService";
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
 function App() {
@@ -26,8 +26,7 @@ function App() {
         window.history.replaceState({}, document.title, "/");
 
         try {
-          // This will create a Django session if not disabled
-          await apiService.post("/bootstrap/", { access_token: token });
+          await establishDjangoSession(token)
         } catch (e) {
           console.error("Failed to establish session with Django backend:", e);
         }
@@ -35,16 +34,13 @@ function App() {
         sessionStorage.removeItem("initial_load_time");
       }
     };
-
+    // Local development mode
     if (isAuthDisabled) {
-      // Fake login for local development
       const devToken = "FAKE_DEV_TOKEN";
-      console.log("locally")
       sessionStorage.setItem("access_token", devToken);
       dispatch(setToken(devToken));
-
-      // Optionally: call bootstrap if backend handles fake auth
-      apiService.post("/bootstrap/", { access_token: devToken }).catch(() => {console.log("locally failed")});
+      // backend handles fake auth
+      apiService.post("/bootstrap/", { access_token: devToken }).catch(() => { console.log("locally failed") });
     } else {
       switchToSession();
     }
@@ -69,7 +65,7 @@ function App() {
             )
           ),
         },
-        { path: "/raters/:name", element: <UserDashboard />  },
+        { path: "/raters/:name", element: <UserDashboard /> },
         { path: "/classes/:name", element: <ClassDashboard /> }, //todo: remove to Another App
       ],
     },

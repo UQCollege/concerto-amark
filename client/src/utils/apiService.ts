@@ -10,7 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_AUTH_DISABLED == 'true'
 
 export const apiService = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, 
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -19,9 +19,7 @@ export const apiService = axios.create({
 apiService.interceptors.request.use(
   (config) => {
     const csrfToken = getCSRFTokenFromCookie();
-  if (csrfToken) {
     config.headers["X-CSRFToken"] = csrfToken;
-  }
     config.headers["X-Custom-Origin"] = import.meta.env.VITE_CUSTOM_ORIGIN;
 
     return config;
@@ -47,10 +45,21 @@ apiService.interceptors.response.use(
 );
 
 // Get Method
+export const establishDjangoSession = async (token: string) => {
+  // Fetch CSRF token from Django and set it manually (if not already set via cookie)
+  const response = await apiService.get("/csrf/", { withCredentials: true });
+  document.cookie = `csrftoken=${response.data.csrftoken}; path=/`;
+
+  //  Now you can safely send POST to bootstrap
+  await apiService.post("/bootstrap/", { access_token: token });
+};
+
+
+
 export const getClassWritings = async (name: string) => {
   try {
     const response = await apiService.get(`/tasks/?teacher_name=${name}`);
-    if (response.data.Code === 404){
+    if (response.data.Code === 404) {
       alert(`No Class Writings for ${name}`)
     }
     return response.data;
@@ -96,7 +105,6 @@ export const getUserTasks = async (name: string) => {
     const response = await apiService.get(
       `/allocated-tasks/?rater_name=${name}`
     );
-    console.log("rater: ", name);
     return response.data;
   } catch (error) {
     console.error("Error fetching data: ", error);
@@ -132,18 +140,14 @@ export const uploadZipFile = async (file: File | undefined) => {
   if (!file) return;
   const formData = new FormData();
   formData.append("file", file);
-  console.log("file: ", formData);
+
 
   const response = await apiService.post("/upload-zip/", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
-  if (response.status === 200) {
-    console.log("upload done!");
-  } else {
-    console.log("upload failed");
-  }
+
   return response.data;
 };
 
@@ -172,7 +176,6 @@ export const writeRatersToDatabase = async (
         last_name: rater.lastName || "",
         active: rater.active,
         class_name: rater.className,
-        password: "test123", // Default password
       };
 
       ratersData.push(raterData);
