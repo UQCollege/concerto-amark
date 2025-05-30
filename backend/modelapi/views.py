@@ -5,11 +5,13 @@ from django.http import JsonResponse
 from django.contrib.auth import login, logout
 
 import re
+import os
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
+from django.middleware.csrf import get_token
 
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
@@ -18,6 +20,25 @@ from .authentication import CognitoJWTAuthentication
 
 @api_view(["POST"])
 def bootstrap_user_from_token(request):
+    # DEVELOPMENT MODE (local login without Cognito)
+    if getattr(settings, "USE_FAKE_AUTH", False):
+        dev_username = os.environ.get("DEV_USER_NAME", "devuser")
+        user, _ = CustomUser.objects.get_or_create(
+            username=dev_username,
+            defaults={
+                "rater_digital_id": "fake-dev-id",
+                "active": True,
+                "usertype": os.environ.get("DEV_USER_TYPE", "Admin"),
+                "is_superuser": True,
+            },
+        )
+        print("user", user)
+        login(request, user)
+        response = Response({"message": "Django login established"})
+        response["X-CSRFToken"] = get_token(request)
+        return response
+
+    # PRODUCTION MODE (with Cognito token)
     token = request.data.get("access_token")
     if not token:
         return Response({"error": "Missing access_token"}, status=400)
@@ -26,8 +47,10 @@ def bootstrap_user_from_token(request):
     try:
         claims = auth._decode_jwt(token)
         user, _ = auth.get_or_create_user(claims)
-        login(request, user)  #  Create Django session
-        return Response({"message": "Django login established"})
+        login(request, user)
+        response = Response({"message": "Django login established"})
+        response["X-CSRFToken"] = get_token(request)
+        return response
     except Exception as e:
         return Response({"error": str(e)}, status=401)
 

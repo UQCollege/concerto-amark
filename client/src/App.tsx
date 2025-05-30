@@ -10,15 +10,14 @@ import { useAppSelector, useAppDispatch } from "./store/hooks";
 import { setToken } from "./features/auth/authSlice";
 import ClassDashboard from "./pages/ClassDashboard";
 import { useEffect } from "react";
-// import {jwtDecode} from "jwt-decode";
 import {apiService} from "./utils/apiService";
 
-// const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
+const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
 function App() {
   const dispatch = useAppDispatch();
   useEffect(() => {
     const switchToSession = async () => {
-      const params = new URLSearchParams(window.location.search); //  define it here
+      const params = new URLSearchParams(window.location.search);
       const token = params.get("access_token") || sessionStorage.getItem("access_token");
 
       if (token) {
@@ -27,6 +26,7 @@ function App() {
         window.history.replaceState({}, document.title, "/");
 
         try {
+          // This will create a Django session if not disabled
           await apiService.post("/bootstrap/", { access_token: token });
         } catch (e) {
           console.error("Failed to establish session with Django backend:", e);
@@ -36,12 +36,17 @@ function App() {
       }
     };
 
-    if (!import.meta.env.VITE_AUTH_DISABLED || import.meta.env.VITE_AUTH_DISABLED === "false") {
-      switchToSession();
-    } else {
+    if (isAuthDisabled) {
+      // Fake login for local development
       const devToken = "FAKE_DEV_TOKEN";
+      console.log("locally")
       sessionStorage.setItem("access_token", devToken);
       dispatch(setToken(devToken));
+
+      // Optionally: call bootstrap if backend handles fake auth
+      apiService.post("/bootstrap/", { access_token: devToken }).catch(() => {console.log("locally failed")});
+    } else {
+      switchToSession();
     }
   }, [dispatch]);
 

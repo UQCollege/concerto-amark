@@ -18,17 +18,20 @@ export const apiService = axios.create({
 
 apiService.interceptors.request.use(
   (config) => {
-    // const token = getAccessToken();
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const csrfToken = getCSRFTokenFromCookie();
+  if (csrfToken) {
+    config.headers["X-CSRFToken"] = csrfToken;
+  }
     config.headers["X-Custom-Origin"] = import.meta.env.VITE_CUSTOM_ORIGIN;
 
     return config;
   },
   (error) => Promise.reject(error)
 );
-
+function getCSRFTokenFromCookie() {
+  const match = document.cookie.match(/csrftoken=([\w-]+)/);
+  return match ? match[1] : null;
+}
 apiService.interceptors.response.use(
   (response) => response,
   (error) => {
