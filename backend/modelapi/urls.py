@@ -1,6 +1,6 @@
 
 from django.urls import path, include
-from .views import get_csrf_token, logout_view, bootstrap_user_from_token, WritingTaskViewSet, RaterViewSet, assign_raters_view, AssessmentTaskViewSet, clear_tasks_view, assign_to_all, verify_view, create_students,create_writing_tasks, handle_upload_file
+from .views import debug_headers, get_csrf_token, logout_view, bootstrap_user_from_token, WritingTaskViewSet, RaterViewSet, assign_raters_view, AssessmentTaskViewSet, clear_tasks_view, assign_to_all, verify_view, create_students,create_writing_tasks, handle_upload_file
 urlpatterns = [
     path('raters/', RaterViewSet.as_view({'get': 'list', 'post': 'create', 'put': 'update', 'delete': 'destroy'}), name='raters-api'),
     path('tasks/', WritingTaskViewSet.as_view({'get':'list', 'post':'create', 'put':'update', 'delete':'destroy'}), name='students-writing-response'),
@@ -16,4 +16,5 @@ urlpatterns = [
     path('bootstrap/', bootstrap_user_from_token, name='bootstrap-user-from-token'),
     path('logout/', logout_view, name='log-out'),
     path('csrf/', get_csrf_token, name='get-csrf-token'),
+    path('debug-headers/', debug_headers, name='debug-headers'), 
 ]

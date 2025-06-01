@@ -6,8 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth import login, logout
 from django.middleware.csrf import get_token
-from django.views.decorators.csrf import ensure_csrf_cookie
-
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework import viewsets, status
@@ -20,16 +19,31 @@ from .utils import parse_zip_and_extract_texts, superuser_required
 from .authentication import CognitoJWTAuthentication
 
 
+from django.http import JsonResponse
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def debug_headers(request):   
+    return JsonResponse({
+        "is_secure": request.is_secure(),
+        "proto": request.META.get("HTTP_X_FORWARDED_PROTO"),
+         "HTTP_X_FORWARDED_PROTO": request.META.get("HTTP_X_FORWARDED_PROTO"),
+          "ALL_HEADERS": {k: v for k, v in request.META.items() if k.startswith("HTTP_")},
+
+    })
+
+
+
 @ensure_csrf_cookie
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_csrf_token(request):
     return JsonResponse({"csrftoken": get_token(request)})
 
-
 @api_view(["POST"])
+@permission_classes([AllowAny]) 
 def bootstrap_user_from_token(request):
-
     # DEVELOPMENT MODE (local login without Cognito)
     if getattr(settings, "USE_FAKE_AUTH", False):
         dev_username = os.environ.get("DEV_USER_NAME", "devuser")
@@ -59,8 +73,16 @@ def bootstrap_user_from_token(request):
         claims = auth._decode_jwt(token)
         user, _ = auth.get_or_create_user(claims)
         login(request, user)
+        request.session.save()
+        request.session["bootstrap_authenticated"] = True
         response = Response({"message": "Django login established"})
-        response["X-CSRFToken"] = get_token(request)
+        response.set_cookie(
+            "csrftoken",
+            get_token(request),
+            secure=True,
+            samesite="None",
+            httponly=False,
+        )
         return response
     except Exception as e:
         return Response({"error": str(e)}, status=401)
@@ -93,38 +115,48 @@ class RaterViewSet(viewsets.ModelViewSet):
             
     
     def create(self, request):
+        print("create raters")
         if not request.user.is_superuser:
-            return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
-        raters = request.data.get('raters', [])  # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
-        existed_raters = CustomUser.objects.filter(usertype='Rater').in_bulk(field_name='username')
+            return Response({"message": "No permission", "Code": 403})
+
+        raters = request.data.get('raters', [])
+        usernames_seen = set()
 
         for rater in raters:
             rater_name = rater['name']
-            classes=None
-            if rater.get('class_name', None):
-                classes, _=BEClass.objects.get_or_create(class_name=int(rater.get('class_name', None)))
-            if rater_name not in existed_raters:
-                # Create a new rater if it doesn't exist
+            if rater_name in usernames_seen:
+                continue
+            usernames_seen.add(rater_name)
 
-                CustomUser.objects.create(
+            rater_digital_id = rater['rater_digital_id']
+            classes = None
+            if rater.get('class_name'):
+                classes, _ = BEClass.objects.get_or_create(class_name=int(rater['class_name']))
+
+            try:
+                user = CustomUser.objects.get(username=rater_name)
+                # Update existing user if inactive
+                if not user.active:
+                    user.active = rater.get('active', True)
+                    user.task_access = rater.get('task_access', 1)
+                    user.rater_digital_id = rater_digital_id
+                    user.classes = classes
+                    user.save()
+            except CustomUser.DoesNotExist:
+                # Create new rater
+                user = CustomUser(
                     username=rater_name,
                     first_name=rater['first_name'],
                     last_name=rater['last_name'],
-                    rater_digital_id=rater['rater_digital_id'],
+                    rater_digital_id=rater_digital_id,
                     usertype='Rater',
                     active=rater.get('active', True),
-                    classes=classes,
                     task_access=rater.get('task_access', 1),
+                    classes=classes
                 )
-            else:
-                # Check if the existing rater is inactive and reactivate it
-                existing_rater = existed_raters[rater_name]
-                if not existing_rater.active:
-                    existing_rater.active = rater.get('active', True)
-                    existing_rater.task_access = rater.get('task_access', 1)
-                    existing_rater.rater_digital_id = rater['rater_digital_id']
-                    existing_rater.classes=classes
-                    existing_rater.save()
+                # user.set_password(rater.get("password", get_random_string()))
+                user.save()
+                print("created user:", rater_name)
 
         return Response({"message": "Raters processed successfully", "Code": 200})
     

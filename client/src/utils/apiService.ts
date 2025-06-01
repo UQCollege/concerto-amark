@@ -1,7 +1,7 @@
 import axios from "axios";
 import { RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
-// import { getAccessToken } from "./auth";
+import { getAccessToken } from "./auth";
 
 const API_BASE_URL = import.meta.env.VITE_AUTH_DISABLED == 'true'
   ? import.meta.env.VITE_API_URL_LOCAL
@@ -20,16 +20,21 @@ apiService.interceptors.request.use(
   (config) => {
     const csrfToken = getCSRFTokenFromCookie();
     config.headers["X-CSRFToken"] = csrfToken;
-    config.headers["X-Custom-Origin"] = import.meta.env.VITE_CUSTOM_ORIGIN;
-
+    const token = getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
 );
-function getCSRFTokenFromCookie() {
-  const match = document.cookie.match(/csrftoken=([\w-]+)/);
-  return match ? match[1] : null;
+
+export function getCSRFTokenFromCookie() {
+  const match = document.cookie.match(/(^|;\s*)csrftoken=([^;]*)/);
+  return match ? decodeURIComponent(match[2]) : null;
 }
+
+
 apiService.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -46,11 +51,7 @@ apiService.interceptors.response.use(
 
 // Get Method
 export const establishDjangoSession = async (token: string) => {
-  // Fetch CSRF token from Django and set it manually (if not already set via cookie)
-  const response = await apiService.get("/csrf/", { withCredentials: true });
-  document.cookie = `csrftoken=${response.data.csrftoken}; path=/`;
-
-  //  Now you can safely send POST to bootstrap
+  await apiService.get("/csrf/", { withCredentials: true });
   await apiService.post("/bootstrap/", { access_token: token });
 };
 
@@ -180,6 +181,7 @@ export const writeRatersToDatabase = async (
 
       ratersData.push(raterData);
     }
+
     const response = await apiService.post("/raters/", { raters: ratersData });
 
     if (response.data.Code === 409) {

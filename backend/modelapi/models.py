@@ -35,7 +35,7 @@ class CustomUser(AbstractUser):
         if self.usertype == 'Admin':
             self.set_password(os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'defaultpassword'))
         else:
-            self.set_unusable_password()
+            self.set_password(os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'defaultpassword'))
         super().save(*args, **kwargs)
     
 
