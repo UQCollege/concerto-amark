@@ -5,6 +5,8 @@ from zipfile import ZipFile, is_zipfile
 from docx2python import docx2python
 from functools import wraps
 from django.http import JsonResponse
+import pdfplumber
+
 
 def superuser_required(view_func):
         @wraps(view_func)
@@ -38,12 +40,17 @@ def parse_zip_and_extract_texts(file, base_dir):
                 if not os.path.isfile(file_path):
                     continue
 
-                with docx2python(file_path) as docx_content:
-                    lines = [line.strip() for line in docx_content.text.split('\n') if line.strip()]
-
+                # with docx2python(file_path) as docx_content:
+                    # lines = [line.strip() for line in docx_content.text.split('\n') if line.strip()]
+                with pdfplumber.open(file_path) as pdf:
+                    text = ""
+                    for page in pdf.pages:
+                        text += (page.extract_text() or "") + "\n"
+                    lines = [line.stript() for line in text.split('\n') if line.strip()]
+                    
                     if not lines:
                         continue
-
+                    print("parsed lines:", lines)
                     task_data = parse_lines(lines)
                     if task_data:
                         parsed_results.append(task_data)
