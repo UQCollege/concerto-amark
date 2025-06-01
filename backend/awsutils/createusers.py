@@ -6,11 +6,11 @@ USER_POOL_ID = ''
 DEFAULT_PASSWORD = ''
 CSV_FILE = 'users.csv'
 
-session = boto3.Session(profile_name='concerto1')
+session = boto3.Session(profile_name='')
 client = session.client('cognito-idp')
 # client = boto3.client('cognito-idp')
 
-def create_user(username, email, group_name=None):
+def create_user(username, group_name=None):
     try:
         # Step 1: Create user with temporary password
         client.admin_create_user(
@@ -56,4 +56,4 @@ def create_user(username, email, group_name=None):
 with open(CSV_FILE, newline='') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-        create_user(row['username'], row['email'], row.get('group'))
+        create_user(row['username'], row.get('group'))
