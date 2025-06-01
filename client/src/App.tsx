@@ -30,7 +30,7 @@ function App() {
       }
 
       // Skip if CSRF token already exists
-      if (getCSRFTokenFromCookie()) return;
+      // if (getCSRFTokenFromCookie()) return;
 
       const params = new URLSearchParams(window.location.search);
       const token = params.get("access_token") || sessionStorage.getItem("access_token");
