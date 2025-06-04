@@ -495,7 +495,9 @@ def handle_upload_file(request):
             return JsonResponse({"message": error, "Code": 400})
 
         writing_task_objs = []
+  
         for task in parsed_tasks:
+
             try:
                 student_first_name = task['student_fullname'].split()[0] if len(task['student_fullname'].split()) > 0 else ""
                 student_last_name = task['student_fullname'].split()[1] if len(task['student_fullname'].split()) > 1 else ""
@@ -503,36 +505,35 @@ def handle_upload_file(request):
                 return JsonResponse({"message": f"studnent full name parse error: {str(e)}", "Code": 500})
 
             student_objs = Student.objects.none()
-            # Strict matching all fields
-            filters_strict = {}
-            if task.get("student_can"):
-                filters_strict["student_can__iexact"] = task["student_can"]
-            if task.get("student_digital_id"):
-                filters_strict["student_digital_id__iexact"] = task["student_digital_id"]
-            if student_first_name:
-                filters_strict["first_name__iexact"] = student_first_name
-            if student_last_name:
-                filters_strict["last_name__iexact"] = student_last_name
-            if task.get("class_name"):
-                filters_strict["classes__class_name"] = task["class_name"]
-            
+           
             # matching only student_can
             filters_can = {}
             if task.get("student_can"):
                 filters_can["student_can__iexact"] = task["student_can"]
+            
             # matching only student_digital_id
             filters_digital_id = {}
             if task.get("student_digital_id"):
                 filters_digital_id["student_digital_id__iexact"] = task["student_digital_id"]
+             
+            filters_general = {}
+            if student_first_name:
+                filters_general["first_name__iexact"] = student_first_name
+            if student_last_name:
+                filters_general["last_name__iexact"] = student_last_name
+            if task.get("class_name"):
+                filters_general["classes__class_name"] = task["class_name"]
 
-            student_objs = Student.objects.filter(**filters_strict)
 
-            if not student_objs.exists() and task.get("student_can"):
+            if task.get("student_can"):
                 student_objs = Student.objects.filter(**filters_can)
 
-            if not student_objs.exists() and task.get("student_digital_id"):
+            if ( not student_objs.exists() or len(student_objs)>1) and task.get("student_digital_id"):
                 student_objs = Student.objects.filter(**filters_digital_id)
-
+            
+            if not student_objs.exists() or len(student_objs) >1:
+                student_objs = Student.objects.filter(**filters_general)
+         
             if not student_objs.exists() or len(student_objs) > 1:
                 students_not_found.append({"can":task["student_can"], "digital_id":task["student_digital_id"], "fullname": task['student_fullname']})
                 continue
@@ -566,7 +567,7 @@ def handle_upload_file(request):
                 })
 
         return JsonResponse({
-            "message": f"File parsed done!, created {created_count} writing records. duplicates: {duplicate_errors}. Not found students: {students_not_found}. Non-parseable files: {non_parseable_files}",    
+            "message": f"File parsed done!, created {created_count} writing records. \n!!Duplicates!! : \n{duplicate_errors}. \n!!Not found students!!: \n{students_not_found}. \n!!Non-parseable files!!: \n{non_parseable_files}",    
             "Code": 200 if not duplicate_errors else 207
         })
 
