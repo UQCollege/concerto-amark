@@ -4,6 +4,6 @@ all:
       ansible_connection: local
 
     bastion:
-      ansible_host: {{ bastion_host }}     # e.g., 13.55.x.x
-      ansible_user: {{ bastion_user }}     # e.g., ubuntu
-      ansible_ssh_private_key_file: {{path-to-keyfile}}
+      ansible_host: x.x.x.x     # e.g., 13.55.x.x
+      ansible_user: ubuntu     # e.g., ubuntu
+      ansible_ssh_private_key_file: /home/<username>/directory/to/the-key-file.pem

@@ -33,7 +33,7 @@ function App() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const decoded: any = jwtDecode(token);
           const issuedAt = decoded.iat * 1000; // convert to ms
-          const sessionDuration = 60 * 60 * 1000; // 1 hour
+          const sessionDuration = 3 * 60 * 60 * 1000; // 3 hour
           const reminderThreshold = sessionDuration - 5 * 60 * 1000; // remind 5 minutes before expiry
 
           // Save or retrieve the initial load time
