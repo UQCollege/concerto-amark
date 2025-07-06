@@ -36,3 +36,7 @@ export const MarkTips: {[key in SelectOptionType]:{[key in number]: string} } = 
     voc: MarkVOCTips,
     coco: MarkCOCOTips,
 }
+
+export const getValueColor = (value: number | undefined):string =>{
+  return value !== undefined? (value <2 ? 'text-red-400 font-bold': value >4 ? 'text-green-400 font-bold' : '' ): '';
+}

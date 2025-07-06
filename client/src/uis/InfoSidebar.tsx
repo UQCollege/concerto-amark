@@ -3,7 +3,7 @@ import { Sidebar } from "primereact/sidebar";
 import { Button } from "primereact/button";
 import { AssessData } from "../features/data/assessDataSlice";
 import { Panel } from "primereact/panel";
-
+import { getValueColor } from "../utils/data/constants";
 export interface InfoSidebarProps {
   infoHead: string;
   infoList: AssessData[];
@@ -45,21 +45,23 @@ export interface TaskContentProps {
   info: AssessData ;
 }
 
+
+
 export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
     return (
-      <>
-        <span>
-          {info.studentCode} - {info.trait} Score: {info.ratings.ta}-
-        </span>
-        <span>{info.ratings.gra}-</span>
-        <span>{info.ratings.voc}-</span>
-        <span>{info.ratings.coco}</span>
+      <div className="flex gap-2 text-lg p-1 ">
+        <span >
+          {info.studentCode} - {info.trait} Score:</span >
+          <span className={getValueColor(info.ratings.ta)}>{info.ratings.ta}</span>-
+        <span className={getValueColor(info.ratings.gra)}>{info.ratings.gra}</span>-
+        <span className={getValueColor(info.ratings.voc)}>{info.ratings.voc}</span>-
+        <span className={getValueColor(info.ratings.coco)}>{info.ratings.coco}</span>
         <span> {info.comments ? info.comments : "NC"} </span>
 
         {/* Render a checkbox */}
 
         <input type="checkbox" checked={info.completed} onChange={() => { }} />
-      </>
+      </div>
     );
   
 };
