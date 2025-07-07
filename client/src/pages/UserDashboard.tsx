@@ -240,7 +240,7 @@ export function UserDashboard() {
             </h3>
           <hr />
          <div
-            className="block w-full h-[80vh]" >
+            className="block w-full h-[90vh]" >
 
              <iframe
           src={`https://concerto-dev-writings-assessment.s3.ap-southeast-2.amazonaws.com/${currentTask.trait}/${currentTask.studentCode}.pdf`}
