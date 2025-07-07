@@ -232,18 +232,28 @@ export function UserDashboard() {
           </div>
           <h3 className="text-left mb-2">{currentTask.studentCode}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
-          <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3>
+          {/* <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3> */}
             <h3 className="text-left mb-2">
             {currentTask.startedTime
               ? new Date(currentTask.startedTime).toLocaleDateString()
               : ""}
             </h3>
           <hr />
-            <div
+         <div
+            className="block w-full max-h-[80vh]" >
+
+             <iframe
+          src={`https://concerto-dev-writings-assessment.s3.ap-southeast-2.amazonaws.com/${currentTask.trait}/${currentTask.studentCode}.pdf`}
+          title="PDF Viewer"
+          width="100%"
+          height="600px" // Adjust height as needed
+        ></iframe>
+        </div>
+            {/* <div
             className="block w-full whitespace-pre-line leading-[2rem] mt-5 text-xl overflow-y-auto max-h-[70vh] break-words"
             style={{ textAlign: "justify" }}
             dangerouslySetInnerHTML={{ __html: currentTask.response }}
-            ></div>
+            ></div> */}
         </div>
       </div>
       <Dialog onHide={() => setShowDialog(false)} visible={showDialog} header="Confirm" footer={
