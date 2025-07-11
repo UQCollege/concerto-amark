@@ -43,10 +43,18 @@ const taskAllocationSlice = createSlice({
                 updateTasksTable({ idList: [id], raterName })
             }
         },
-        addTask: (state, action: PayloadAction<TD>) => {
+        addTask: (state, action: PayloadAction<TD | TD[]>) => {
             // Add the new task to the state
             console.log("addTask");
-            state.push(action.payload);
+            if (Array.isArray(action.payload)) {
+                // If payload is an array, spread it into the state
+                state.push(...action.payload);
+                return;
+            }else{
+
+                state.push(action.payload);
+                return
+            }
         },
       
         selectedTasks: (state, action: PayloadAction<number[]>) => {
@@ -94,11 +102,13 @@ export const createNewTask =
                 trait: trait,
                 rater_name: raterName,
             });
-            const tdResponse = transformApiData(Array.isArray(response) ? response : [response]);
+            console.log("createNewTask response: ", response,response["created tasks"]);
+            const tdResponse = transformApiData(Array.isArray(response["created tasks"]) ? response["created tasks"] : [response["created tasks"]]);
+            console.log("tdResponse: ", tdResponse);
 
             if (response) {
                 // Dispatch the addTask action to update the state
-                dispatch(addTask(tdResponse[0]));
+                dispatch(addTask(tdResponse));
             }
         } catch (error) {
             console.error("Error creating task: ", error);

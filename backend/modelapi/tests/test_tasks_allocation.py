@@ -9,6 +9,11 @@ class AssignRatersMultipleTasksTestCase(TestCase):
             CustomUser.objects.create(username=f"rater{i}", active=True, rater_digital_id=f"RID{i}",task_access=1, usertype="Rater")
             for i in range(10)
         ]
+        # Create 10 active test raters
+        self.raters = [
+            CustomUser.objects.create(username=f"test_rater{i}", active=True, rater_digital_id=f"tRID{i}",task_access=1, usertype="Test-Rater")
+            for i in range(10)
+        ]
 
         self.students = [Student.objects.create(student_code=str(i)) for i in range(20)]
         self.tasks = []
@@ -43,12 +48,14 @@ class AssignRatersMultipleTasksTestCase(TestCase):
         for student in self.students:
             task1_raters = AssessmentTask.objects.filter(
                 writing_task__student_code=student,
-                writing_task__trait="writing task 1"
+                writing_task__trait="writing task 1",
+                rater__usertype="Rater"
             ).values_list("rater_id", flat=True)
 
             task2_raters = AssessmentTask.objects.filter(
                 writing_task__student_code=student,
-                writing_task__trait="writing task 2"
+                writing_task__trait="writing task 2",
+                rater__usertype="Rater"
             ).values_list("rater_id", flat=True)
 
             # Ensure task1 and task2 raters are different

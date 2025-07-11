@@ -19,6 +19,7 @@ class CustomUser(AbstractUser):
         ('Teacher', 'Teacher'),
         ('Admin', 'Admin'),
         ('Admin-Rater', 'Admin-Rater'),
+        ('Test-Rater', 'Test-Rater'),
     )
     usertype = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='Rater')
     username = models.CharField(max_length=100, unique=True)  # Rater's firstname_lastname

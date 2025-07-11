@@ -333,7 +333,7 @@ export default function DataTableUI({
 
         <Divider align="left">
           <div className="inline-flex align-items-center">
-            <b> Input A Student Name, who has writings not been assigned to a rater</b>
+            <b> Input A Student Code</b>
           </div>
         </Divider>
         <div className="field m-5">

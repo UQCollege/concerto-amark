@@ -12,7 +12,7 @@ import DialogUi from "./DialogUi";
 
 
 
-const fieldNames = ["raterName", "raterDigitalId", "active", "totalTasks"];
+const fieldNames = ["raterName", "raterDigitalId", "active", "totalTasks", "userType"];
 
 export default function RatersTableUI() {
 
@@ -71,6 +71,7 @@ export default function RatersTableUI() {
     id: index,
     raterName: item.raterName,
     raterDigitalId: item.raterDigitalId,
+    userType: item.userType,
     active: item.active.toString(),
     totalTasks: item.totalTasks
 

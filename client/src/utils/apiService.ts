@@ -92,7 +92,7 @@ export const getUserTasks = async (name: string) => {
     const response = await apiService.get(
       `/allocated-tasks/?rater_name=${name}`
     );
-    console.log("rater: ", name);
+    
     return response.data;
   } catch (error) {
     console.error("Error fetching data: ", error);
@@ -109,11 +109,13 @@ export const getRatersFromDB = async () => {
         rater_digital_id: string;
         active: boolean;
         tasks_total: number;
+        user_type: string;
       }) => ({
         raterName: item.username,
         raterDigitalId: item.rater_digital_id,
         active: item.active,
         totalTasks: item.tasks_total,
+        userType: item.user_type,
       })
     );
 
@@ -166,6 +168,7 @@ export const writeRatersToDatabase = async (
         rater_digital_id: rater.raterDigitalId,
         first_name: rater.firstName || "",
         last_name: rater.lastName || "",
+        user_type: rater.userType || "Rater", // Default to "Rater" if not provided
         active: rater.active,
         class_name: rater.className,
         password: "test123", // Default password

@@ -5,6 +5,7 @@ from zipfile import ZipFile, is_zipfile
 from docx2python import docx2python
 from functools import wraps
 from django.http import JsonResponse
+from .models import CustomUser, AssessmentTask
 
 
 
@@ -138,3 +139,44 @@ def parse_lines(lines):
         }
     except Exception:
         return None
+
+
+# Copy Writing tasks to Test-Rater
+def copy_to_test_rater_view(test_rater):
+    """
+    View to create/cp new AssessmentTasks for a Test-Rater from a existed Rater's tasks, randomly.
+    """
+    
+    try:
+        # randomly select a rater
+        random_rater = CustomUser.objects.filter(usertype="Rater", active=True).order_by('?').first()
+        assessment_tasks = AssessmentTask.objects.filter(rater=random_rater, writing_task__trait__in=["Writing 1", "Writing 2", "Writing 3", "Writing 4"]).select_related('writing_task')
+        for task in assessment_tasks:
+            # Prevent creating duplicate AssessmentTask for the same writing_task and test_rater
+            exists = AssessmentTask.objects.filter(
+            writing_task=task.writing_task,
+            rater=test_rater
+            ).exists()
+            if not exists:
+                AssessmentTask.objects.create(
+                    writing_task=task.writing_task,
+                    rater=test_rater,  # Test-Rater
+                    ta=task.ta,
+                    gra=task.gra,
+                    voc=task.voc,
+                    coco=task.coco,
+                    completed=task.completed,
+                    comments=task.comments,
+                    update_by=test_rater
+                )
+        print("Tasks created!")
+    except Exception as e:
+        return JsonResponse({"message": f"Error copying tasks: {str(e)}", "Code": 500})
+    
+
+def get_rater_tasks(rater, traits):
+    return AssessmentTask.objects.filter(
+        rater=rater,
+        writing_task__trait__in=traits,
+        active=True
+    )

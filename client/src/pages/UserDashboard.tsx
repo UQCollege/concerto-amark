@@ -243,7 +243,7 @@ export function UserDashboard() {
             className="block w-full h-[90vh]" >
 
              <iframe
-          src={`https://concerto-dev-writings-assessment.s3.ap-southeast-2.amazonaws.com/${currentTask.trait}/${currentTask.studentCode}.pdf`}
+          src={`https://concerto-dev-writings-assessment.s3.ap-southeast-2.amazonaws.com/${currentTask.trait}/${currentTask.trait}/${currentTask.studentCode}.pdf`}
           title="PDF Viewer"
           width="100%"
           height="90%" // Adjust height as needed
