@@ -373,19 +373,19 @@ def assign_to_all(request):
  
     if not student_codes:
         return JsonResponse({"message": "No student names provided", "Code": 400})
-    tasks = WritingTask.objects.filter(student_code__in=student_codes, trait__in=writing_trait_dict[writing_day])
+    writings = WritingTask.objects.filter(student_code__in=student_codes, trait__in=writing_trait_dict[writing_day])
 
 
-    for task in tasks:
-        task.assign_all = True
-        task.save()
+    for writing in writings:
+        writing.assign_all = True
+        writing.save()
 
         raters = CustomUser.objects.filter(usertype="Rater", active=True)  # Fetch all available raters
         for rater in raters:
             # Check if the assignment already exists
-            if not AssessmentTask.objects.filter(rater=rater, writing_task=task).exists():
+            if not AssessmentTask.objects.filter(rater=rater, writing_task=writing).exists():
                 AssessmentTask.objects.create(
-                    writing_task=task,
+                    writing_task=writing,
                     rater=rater,
                     ta=None,
                     gra=None,

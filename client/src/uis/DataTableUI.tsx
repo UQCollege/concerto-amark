@@ -232,7 +232,7 @@ export default function DataTableUI({
   );
 
   const downloadHandler = (rowData: TD) => {
-    console.log("Domain", rowData);
+    
     return `https://${import.meta.env.VITE_PDF_DOWNLOAD_DOMAIN}/${rowData.trait}/${rowData.trait}/${rowData.studentCode}.pdf`;
     // const downloadData = (await getInitialAssessmentData(rowData.id))[0]
     // await downloadPDF(downloadData as DownloadData)

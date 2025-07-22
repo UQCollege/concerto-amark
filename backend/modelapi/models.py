@@ -106,18 +106,26 @@ class WritingTask(Audit):
 
         # Check if task already assigned
         existing_tasks = AssessmentTask.objects.filter(writing_task=self, active=True)
-        if existing_tasks.count() >= 2:
+
+        if existing_tasks.count() >= 2:      
             return  # Already fully assigned
-
+                
         assigned_rater_ids = set(existing_tasks.values_list("rater_id", flat=True))
-        excluded_raters = set(
-            AssessmentTask.objects.filter(writing_task__student_code=self.student_code)
-            .values_list("rater_id", flat=True)
-        )
 
-        # Avoid raters already assigned to the same student's opposite task
+        # Check if any sibling writings set to assign_all, if not exclude raters already assigned to the student.
+        student_writings = WritingTask.objects.filter(student_code=self.student_code)
+        assign_all_values = list(student_writings.values_list('assign_all', flat=True))
+        
+        if any(assign_all_values):
+            excluded_raters=set()
+        else:
+            excluded_raters = set(
+                AssessmentTask.objects.filter(writing_task__student_code=self.student_code)
+                .values_list("rater_id", flat=True)
+            )
+        
         eligible_raters = [r for r in raters if r.id not in assigned_rater_ids | excluded_raters]
-
+        
         # Track how many tasks each rater has across all assignments
         assignment_counts = Counter(
             AssessmentTask.objects.filter(rater__in=raters).values_list("rater_id", flat=True)
@@ -142,6 +150,8 @@ class WritingTask(Audit):
 
         for rater in selected:
             AssessmentTask.objects.create(writing_task=self, rater=rater)
+            if self.assign_all:
+                print(f"Assigned rater {rater.username} to writing task {self.id} for trait {self.trait}.")
 
         return {
             "trait": self.trait,
