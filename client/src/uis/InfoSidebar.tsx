@@ -4,6 +4,7 @@ import { Button } from "primereact/button";
 import { AssessData } from "../features/data/assessDataSlice";
 import { Panel } from "primereact/panel";
 import { getValueColor } from "../utils/data/constants";
+import { useAppSelector } from "../store/hooks";
 export interface InfoSidebarProps {
   infoHead: string;
   infoList: AssessData[];
@@ -25,13 +26,14 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
         visible={visibleRight}
         position="right"
         onHide={() => setVisibleRight(false)}
-        className="card w-[30vw] bg-gray-800 text-white"
+        className="w-[30vw] bg-gray-800"
       >
         <Panel header="Task List">
           {infoList.map((info, index) => {
               return (
                 <div key={index}>
-                  <p className="p-1">{renderInfo(info as AssessData)}</p>
+                  <div className="tex-gray-800 ">{renderInfo(info as AssessData)}</div>
+            
                 </div>
               );
           })}
@@ -43,24 +45,44 @@ const InfoSidebar = ({ infoHead, infoList, renderInfo }: InfoSidebarProps) => {
 
 export interface TaskContentProps {
   info: AssessData ;
+  setTaskId?: (id: number | undefined) => void;
 }
 
 
 
-export const TaskContent: React.FC<TaskContentProps> = ({ info }) => {
-    return (
-      <div className="flex gap-2 text-lg p-1 ">
+export const TaskContent: React.FC<TaskContentProps> = ({ info, setTaskId }) => {
+  const groups = useAppSelector((state) => state.auth.groups);
+  console.log("groups in TaskContent:", groups);
+  const isTestRater = groups.includes("Test-Rater");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const setTaskIdHandler = setTaskId ? setTaskId : (id:number|undefined) => {};
+
+  const taskNaviHandler =()=>{
+    console.log(isTestRater)
+    setTaskIdHandler(info.id);
+  }  
+  
+  return (
+      <div className="text-sm/6 font-semibold text-shadow-sm p-1">
+       <p onClick={(isTestRater || info.completed)?taskNaviHandler : ()=>{}} className={isTestRater? "cursor-pointer hover:bg-gray-100" : ""}>
+
+       
+        {/* {isTestRater? <i className="pi pi-directions"/>:null} */}
+      
+      {/* Render a checkbox */}
+      <input className="inline" type="checkbox" checked={info.completed} onChange={() => { }} />
         <span >
-          {info.studentCode} - {info.trait} Score:</span >
+        Student: #{info.studentCode} </span >
+        <span>MARK  </span>
           <span className={getValueColor(info.ratings.ta)}>{info.ratings.ta}</span>-
         <span className={getValueColor(info.ratings.gra)}>{info.ratings.gra}</span>-
         <span className={getValueColor(info.ratings.voc)}>{info.ratings.voc}</span>-
         <span className={getValueColor(info.ratings.coco)}>{info.ratings.coco}</span>
-        <span> {info.comments ? info.comments : "NC"} </span>
-
-        {/* Render a checkbox */}
-
-        <input type="checkbox" checked={info.completed} onChange={() => { }} />
+        <span> COMMENTS: {info.comments==="null" ? "":info.comments} </span>
+     
+        
+      </p>
+        
       </div>
     );
   

@@ -1,7 +1,43 @@
 from django.contrib import admin
 # from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
+from .readonly_models import UtilAppPelaWritingseed
 # Register your models here.
+class ReadOnlyAdminClass(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False 
+
+@admin.register(UtilAppPelaWritingseed)
+class UtilappeelawritingseedAdmin(ReadOnlyAdminClass):
+    list_display=[
+    "id",
+    "active",
+    "created_at",
+    "updated_at",
+    "deleted_at",
+    "created_by",
+    "updated_by",
+    "deleted_by",
+    "change_reason",
+    "severity",
+    "session_id",
+    "trait",
+    "response",
+    "words_count",
+    "started_time",
+    "test_id",
+    "user_id",
+    "user_login",
+    "timetaken",
+    "data_split"
+]
+
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):

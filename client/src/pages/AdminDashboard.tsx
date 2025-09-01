@@ -65,7 +65,7 @@ export function AdminDashboard() {
 
     getInitialData();
     dispatch(fetchRaters());
-  }, []);
+  }, [dispatch]);
 
   const handleFetchResult = async () => {
     setIsProcess(true);
@@ -95,7 +95,7 @@ export function AdminDashboard() {
       const records = rows
         .slice(headerIndex, headerIndex + maxRows)
         .map((row) => {
-          const [name, rater_digital_id, first_name, last_name, active, class_name] = row
+          const [name, rater_digital_id, first_name, last_name, user_type, active, class_name] = row
             .split(",")
             .map((col) => col.trim());
           return {
@@ -103,6 +103,7 @@ export function AdminDashboard() {
             raterDigitalId: rater_digital_id,
             firstName: first_name || "",
             lastName: last_name || "",
+            userType: user_type || "Rater",
             active: active.toLowerCase()=="true",
             className: Number(class_name) || undefined,
           };

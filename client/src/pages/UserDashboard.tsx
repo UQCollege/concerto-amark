@@ -70,9 +70,23 @@ export function UserDashboard() {
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
-
+      
       dispatch(initialRating(tasks));
-      const currentTaskId = tasks[0]?.id;
+      console.log("Fetched tasks:", tasks);
+      // Set the first uncompleted task as the current task
+      // If all tasks are completed, set the last task as current
+      // If no tasks, currentTaskId remains undefined
+      const uncompletedTask = tasks.find((task) => !task.completed);
+      if (uncompletedTask) {
+        setCurrentTaskId(uncompletedTask.id);
+        return;
+      }
+      if (tasks.length === 0) {
+        setCurrentTaskId(undefined);
+        return;
+      }
+      // all completed
+      const currentTaskId = tasks[tasks.length-1]?.id;
       setCurrentTaskId(currentTaskId);
     };
     if (currentUser === null || currentUser === undefined) return;
@@ -152,7 +166,7 @@ export function UserDashboard() {
                 <InfoSidebar
                   infoHead="Review"
                   infoList={assessData}
-                  renderInfo={(info) => <TaskContent info={info as AssessData} />}
+                  renderInfo={(info) => <TaskContent info={info as AssessData} setTaskId={setCurrentTaskId} />}
                 ></InfoSidebar>
               </span>
 
@@ -232,13 +246,22 @@ export function UserDashboard() {
           </div>
           <h3 className="text-left mb-2">{currentTask.studentCode}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
-          <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3>
+          {/* <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3> */}
             <h3 className="text-left mb-2">
             {currentTask.startedTime
               ? new Date(currentTask.startedTime).toLocaleDateString()
               : ""}
             </h3>
           <hr />
+         {/* <div
+            className="block w-full h-[90vh]" >
+             <iframe
+          src={`https://${import.meta.env.VITE_PDF_DOWNLOAD_DOMAIN}/${currentTask.trait}/${currentTask.trait}/${currentTask.studentCode}.pdf`}
+          title="PDF Viewer"
+          width="100%"
+          height="90%" // Adjust height as needed
+        ></iframe>
+        </div> */}
             <div
             className="block w-full whitespace-pre-line leading-[2rem] mt-5 text-xl overflow-y-auto max-h-[70vh] break-words"
             style={{ textAlign: "justify" }}

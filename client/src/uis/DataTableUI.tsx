@@ -25,8 +25,9 @@ import { classNames } from "primereact/utils";
 import { RadioButton, RadioButtonChangeEvent } from "primereact/radiobutton";
 import { exportExcel } from "../utils/downloadExcel";
 import { Divider } from 'primereact/divider';
-import { DownloadData, downloadPDF } from "../utils/downloadPDF";
-import { getInitialAssessmentData } from "../utils/apiService";
+// import { DownloadData, downloadPDF } from "../utils/downloadPDF";
+// import { getInitialAssessmentData } from "../utils/apiService";
+// import { Icon } from "lucide-react";
 
 
 export interface ColumnMeta {
@@ -230,17 +231,25 @@ export default function DataTableUI({
     />
   );
 
-  const downloadHandler = async (rowData: TD) => {
-    const downloadData = (await getInitialAssessmentData(rowData.id))[0]
-    await downloadPDF(downloadData as DownloadData)
+  const downloadHandler = (rowData: TD) => {
+    
+    return `https://${import.meta.env.VITE_PDF_DOWNLOAD_DOMAIN}/${rowData.trait}/${rowData.trait}/${rowData.studentCode}.pdf`;
+    // const downloadData = (await getInitialAssessmentData(rowData.id))[0]
+    // await downloadPDF(downloadData as DownloadData)
 
   }
   const actionDownloadTemplate = (rowData: TD) => (
-    <Button
-      icon="pi pi-download"
+    <a
+      target="_blank"
       className="p-button-rounded p-button-info"
-      onClick={() => downloadHandler(rowData)}
-    />
+      href={downloadHandler(rowData) 
+      }
+    ><i className="pi pi-download"/></a>
+    //   <Button
+    //   icon="pi pi-download"
+    //   className="p-button-rounded p-button-info"
+    //   onClick={() => downloadHandler(rowData)}
+    // />
   );
 
   return (
@@ -333,7 +342,7 @@ export default function DataTableUI({
 
         <Divider align="left">
           <div className="inline-flex align-items-center">
-            <b> Input A Student Name, who has writings not been assigned to a rater</b>
+            <b> Input A Student Code</b>
           </div>
         </Divider>
         <div className="field m-5">

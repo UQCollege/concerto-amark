@@ -97,8 +97,8 @@ class CognitoJWTAuthentication(BaseAuthentication):
             username=username,
             defaults={
             "usertype": usertype,
-            "active": True if usertype != "Rater" else False,
-            "is_superuser": True if usertype == "Admin" else False,
+            "active": usertype not in ["Rater", "Test-Rater"],
+            "is_superuser": usertype == "Admin",
             "task_access": 1,
             "rater_digital_id": sub,
             }
@@ -107,8 +107,8 @@ class CognitoJWTAuthentication(BaseAuthentication):
         return user, created
     
     def get_user_type(self, cognito_groups):
-        priority = ["Admin", "Admin-Rater", "Teacher", "Rater"]
+        priority = ["Admin", "Admin-Rater", "Teacher", "Rater", "Test-Rater"]
         for role in priority:
             if role in cognito_groups:
                 return role
-        return "Rater"
+        return "Test-Rater"
