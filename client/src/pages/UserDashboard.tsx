@@ -166,7 +166,7 @@ export function UserDashboard() {
                 <InfoSidebar
                   infoHead="Review"
                   infoList={assessData}
-                  renderInfo={(info) => <TaskContent info={info as AssessData} />}
+                  renderInfo={(info) => <TaskContent info={info as AssessData} setTaskId={setCurrentTaskId} />}
                 ></InfoSidebar>
               </span>
 
