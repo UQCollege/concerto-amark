@@ -13,6 +13,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
+from .readonly_models import  UtilAppPelaWritingseed # UtilAppPelaUqcUsers
 from .utils import copy_to_test_rater_view, parse_zip_and_extract_texts, superuser_required, get_rater_tasks
 
 class RaterViewSet(viewsets.ModelViewSet):
@@ -407,96 +408,51 @@ def clear_tasks_view(request):
 
 
 @api_view(["POST"])
-def create_students(request):
+def create_writing_tasks(request):
 
     if not request.user.is_superuser:
         return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
     
-    students = request.data.get("students", [])
+   
     try:
-        existed_students = Student.objects.in_bulk(field_name='student_code')
-        for s in students:
-            student_code = str(s.get("student_code"))
+        # fetch all records from legacy UtilAppPelaWritingseed table
+        writingseed_records = UtilAppPelaWritingseed.objects.filter(active=True, test_id="54")
+        # convert the writingseed records to list of dict with keys: login, user_id
+        writings_students_list = list(writingseed_records.values("user_id", "user_login"))
+        writingseed_list = list(writingseed_records.values("user_id", "started_time", "trait", "response", "words_count", "created_at"))
 
-            be_class = None
-            if s.get("class_name"):
-    
-                be_class, _ = BEClass.objects.get_or_create(class_name=s["class_name"])
+        # create students if not exist from writings_students_list
+        for ws in writings_students_list:
+            create, _ = Student.objects.get_or_create(
+                student_code=ws["user_id"],
+                defaults={
+                    "student_digital_id": ws["user_login"],
+                }
+            )
+
+        for wrecord in writingseed_list:
+
+            writing_task, created=    WritingTask.objects.get_or_create(
+                student_code=Student.objects.get(student_code=wrecord["user_id"]),
+                started_time = wrecord["created_at"], 
+                # Try parsing DD/MM/YYYY HH:MM
+                # started_time = datetime.strptime(wrecord["created_at"], "%d/%m/%Y %H:%M")
+                trait = wrecord["trait"],
+                defaults={
+
+                "response": wrecord["response"],
+                "words_count": wrecord["words_count"]
+                }
+            )
+                    
+
+        # uqcusers_list = 
             
-            existed_student = existed_students.get(student_code)
-            if existed_student:
-                existed_student.classes = be_class
-                existed_student.save()
-            else:
-                Student.objects.create(
-                    student_code=student_code,
-                    student_digital_id = s["student_digital_id"],
-                    last_name=s["last_name"],
-                    first_name=s["first_name"],
-                    classes= be_class,
-                    student_can=s["student_can"],
-                )
-            
-        return Response({"message": "Students created successfully", "Code": 200})
+        return Response({"message": "Writings created successfully", "Code": 200})
     except Exception as e:
         return Response({"message": f"Error creating students: {str(e)}", "Code": 500})
 
-@api_view(["POST"])
-def create_writing_tasks(request):
-    
-    from datetime import datetime
 
-
-    tasks = request.data.get("tasks", [])
-    try:
-        # prefetch all students
-        existed_students = Student.objects.in_bulk(field_name='student_code')
-    
-        writing_tasks_objs = []
-
-        for t in tasks: 
-            student = existed_students.get(str(t["student_code"])) 
-
-            if not student:
-                continue
-            
-            try:
-                # Try parsing DD/MM/YYYY HH:MM
-                started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
-            except ValueError:
-                try:
-                    # Try parsing ISO format fallback (already valid input)
-                    started_time = datetime.fromisoformat(t["started_time"])
-                except ValueError:
-                    return Response({
-                        "message": f"Invalid date format: {t['started_time']}",
-                        "Code": 400
-                    })
-
-            writing_tasks_objs.append(WritingTask(
-                student_code=student,
-                trait=t["trait"],
-                started_time=started_time,
-                response=t["response"],
-                words_count=int(t["words_count"]) if t.get("words_count") else 0,
-            ))
-        existing_keys = set(
-            WritingTask.objects.filter(
-                student_code__in=[w.student_code for w in writing_tasks_objs],
-                trait__in=[w.trait for w in writing_tasks_objs],
-                started_time__in=[w.started_time for w in writing_tasks_objs],
-                ).values_list("student_code_id", "started_time", "trait")
-            )
-        unique_objs = [
-            w for w in writing_tasks_objs
-            if (w.student_code.student_code, w.started_time, w.trait) not in existing_keys
-            ]
-            # Bulk create writing tasks
-        with transaction.atomic():
-            WritingTask.objects.bulk_create(unique_objs, batch_size=400) # Adjust batch size
-        return Response({"message": f"{len(unique_objs)} Writing tasks created successfully", "Code": 200})
-    except Exception as e:
-        return Response({"message": f"Error creating writing tasks: {str(e)}", "Code": 500})
 
 
 @api_view(["POST"])

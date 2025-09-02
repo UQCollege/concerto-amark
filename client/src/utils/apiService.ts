@@ -126,24 +126,27 @@ export const getRatersFromDB = async () => {
 };
 
 // Post Method
-export const uploadZipFile = async (file: File | undefined) => {
-  if (!file) return;
-  const formData = new FormData();
-  formData.append("file", file);
-  console.log("file: ", formData);
 
-  const response = await apiService.post("/upload-zip/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  if (response.status === 200) {
-    console.log("upload done!");
-  } else {
-    console.log("upload failed");
+// Create Students records
+
+
+
+// Migrate the Writings
+
+export const migrateWritings = async ():Promise<string> => {
+  console.log("Migrating writings...")
+  try{
+    const response = await apiService.post("writing-tasks/");
+    return response.data.message
+
   }
-  return response.data;
-};
+  catch(error){
+    console.error("Error migratiing writings:", error)
+    return `Error migrating writings: ${error}`
+  }
+}
+
+
 
 export const createTaskInTable = async (data: {
   student_code: string;
@@ -201,24 +204,7 @@ export const assignToAll = async (data: {
   }
 };
 
-export const uploadData = async <T>(
-  url: string,
-  payloadKey: string,
-  data: T[]
-): Promise<string> => {
-  try {
-    const response = await apiService.post(url, {
-      [payloadKey]: data,
-    });
 
-    return response.data.message || "Upload successful";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    const msg =
-      error.response?.data?.message || error.message || "Upload failed";
-    throw new Error(msg);
-  }
-};
 // Put Method
 
 export const updateTasksTable = async (task: {

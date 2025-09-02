@@ -23,6 +23,7 @@ import {
 import { ApiData } from "../apiTypes";
 import { Divider } from "primereact/divider";
 
+
 const markOptions = [
   { name: "ta" as const, label: "TA Mark" },
   { name: "gra" as const, label: "GR&A Mark:" },
@@ -42,6 +43,7 @@ export function UserDashboard() {
   }
 
   const assessData: AssessData[] = [...useAppSelector((state) => state.assess)];
+
   const dispatch = useAppDispatch();
 
   const currentTask = assessData.find((task) => task.id === currentTaskId);
@@ -133,7 +135,6 @@ export function UserDashboard() {
     if (index < assessData.length - 1) {
       setCurrentTaskId(assessData[index + 1].id);
     }
-
   };
 
   const handleRevert = () => {
@@ -218,8 +219,9 @@ export function UserDashboard() {
                     : ""
                 }
                 disabled={!isAllSelected}
+                tooltip={currentTaskIndex===totalTasks-1 ? 'This is end of task queue, click to save' : ''} tooltipOptions={{ position: 'right' }}
               >
-                {isLastTask ? "Submit Final Assessment" : <span> <i className="pi pi-arrow-right" /> <i className="pi pi-save" /> </span>}
+                {isLastTask ? "Submit Final Assessment" : <span> <i className="pi pi-save" /> {currentTaskIndex!==totalTasks-1 ? <i className="pi pi-arrow-right"/> : null} </span>}
               </Button>
             </div>
           </div>
