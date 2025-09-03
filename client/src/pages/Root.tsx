@@ -3,9 +3,10 @@ import Sidebar from "../uis/Sidebar";
 import { SidebarItem } from "../uis/Sidebar";
 import { Flag, Home, Layers, LayoutDashboard, LogOut, BookOpenCheck } from "lucide-react";
 import { PrimeReactProvider } from "primereact/api";
-// import { useEffect } from "react";
+
 import { useAppSelector } from "../store/hooks";
-// import { setToken } from "../features/auth/authSlice";
+import { handleLogout } from "../utils/auth";
+
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
 
@@ -41,7 +42,8 @@ const Root = () => {
      
           <SidebarItem icon={<Flag size={20} />} text="" link="" />
           <hr className="my-3" />
-          <SidebarItem icon={<LogOut size={20} />} text="Log Out" link={import.meta.env.VITE_LOGOUT_URL} />
+          {/* <SidebarItem icon={<LogOut size={20} />} text="Log Out" link={import.meta.env.VITE_LOGOUT_URL} /> */}
+          <LogOut className="mx-3 my-2 cursor-pointer" size={20} onClick={() => handleLogout()} />
         </Sidebar>
         <main className="transition-all duration-300 ease-in-out flex-grow ">
           <Outlet />
