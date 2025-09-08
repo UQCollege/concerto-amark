@@ -45,11 +45,13 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'student_code', 'trait', 'started_time', 'response', 'update_by', 'update_date']  # Show columns in list view
+    list_display = ['id', 'data_split', 'student_code', 'trait', 'started_time', 'response', 'update_by', 'update_date']  # Show columns in list view
 
 @admin.register(AssessmentTask)
 class AssessmentTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'active','writing_task', 'get_rater', 'ta', 'gra', 'voc', 'coco', 'comments', 'completed', 'update_by', 'update_date']  # Adjust fields to match your model
+    list_display = ['id', 'active','writing_task', 'get_rater', 'ta', 'gra', 'voc', 'coco', 'comments', 'completed', 'update_by', 'update_date']
+    sortable_by = ['id', 'active', 'ta', 'gra', 'voc', 'coco', 'completed', 'update_by', 'update_date']  # Only model fields, not methods
+
     @admin.display(description='Rater')
     def get_rater(self, obj):
         return obj.rater.rater_digital_id  # Adjust based on your actual Raters model

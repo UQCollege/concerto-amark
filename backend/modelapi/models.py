@@ -80,6 +80,9 @@ class WritingTask(Audit):
     assign_all = models.BooleanField(default=False)
     response = models.TextField()
     words_count= models.IntegerField(null=True)
+    data_split = models.CharField(max_length=10, default='train')  # raw, train, val, test
+    test_id = models.IntegerField(null=True, default=54)
+    
 
     class Meta:
         unique_together = ('trait', 'student_code', 'started_time')

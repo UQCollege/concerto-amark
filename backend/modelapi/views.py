@@ -409,14 +409,14 @@ def clear_tasks_view(request):
 
 @api_view(["POST"])
 def create_writing_tasks(request):
-
+     
     if not request.user.is_superuser:
         return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
     
-   
     try:
+        test_id = request.data.get("testId", 54)  # Default to 54 if not provided
         # fetch all records from legacy UtilAppPelaWritingseed table
-        writingseed_records = UtilAppPelaWritingseed.objects.filter(active=True, test_id="54")
+        writingseed_records = UtilAppPelaWritingseed.objects.filter(active=True, test_id=test_id)
         # convert the writingseed records to list of dict with keys: login, user_id
         writings_students_list = list(writingseed_records.values("user_id", "user_login"))
         writingseed_list = list(writingseed_records.values("user_id", "started_time", "trait", "response", "words_count", "created_at"))
@@ -439,7 +439,7 @@ def create_writing_tasks(request):
                 # started_time = datetime.strptime(wrecord["created_at"], "%d/%m/%Y %H:%M")
                 trait = wrecord["trait"],
                 defaults={
-
+                "data_split": wrecord.get("data_split", "raw"),
                 "response": wrecord["response"],
                 "words_count": wrecord["words_count"]
                 }

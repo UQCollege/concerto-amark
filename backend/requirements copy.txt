@@ -37,4 +37,3 @@ types-lxml==2025.3.30
 typing_extensions==4.13.2
 urllib3==2.4.0
 whitenoise==6.9.0
-pandas

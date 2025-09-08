@@ -149,6 +149,9 @@ USE_FAKE_AUTH = os.environ.get("USE_FAKE_AUTH", "True") == "True"
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+S3BUCKET_NAME = os.environ.get("S3BUCKET_NAME", "pela-training-data")
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
