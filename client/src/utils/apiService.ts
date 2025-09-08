@@ -2,6 +2,7 @@ import axios from "axios";
 import { RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
 import { getAccessToken } from "./auth";
+import { defaultTestId } from "../uis/ImportData";
 
 const API_BASE_URL = import.meta.env.VITE_AUTH_DISABLED == 'true'
   ? import.meta.env.VITE_API_URL_LOCAL
@@ -34,7 +35,6 @@ apiService.interceptors.response.use(
     if (error.response?.status === 500) {
       const detail = error.response.data?.detail || "Unauthorized access";
       alert(detail);
-      alert("Your session time out, Previous jobs has been saved, Please logout and login back to continue.");
       sessionStorage.removeItem("access_token");
     }
 
@@ -133,10 +133,10 @@ export const getRatersFromDB = async () => {
 
 // Migrate the Writings
 
-export const migrateWritings = async ():Promise<string> => {
+export const migrateWritings = async (testId=defaultTestId):Promise<string> => {
   console.log("Migrating writings...")
   try{
-    const response = await apiService.post("writing-tasks/");
+    const response = await apiService.post("writing-tasks/", { testId });
     return response.data.message
 
   }
@@ -147,6 +147,22 @@ export const migrateWritings = async ():Promise<string> => {
 }
 
 
+// upload splitted writing data to S3
+export const uploadSplittedDataToS3 = async ():Promise<string> => {
+  console.log("Uploading splitted writing data to S3...")
+  try{
+    const response = await apiService.post("upload-s3/");
+    console.log(response.data.message);
+    // The message exists in response.data.message
+
+    return response.data.message;
+
+  }
+  catch(error){
+    console.error("Error uploading splitted writing data to S3:", error)
+    return `Error uploading splitted writing data to S3: ${error}`
+  }
+}
 
 export const createTaskInTable = async (data: {
   student_code: string;

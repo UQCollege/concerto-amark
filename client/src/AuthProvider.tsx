@@ -133,9 +133,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Auto refresh token every 10 minutes
   useEffect(() => {
     const interval = setInterval(() => {
-        console.log("Refreshing access token...");
+        
       refreshAccessToken();
-    }, 10 * 60 * 1000); // Every 10 min, TODO: Switch to 1hr
+    }, 40 * 60 * 1000); // Every 10 min, TODO: Switch to 1hr
 
     return () => clearInterval(interval);
   }, []);
