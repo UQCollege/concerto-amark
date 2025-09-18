@@ -4,6 +4,6 @@ all:
       ansible_connection: local
 
     bastion:
-      ansible_host: 47.129.52.161     # e.g., 13.55.x.x
+      ansible_host: 54.169.204.78     # e.g., 13.55.x.x
       ansible_user: ubuntu     # e.g., ubuntu
-      ansible_ssh_private_key_file: /home/uqc-joanna/uqc/concerto-amark/ansible/data-test.pem
+      ansible_ssh_private_key_file: {{key-file-path}}
