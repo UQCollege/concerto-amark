@@ -1,7 +1,8 @@
 import React from "react";
 import {  migrateWritings } from "../utils/apiService";
 import { Button } from "primereact/button";
-import { InputNumber } from "primereact/inputnumber";
+import { InputNumber, InputNumberValueChangeEvent } from "primereact/inputnumber";
+import { FloatLabel } from 'primereact/floatlabel';
 export const defaultTestId=54
 
 export const ImportData = () => {
@@ -13,10 +14,16 @@ export const ImportData = () => {
   }
 
   return (
-    <div className="flex items-center gap-4">
-       <label htmlFor="test-id" className="font-bold mb-2">Input Test ID?</label>
-      <InputNumber inputId="test-id" value={testId} onValueChange={(e) => setTestId(e.value ?? 0)} />
-     <Button onClick={importWritingsHandler}>Migrate Writing Data</Button>
+    <div className="p-inputgroup flex-1">
+      <FloatLabel className="border p-1 rounded w-24" >
+        <InputNumber
+          id="test-id"
+          onValueChange={(e: InputNumberValueChangeEvent) => setTestId(e.value ?? defaultTestId)}
+          inputStyle={{ width: '100%', minWidth: 50 }} // ensure input fits container
+        />
+        <label htmlFor="test-id">Test ID</label>
+      </FloatLabel>
+     <Button onClick={importWritingsHandler} tooltip="Import writings from the specified test" icon="pi pi-file-import"/>
     </div>
   );
 };

@@ -12,8 +12,7 @@ import {
 import { PrimeReactProvider } from "primereact/api";
 import { useAuth } from "../utils/useAuth";
 import { useAppSelector } from "../store/hooks";
-import { Button } from "primereact/button";
-import { uploadSplittedDataToS3 } from "../utils/apiService";
+
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
 
@@ -28,15 +27,6 @@ const Root = () => {
     userData.groups.includes("Admin-Rater");
   const { logout } = useAuth();
 
-  const uploadingS3 = async () => {
-    try{
-      const response = await uploadSplittedDataToS3();
-      alert(response)
-    }
-    catch(error){
-      alert(`Error uploading to S3: ${error}`);
-    }
-  }
 
   return (
     <PrimeReactProvider>
@@ -71,15 +61,7 @@ const Root = () => {
             size={20}
             onClick={logout}
           />
-          {isAdmin ? (
-            <Button
-              label="upload to S3"
-              severity="secondary"
-              raised
-              onClick={uploadingS3}
-              rounded
-            />
-          ) : null}
+          
         </Sidebar>
         <main className="transition-all duration-300 ease-in-out flex-grow ">
           <Outlet />

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchRaters, createRaters } from "../features/data/ratersUpdateSlice";
-
 import Loading from "../uis/Loading";
 import { Button } from "primereact/button";
 import {
@@ -17,6 +16,7 @@ import {
   getAssessmentData,
   getInitialAssessmentData,
   updateRater,
+  uploadSplittedDataToS3,
   verify,
 } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
@@ -163,16 +163,17 @@ export function AdminDashboard() {
         {isAdmin && (
           <div className="flex justify-between">
             <div className="flex items-center  gap-3">
-              <div className="flex flex-row items-center gap-2">
+
                     <ImportData />
-              </div>
+    
               <div className="pi pi-arrow-right"></div>
 
               <label
                 htmlFor="raterlist"
-                className="cursor-pointer bg-blue-600 text-white px-2 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+                className="cursor-pointer bg-blue-400 text-white px-2 py-2 rounded-lg shadow hover:bg-blue-500 transition"
               >
-                Upload Rater-List
+                 Raters 
+                <i className="pi pi-upload"></i>
                 <input
                   id="raterlist"
                   type="file"
@@ -254,6 +255,17 @@ export function AdminDashboard() {
                 aria-setsize={10}
                 onClick={verifyHandler}
               />
+
+              
+            <Button
+              tooltip="upload result dataset"
+              severity="secondary"
+              raised
+              onClick={uploadSplittedDataToS3}
+              rounded
+              icon="pi pi-upload"
+            />
+         
             </div>
           </div>
         )}
@@ -293,7 +305,9 @@ export function AdminDashboard() {
         onHide={() => setShowDialog(false)}
         onConfirm={() => {
           deleteAllTasks();
-          setShowDialog(false);
+            setShowDialog(false);
+            dispatch(setTasks([]));
+       
         }}
       />
     </div>

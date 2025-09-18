@@ -65,7 +65,7 @@ export default function DataTableUI({
     return (
       <div className="flex flex-row gap-2">
         <Button
-          label="Add Assessment Task"
+          label="Add Tasks"
           icon="pi pi-plus"
           severity="success"
           onClick={createNew}
@@ -341,7 +341,7 @@ export default function DataTableUI({
 
         <Divider align="left">
           <div className="inline-flex align-items-center">
-            <b> Input A Student Code</b>
+            <b> Input Student Codes</b>
           </div>
         </Divider>
         <div className="field m-5">
@@ -349,6 +349,7 @@ export default function DataTableUI({
           </label>
           <InputText
             id="studentCode"
+            placeholder="e.g., 123, 978 separated by comma"
             onChange={(e) =>
               setNewRecord((state) => ({
                 ...state,

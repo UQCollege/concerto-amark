@@ -33,7 +33,7 @@ apiService.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 500) {
-      const detail = error.response.data?.detail || "Unauthorized access";
+      const detail = error.response.data || "Server Error";
       alert(detail);
       sessionStorage.removeItem("access_token");
     }
@@ -152,9 +152,7 @@ export const uploadSplittedDataToS3 = async ():Promise<string> => {
   console.log("Uploading splitted writing data to S3...")
   try{
     const response = await apiService.post("upload-s3/");
-    console.log(response.data.message);
-    // The message exists in response.data.message
-
+   alert(response.data.message);
     return response.data.message;
 
   }
@@ -280,7 +278,9 @@ export const deleteRaterInTable = async (rater_digital_id: string) => {
 export const deleteAllTasks = async () => {
   try {
     await apiService.get("/clear-tasks");
+ 
   } catch (error) {
-    console.error("Error happens deleteing all task: ", error);
+  
+    alert(`Error happens deleteing all task: ${error}`);
   }
 };
