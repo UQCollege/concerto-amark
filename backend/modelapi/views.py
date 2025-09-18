@@ -403,6 +403,8 @@ def clear_tasks_view(request):
     """
     View to clear all writing tasks.
     """
+    Student._base_manager.all().delete()
+    WritingTask._base_manager.all().delete()
     AssessmentTask._base_manager.all().delete()
     return JsonResponse({"message": "Tasks cleared successfully", "Code": 200})
 
