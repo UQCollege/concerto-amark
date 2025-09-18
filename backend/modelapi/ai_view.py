@@ -1,6 +1,5 @@
 # and Upload to S3 with training tags and datestamps
 import os
-import pandas as pd
 from django.http import JsonResponse
 from datetime import datetime, timezone
 from rest_framework.decorators import api_view
@@ -17,84 +16,98 @@ def upload_rated_writing_data_to_s3(request):
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
     print(f"User {user} initiated S3 upload process.")
-    # Query joined data from WritingTask and AssessmentTask
-    # Assume WritingTask has fields: id, response, data_split
-    # Assume AssessmentTask has fields: writing_task_id (FK), ta, gra, voc, coco
-
-    # Join WritingTask and AssessmentTask on WritingTask.id == AssessmentTask.writing_task_id
+   
     from .models import AssessmentTask  # Ensure AssessmentTask is imported
 
     raw_data = (
         AssessmentTask.objects
         .select_related('writing_task')
         .filter(completed=True)
-        .values('writing_task__id', 'writing_task__response', 'writing_task__data_split',
-                'ta', 'gra', 'voc', 'coco')
+        .values('writing_task__started_time', 'writing_task__trait','writing_task__student_code', 'writing_task__response', 'writing_task__data_split',
+                'rater', 'ta', 'gra', 'voc', 'coco')
     )
-    # Convert queryset to DataFrame
-    df = pd.DataFrame(list(raw_data))
+    
+    """ 
+    # Generate Json Records from raw_data
+    # with the Schema:
+    {
+    {
 
-    # Rename columns for consistency
-    df = df.rename(columns={
-        'writing_task__id': 'id',
-        'writing_task__response': 'response',
-        'writing_task__data_split': 'data_split'
-    })
+        userId: <int>, - this is the student id
+        trait: <string>, - this is the writing trait
+        started_time: <date-time>, - this is when the writing completed
+        text: <string>, - writing response
+        Task Achievement: <int>, - Writing score
+        Grammar: <int>,
+        Vocabulary: <int>,
+        Cohesion & Coherence: <int>,
+        Marker: <string>, - Rater number
+        repeated:<boolean>, - check if the entry repeated for data sanitization
+        training_timestamp: [<timeStamp>], - indicate the list of date that the entry has been send to AI for training. it will generate before sending
+        val_timestamp: [<timeStamp>], - indicate the list of date that the entry has been send to AI for validation. it will generate before sending
+        test_timestamp: [<timeStamp>], - indicate the list of date that the entry has been send to AI for test. it will generate before sending
+        tied_model:[<string>], - a list of models
+        split_type: <string>, - updates with train, test or val type
+        }
 
-    # Split by 'data_split' column
-    train_df = df[df['data_split'] == 'train']
-    val_df = df[df['data_split'] == 'val']
-    test_df = df[df['data_split'] == 'test']
-    test_df = df[df['data_split'] == 'test']
+    
+    }
+    """
+    # Organize records by split type
+    records = {"train": [], "val": [], "test": []}
+    for entry in raw_data:
+        record = {
+            "userId": entry['writing_task__student_code'],
+            "trait": entry['writing_task__trait'],
+            "started_time": entry['writing_task__started_time'].isoformat() if entry['writing_task__started_time'] else None,
+            "text": entry['writing_task__response'],
+            "Task Achievement": entry['ta'],
+            "Grammar": entry['gra'],
+            "Vocabulary": entry['voc'],
+            "Cohesion & Coherence": entry['coco'],
+            "Marker": f"Rater_{entry['rater']}",
+            "split_type": entry['writing_task__data_split'],
+            "repeated": False,
+            "training_timestamp": [],
+            "val_timestamp": [],
+            "test_timestamp": [],
+            "tied_model": [],
+        }
+        split = entry['writing_task__data_split']
+        if split in records:
+            records[split].append(record)
 
-    # Prepare JSON data for S3 upload
-    # There is no timezone.aest in the standard library.
-    # For Australian Eastern Standard Time (AEST), use datetime.timezone with the correct offset:
-    # AEST is UTC+10:00
+    # Prepare JSONL data for S3 upload
     aest = timezone(timedelta(hours=10))
     date_str = datetime.now(aest).strftime('%Y-%m-%d')
-    s3_data = {
-        "train": {
-            "date": date_str,
-            "data": train_df.to_dict(orient='records')
-        },
-        "val": {
-            "date": date_str,
-            "data": val_df.to_dict(orient='records')
-        },
-        "test": {
-            "date": date_str,
-            "data": test_df.to_dict(orient='records')
-        }
-    }
 
-    # Example S3 keys (paths)
     s3_keys = {
-        "train": f"train/{date_str}/dataset.json",
-        "val": f"val/{date_str}/dataset.json",
-        "test": f"test/{date_str}/dataset.json"
+        "train": f"train/{date_str}/dataset.jsonl",
+        "val": f"val/{date_str}/dataset.jsonl",
+        "test": f"test/{date_str}/dataset.jsonl"
     }
 
-    # Return JSON ready for S3 upload
-    print({
-        "message": "Data prepared for S3 upload",
-        "train_count": len(train_df),
-        "val_count": len(val_df),
-        "test_count": len(test_df),
-        "s3_data": s3_data,
-        "s3_keys": s3_keys
-    })
-    # Use your SSO profile for boto3
-    if os.environ.get("PROD") == "False":
-        session = boto3.Session(profile_name='concerto1')
+    # Convert records to JSONL strings
+    jsonl_data = {
+        split: "\n".join(json.dumps(rec) for rec in records[split])
+        for split in records
+    }
+
+    # S3 upload
+    if os.environ.get("DEBUG", "True") == "True":
+        session = boto3.Session()
         s3 = session.client('s3')
     else:
         s3 = boto3.client('s3')
-    bucket_name = os.environ.get("S3BUCKET_NAME", "pela-training-data")  # 
+    bucket_name = os.environ.get("S3BUCKET_NAME", "pela-training-data")
 
-    for key, data in s3_data.items():
-        s3.put_object(Bucket=bucket_name, Key=s3_keys[key], Body=json.dumps(data))
+    for split, data in jsonl_data.items():
+        s3.put_object(Bucket=bucket_name, Key=s3_keys[split], Body=data)
 
-    return JsonResponse({"message": "Data uploaded to S3"}, status=200)
+    return JsonResponse({
+        "message": "Data uploaded to S3",
+        "counts": {split: len(records[split]) for split in records},
+        "s3_keys": s3_keys
+    }, status=200)
  
 

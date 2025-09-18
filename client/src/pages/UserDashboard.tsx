@@ -22,6 +22,8 @@ import {
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../apiTypes";
 import { Divider } from "primereact/divider";
+import {InputTextarea } from 'primereact/inputtextarea'
+import { FloatLabel } from "primereact/floatlabel";
 
 
 const markOptions = [
@@ -157,7 +159,7 @@ export function UserDashboard() {
     <div className="">
       <div className="flex items-center h-[100vh]">
         <div
-          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
+          className={` h-full p-6 rounded-lg shadow-lg flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
             }`}
         >
           <div className="text-2xl">
@@ -196,18 +198,17 @@ export function UserDashboard() {
               </React.Fragment>
             ))}
 
-            <div className="flex flex-col justify-center items-center">
-              <label htmlFor="comment">Notes:</label>
-
-              <textarea
+            <FloatLabel className="flex flex-col justify-center items-center">
+              <InputTextarea
                 className="border"
-                id="comment"
-                value={currentTask.comments}
+                id="comments"
                 onChange={(e) => handleCommentChange(e.target.value)}
-                placeholder="Enter your Notes here"
-                rows={4}
-              />
-            </div>
+                rows={3}
+                cols={30} 
+                />
+              <label htmlFor="comments">Enter your Notes here</label>
+            </FloatLabel>
+         
             <div className="flex gap-2">
               <Button onClick={handleRevert}> <i className="pi pi-arrow-left"></i></Button>
 
