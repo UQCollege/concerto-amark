@@ -1,20 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { AuthContext } from './utils/authContext';
 
 const CLIENT_ID = import.meta.env.VITE_OIDC_CLIENT_ID;
-const COGNITO_DOMAIN = import.meta.env.VITE_COGNITO_DOMAIN; 
-const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI; 
+const COGNITO_DOMAIN = import.meta.env.VITE_COGNITO_DOMAIN;
+const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI;
 const TOKEN_ENDPOINT = `${COGNITO_DOMAIN}/oauth2/token`;
 const AUTHORIZATION_ENDPOINT = `${COGNITO_DOMAIN}/oauth2/authorize`;
 
 const SCOPES = 'openid email profile';
 
+const isValidRedirectUri = (uri: string) => {
+  const allowedRedirectUri = import.meta.env.VITE_REDIRECT_URI;
+  return uri === allowedRedirectUri;
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [codeVerifier, setCodeVerifier] = useState<string | null>(null);
+  const [lastActivity, setLastActivity] = useState<number>(Date.now()); // Track last user activity
+  const inactivityTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Helper to generate a random code_verifier
   const generateCodeVerifier = (): string => {
@@ -39,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async () => {
     const verifier = generateCodeVerifier();
     const challenge = await generateCodeChallenge(verifier);
-    setCodeVerifier(verifier);
+    
     sessionStorage.setItem('pkce_verifier', verifier);
 
     const loginUrl = `${AUTHORIZATION_ENDPOINT}?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
@@ -49,14 +54,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.location.href = loginUrl;
   };
 
-  const logout = () => {
+  const logout = React.useCallback(() => {
     sessionStorage.clear();
     setAccessToken(null);
     setRefreshToken(null);
-    window.location.href = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
-      REDIRECT_URI,
-    )}`;
-  };
+    if (isValidRedirectUri(REDIRECT_URI)) {
+      window.location.href = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
+        REDIRECT_URI,
+      )}`;
+    } else {
+      console.error("Invalid logout redirect URI");
+    }
+  }, []);
 
   const exchangeCodeForTokens = async (code: string) => {
     const verifier = sessionStorage.getItem('pkce_verifier');
@@ -91,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const refreshAccessToken = async () => {
+  const refreshAccessToken = React.useCallback(async () => {
     const storedRefreshToken = sessionStorage.getItem('refresh_token');
     if (!storedRefreshToken) return;
 
@@ -108,11 +117,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body: params.toString(),
     });
 
+    if (!response.ok) {
+      console.error('Failed to refresh token:', response.statusText);
+      logout(); // Force re-login
+      return;
+    }
+
     const data = await response.json();
     if (data.access_token) {
       sessionStorage.setItem('access_token', data.access_token);
       setAccessToken(data.access_token);
+    } else {
+      logout(); // Force re-login if refresh token is invalid
     }
+  }, [logout]);
+
+  // Handle user activity
+  const resetInactivityTimer = () => {
+    setLastActivity(Date.now());
+    if (inactivityTimeout.current) {
+      clearTimeout(inactivityTimeout.current);
+    }
+
+    // Set a new inactivity timeout (30 minutes)
+    inactivityTimeout.current = setTimeout(() => {
+      console.log('User inactive for 30 minutes. Logging out...');
+      logout();
+    }, 30 * 60 * 1000); // 30 minutes
   };
 
   // Check for auth code in URL (on callback)
@@ -130,15 +161,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Auto refresh token every 10 minutes
+  // Attach event listeners for user activity
+  useEffect(() => {
+    const events = ['mousemove', 'keydown', 'click', 'scroll'];
+    events.forEach((event) => window.addEventListener(event, resetInactivityTimer));
+
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, resetInactivityTimer));
+      if (inactivityTimeout.current) {
+        clearTimeout(inactivityTimeout.current);
+      }
+    };
+  }, []);
+
+  // Refresh token if user is active
   useEffect(() => {
     const interval = setInterval(() => {
-        
-      refreshAccessToken();
-    }, 40 * 60 * 1000); // Every 10 min, TODO: Switch to 1hr
+      const now = Date.now();
+      if (now - lastActivity < 30 * 60 * 1000) {
+        console.log('User is active. Refreshing token...');
+        refreshAccessToken();
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
 
     return () => clearInterval(interval);
-  }, []);
+  }, [lastActivity, refreshAccessToken]);
 
   return (
     <AuthContext.Provider value={{ accessToken, login, logout }}>

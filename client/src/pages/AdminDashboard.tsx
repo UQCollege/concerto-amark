@@ -133,7 +133,7 @@ export function AdminDashboard() {
     toast.current?.show({
       severity: "info",
       summary: "Info",
-      detail: "Set tasks for Day " + day,
+      detail: "Set tasks for " + day,
     });
   };
   const [chips, setChips] = useState<string[]>([]);
@@ -238,6 +238,16 @@ export function AdminDashboard() {
               >
                 Day 2
               </Button>
+              <Button
+                outlined
+                rounded
+                onClick={async () => {
+                  await updateRater({ taskAccess: 3 });
+                  updateDay(3);
+                }}
+              >
+                PELA 3
+              </Button>
 
               <Button
                 label="Matrix"
@@ -264,6 +274,7 @@ export function AdminDashboard() {
               onClick={uploadSplittedDataToS3}
               rounded
               icon="pi pi-upload"
+              disabled={true}
             />
          
             </div>
@@ -294,7 +305,7 @@ export function AdminDashboard() {
             )}
           </TabPanel>
           <TabPanel header="User List">
-            <RatersTableUI />
+           {isAdmin? <RatersTableUI /> : <></>}
           </TabPanel>
         </TabView>
       </div>

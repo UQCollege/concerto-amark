@@ -52,8 +52,7 @@ export interface TaskContentProps {
 
 export const TaskContent: React.FC<TaskContentProps> = ({ info, setTaskId }) => {
   const groups = useAppSelector((state) => state.auth.groups);
-  console.log("groups in TaskContent:", groups);
-  const isTestRater = groups.includes("Test-Rater");
+  const isTestRater = groups.length === 0;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const setTaskIdHandler = setTaskId ? setTaskId : (id:number|undefined) => {};
 

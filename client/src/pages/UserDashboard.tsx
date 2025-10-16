@@ -192,6 +192,7 @@ export function UserDashboard() {
                   key={`${name}-${currentTaskId}`}
                   name={name}
                   value={marks[name] || undefined}
+                  task_access={currentTask.trait === 'PELA3' ? "PELA" : "BE"}
                   handleChange={handleMarkChange}
                 />
                 <hr />

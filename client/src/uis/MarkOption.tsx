@@ -3,18 +3,19 @@ import { Rating } from "../apiTypes";
 import { Tooltip } from "primereact/tooltip";
 import { MarkStages, MarkTips } from "../utils/data/constants";
 
-export type SelectOptionType = "ta" | "gra" | "voc" | "coco"
-export type Mark = "" | "1" | "2" | "3" | "4" | "5"
+export type SelectOptionType = "ta" | "gra" | "voc" | "coco";
+export type Mark = "" | "1" | "2" | "3" | "4" | "5" | "6" | "7";
 
 export interface RadioInputProps {
     name: SelectOptionType;
     value: Rating;
+    task_access: "PELA" | "BE";
     handleChange: (selected: Partial<Record<SelectOptionType, Rating>>) => void;
 }
 
     
 
-const MarkOption = ({ name, value, handleChange }: RadioInputProps) => {
+const MarkOption = ({ name, value, task_access, handleChange }: RadioInputProps) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleOnChange = (e: any) => {
         const selectedVal = e.target.value;
@@ -25,8 +26,9 @@ const MarkOption = ({ name, value, handleChange }: RadioInputProps) => {
     }
     return (
         <div className="flex">
-            <div className="flex flex-wrap gap-3">
-                {MarkStages.map((num) => (
+            <div className="flex flex-wrap gap-2">
+           
+                {MarkStages[task_access].map((num) => (
                     <div key={num} className="flex align-items-center">
                         <RadioButton
                             inputId={`${name}-${num}`}
@@ -36,7 +38,8 @@ const MarkOption = ({ name, value, handleChange }: RadioInputProps) => {
                             checked={Number(value) === num}
                         />
                         <Tooltip target=".label-tooltip" />
-                        <label htmlFor={`${name}-${num}`} className="label-tooltip ml-2" data-pr-tooltip={MarkTips[name][num]} data-pr-position="mouse" >
+                       
+                        <label htmlFor={`${name}-${num}`} className="label-tooltip ml-2" data-pr-tooltip={MarkTips[task_access][name][num]} data-pr-position="mouse" >
                             {num}
                             
                         </label>
