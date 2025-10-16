@@ -46,6 +46,7 @@ class UtilAppPelaWritingseed(models.Model):
     user_login = models.CharField(max_length=150)
     timetaken = models.FloatField(db_column='timeTaken', blank=True, null=True)  # Field name made lowercase.
     data_split = models.CharField(max_length=10)
+    writing_subject = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False

@@ -45,7 +45,7 @@ class CustomUserAdmin(admin.ModelAdmin):
 
 @admin.register(WritingTask)
 class WritingTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'data_split', 'student_code', 'trait', 'started_time', 'response', 'update_by', 'update_date']  # Show columns in list view
+    list_display = ['id', 'data_split', 'student_code', 'trait', 'task_description', 'started_time', 'response', 'update_by', 'update_date']  # Show columns in list view
 
 @admin.register(AssessmentTask)
 class AssessmentTaskAdmin(admin.ModelAdmin):

@@ -72,6 +72,7 @@ class WritingTask(Audit):
         ('Writing 3', 'Writing 3'),
         ('Writing 4', 'Writing 4'),
         ('Weekly Writing', 'Weekly Writing'),
+        ('PELA3', 'PELA3'),
 
     )
     started_time = models.DateTimeField()
@@ -82,6 +83,7 @@ class WritingTask(Audit):
     words_count= models.IntegerField(null=True)
     data_split = models.CharField(max_length=10, default='train')  # raw, train, val, test
     test_id = models.IntegerField(null=True, default=54)
+    task_description = models.TextField(null=True, blank=True)
     
 
     class Meta:

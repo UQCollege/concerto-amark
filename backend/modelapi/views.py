@@ -96,6 +96,7 @@ class RaterViewSet(viewsets.ModelViewSet):
         
         if request.user.is_superuser:
             task_access = request.data.get('taskAccess')
+            print(f"Received task_access: {task_access}")
 
             if task_access:
                 # Update all raters' task_access with the provided data
@@ -168,17 +169,27 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         Example: GET /api/review-assignments/?rater_name=Rater1&id=123
         """
         rater_name = request.GET.get('rater_name')
+        print(f"Rater name from request: {rater_name}")
         task_id = request.GET.get('id', None)
 
 
         if rater_name:
-            rater = get_object_or_404(CustomUser, username=rater_name)
-            
+            try:
+                rater = get_object_or_404(CustomUser, username=rater_name)
+            except Exception as e:
+
+                return Response({"message": f"Rater '{rater_name}' not found, error: {e}", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
+
             if not rater.active:
                 return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
             
             try:
-                traits =[f"Writing {rater.task_access}", f"Writing {int(rater.task_access)+2}"]
+                traits_map={
+                    1:["Writing 1", "Writing 3"],
+                    2:["Writing 2", "Writing 4"],
+                    3:["PELA3"],
+                }
+                traits = traits_map.get(rater.task_access, ["Writing 1", "Writing 3"])
                 queryset = get_rater_tasks(rater, traits)
                 # Todo: delete the following line if not needed
                 # if not queryset.exists() and rater.usertype == "Test-Rater":
@@ -403,8 +414,7 @@ def clear_tasks_view(request):
     """
     View to clear all writing tasks.
     """
-    Student._base_manager.all().delete()
-    WritingTask._base_manager.all().delete()
+    
     AssessmentTask._base_manager.all().delete()
     return JsonResponse({"message": "Tasks cleared successfully", "Code": 200})
 
@@ -421,7 +431,7 @@ def create_writing_tasks(request):
         writingseed_records = UtilAppPelaWritingseed.objects.filter(active=True, test_id=test_id)
         # convert the writingseed records to list of dict with keys: login, user_id
         writings_students_list = list(writingseed_records.values("user_id", "user_login"))
-        writingseed_list = list(writingseed_records.values("user_id", "started_time", "trait", "response", "words_count", "created_at"))
+        writingseed_list = list(writingseed_records.values("user_id", "started_time", "trait", "response", "words_count", "created_at", "writing_subject"))
 
         # create students if not exist from writings_students_list
         for ws in writings_students_list:
@@ -443,7 +453,8 @@ def create_writing_tasks(request):
                 defaults={
                 "data_split": wrecord.get("data_split", "raw"),
                 "response": wrecord["response"],
-                "words_count": wrecord["words_count"]
+                "words_count": wrecord["words_count"],
+                "task_description": wrecord.get("writing_subject", "")
                 }
             )
                     

@@ -60,6 +60,7 @@ def upload_rated_writing_data_to_s3(request):
             "userId": entry['writing_task__student_code'],
             "trait": entry['writing_task__trait'],
             "started_time": entry['writing_task__started_time'].isoformat() if entry['writing_task__started_time'] else None,
+            "task_description": entry.get('writing_task__task_description', ""),
             "text": entry['writing_task__response'],
             "Task Achievement": entry['ta'],
             "Grammar": entry['gra'],
@@ -99,7 +100,7 @@ def upload_rated_writing_data_to_s3(request):
         s3 = session.client('s3')
     else:
         s3 = boto3.client('s3')
-    bucket_name = os.environ.get("S3BUCKET_NAME", "pela-training-data")
+    bucket_name = os.environ.get("S3BUCKET_NAME", "pela-ai-finetuning")
 
     for split, data in jsonl_data.items():
         s3.put_object(Bucket=bucket_name, Key=s3_keys[split], Body=data)
