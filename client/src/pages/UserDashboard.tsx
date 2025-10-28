@@ -27,10 +27,10 @@ import { FloatLabel } from "primereact/floatlabel";
 
 
 const markOptions = [
-  { name: "ta" as const, label: "TA Mark" },
-  { name: "gra" as const, label: "GR&A Mark:" },
-  { name: "voc" as const, label: "Voc Mark:" },
-  { name: "coco" as const, label: "Co&co Mark:" },
+  { name: "ta" as const, label: "Task Achievement (Task Fulfillment)" },
+  { name: "gra" as const, label: "Grammar" },
+  { name: "voc" as const, label: "Vocabulary (Lexis)" },
+  { name: "coco" as const, label: "Coherence and Cohesion (Organization)" },
 ];
 
 export function UserDashboard() {
