@@ -2,7 +2,7 @@ import { Outlet } from "react-router";
 import Sidebar from "../uis/Sidebar";
 import { SidebarItem } from "../uis/Sidebar";
 import {
-  Flag,
+
   Home,
   Layers,
   LayoutDashboard,
@@ -12,6 +12,7 @@ import {
 import { PrimeReactProvider } from "primereact/api";
 import { useAuth } from "../utils/useAuth";
 import { useAppSelector } from "../store/hooks";
+import { EnvSwitcher } from "../uis/EnvSwitcher";
 
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
@@ -32,6 +33,8 @@ const Root = () => {
     <PrimeReactProvider>
       <div className="flex relative m-5">
         <Sidebar>
+           <EnvSwitcher />
+          <hr className="my-3" />
           <SidebarItem icon={<Home size={20} />} text="Home" alert link="/" />
           {isAdmin && (
             <SidebarItem
@@ -41,6 +44,7 @@ const Root = () => {
               link="/admin"
             />
           )}
+            
           <SidebarItem
             icon={<BookOpenCheck size={20} />}
             text={`${name}'s Writing Assessments`}
@@ -53,7 +57,7 @@ const Root = () => {
             link={`/classes/${name}`} //
           />
 
-          <SidebarItem icon={<Flag size={20} />} text="" link="" />
+         
           <hr className="my-3" />
           {/* <SidebarItem icon={<LogOut size={20} />} text="Log Out" link={import.meta.env.VITE_LOGOUT_URL} /> */}
           <LogOut
