@@ -24,6 +24,9 @@
 2. Docker is running on your local
 
 3. Run `cd backend && docker-compose --file docker-compose-prod.yaml build amark-api`
+4. `export TAG=$(git rev-parse --short HEAD)`
+5. `docker tag backend-amark-api:latest <XXXXX>.dkr.ecr.<region>.amazonaws.com/amark-api:$TAG`
+6. `docker push <XXXXX>.dkr.ecr.<region>.amazonaws.com/amark-api:$TAG`
 
 ### Deploy Steps:
 
