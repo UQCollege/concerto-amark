@@ -10,31 +10,33 @@ import { useAppSelector, useAppDispatch } from "./store/hooks";
 import { setToken } from "./features/auth/authSlice";
 import ClassDashboard from "./pages/ClassDashboard";
 import { useEffect } from "react";
+import { useAuth } from "./utils/useAuth";
+
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
 function App() {
+  const {login} = useAuth();
   const dispatch = useAppDispatch();
   useEffect(() => {
-
-
     if (isAuthDisabled) {
       const devToken = "FAKE_DEV_TOKEN";
       sessionStorage.setItem("access_token", devToken);
       dispatch(setToken(devToken));
     } else {
+     
+const params = new URLSearchParams(window.location.search);
+    const startLogin = params.get('startLogin');
 
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get("access_token") || sessionStorage.getItem("access_token");
-
-      if (token) {
-        dispatch(setToken(token));
-        sessionStorage.setItem("access_token", token);
-        window.history.replaceState({}, document.title, "/");
-      }
-
-
+    if (startLogin === 'true') {
+      login();
+      window.history.replaceState(null, '', window.location.pathname);
     }
-  }, [dispatch]);
-  const isAdmin = useAppSelector((state) => state.auth.groups).includes("Admin")
+    dispatch(setToken(sessionStorage.getItem("access_token")));
+ 
+    }
+  }, [dispatch,login]);
+  const groups = useAppSelector((state) => state.auth.groups);
+  const isAdmin = groups.includes("Admin") || groups.includes("Admin-Rater");
+
   const router = createBrowserRouter([
     {
       path: "/",
@@ -58,7 +60,9 @@ function App() {
   ]);
   return (
     <>
-      <RouterProvider router={router} />
+
+        <RouterProvider router={router} />
+  
     </>
   );
 }

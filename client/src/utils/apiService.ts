@@ -1,55 +1,54 @@
-import axios from "axios";
+import { getStore } from "./storeAccessor";
+import { getAccessToken } from "../utils/auth";
+import { defaultTestId } from "../uis/ImportData";
 import { RaterList } from "../features/data/ratersUpdateSlice";
 import { RatingAspects } from "../features/data/assessDataSlice";
-import { getAccessToken } from "./auth";
+import { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import { api } from "./api";
 
-const API_BASE_URL = import.meta.env.VITE_AUTH_DISABLED? import.meta.env.VITE_API_URL_LOCAL : import.meta.env.VITE_API_URL;
+// Helper to get the current axios instance from Redux
+export const getApi = () => getStore().getState().api.apiService;
 
-const apiService = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-apiService.interceptors.request.use(
-  (config) => {
-    const token = getAccessToken();
+// Optional helper to attach auth header (if needed)
+export const attachAuthHeaders = (api: AxiosInstance) => {
+  const token = getAccessToken();
+  api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     config.headers["X-Custom-Origin"] = import.meta.env.VITE_CUSTOM_ORIGIN;
-
     return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-apiService.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      const detail = error.response.data?.detail || "Unauthorized access";
-      alert(detail);
-      alert("Please logout and login again.");
-      sessionStorage.removeItem("access_token");
+  });
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 500) {
+        const detail = error.response.data || "Server Error";
+        alert(detail);
+        sessionStorage.removeItem("access_token");
+      }
+      return Promise.reject(error);
     }
-
-    return Promise.reject(error);
-  }
-);
-
+  );
+  return api;
+};
+// const apiService = attachAuthHeaders(getApi());
 // Get Method
 export const getClassWritings = async (name: string) => {
   try {
+    const apiService = api();
     const response = await apiService.get(`/tasks/?teacher_name=${name}`);
+    if (response.data.Code === 404) {
+      alert(`No Class Writings for ${name}`);
+    }
     return response.data;
   } catch (error) {
-    console.error(error);
+    alert(`Error fetching data:${error} `);
   }
 };
 export const verify = async () => {
   try {
+    const apiService = api();
     const response = await apiService.get("/verify");
     return response.data;
   } catch (error) {
@@ -60,6 +59,7 @@ export const getInitialAssessmentData = async (id?: number) => {
   try {
     const endpoint =
       id !== undefined ? `/allocated-tasks/?id=${id}` : "/allocated-tasks";
+      const apiService = api();
     const response = await apiService.get(endpoint);
     return response.data;
   } catch (error) {
@@ -69,6 +69,7 @@ export const getInitialAssessmentData = async (id?: number) => {
 
 export const getAssessmentData = async () => {
   try {
+    const apiService = api();
     const allocating = await apiService.get("/assign-tasks");
     if (allocating.data.Code === 500) {
       alert(`${allocating.data.message}, refresh the page`);
@@ -83,10 +84,11 @@ export const getAssessmentData = async () => {
 
 export const getUserTasks = async (name: string) => {
   try {
+    const apiService = api();
     const response = await apiService.get(
       `/allocated-tasks/?rater_name=${name}`
     );
-    console.log("rater: ", name);
+
     return response.data;
   } catch (error) {
     console.error("Error fetching data: ", error);
@@ -95,6 +97,7 @@ export const getUserTasks = async (name: string) => {
 
 export const getRatersFromDB = async () => {
   try {
+    const apiService = api();
     const response = await apiService.get("/raters/");
 
     const result = response.data.map(
@@ -103,11 +106,13 @@ export const getRatersFromDB = async () => {
         rater_digital_id: string;
         active: boolean;
         tasks_total: number;
+        user_type: string;
       }) => ({
         raterName: item.username,
         raterDigitalId: item.rater_digital_id,
         active: item.active,
         totalTasks: item.tasks_total,
+        userType: item.user_type,
       })
     );
 
@@ -118,23 +123,37 @@ export const getRatersFromDB = async () => {
 };
 
 // Post Method
-export const uploadZipFile = async (file: File | undefined) => {
-  if (!file) return;
-  const formData = new FormData();
-  formData.append("file", file);
-  console.log("file: ", formData);
 
-  const response = await apiService.post("/upload-zip/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  if (response.status === 200) {
-    console.log("upload done!");
-  } else {
-    console.log("upload failed");
+// Create Students records
+
+// Migrate the Writings
+
+export const migrateWritings = async (
+  testId = defaultTestId
+): Promise<string> => {
+  console.log("Migrating writings...");
+  try {
+    const apiService = api();
+    const response = await apiService.post("writing-tasks/", { testId });
+    return response.data.message;
+  } catch (error) {
+    console.error("Error migratiing writings:", error);
+    return `Error migrating writings: ${error}`;
   }
-  return response.data;
+};
+
+// upload splitted writing data to S3
+export const uploadSplittedDataToS3 = async (): Promise<string> => {
+  console.log("Uploading splitted writing data to S3...");
+  try {
+    const apiService = api();
+    const response = await apiService.post("upload-s3/");
+    alert(response.data.message);
+    return response.data.message;
+  } catch (error) {
+    console.error("Error uploading splitted writing data to S3:", error);
+    return `Error uploading splitted writing data to S3: ${error}`;
+  }
 };
 
 export const createTaskInTable = async (data: {
@@ -143,6 +162,7 @@ export const createTaskInTable = async (data: {
   rater_name: string;
 }) => {
   try {
+    const apiService = api();
     const response = await apiService.post("/allocated-tasks/", data);
     return response.data;
   } catch (error) {
@@ -160,6 +180,7 @@ export const writeRatersToDatabase = async (
         rater_digital_id: rater.raterDigitalId,
         first_name: rater.firstName || "",
         last_name: rater.lastName || "",
+        user_type: rater.userType || "Rater", // Default to "Rater" if not provided
         active: rater.active,
         class_name: rater.className,
         password: "test123", // Default password
@@ -167,6 +188,7 @@ export const writeRatersToDatabase = async (
 
       ratersData.push(raterData);
     }
+    const apiService = api();
     const response = await apiService.post("/raters/", { raters: ratersData });
 
     if (response.data.Code === 409) {
@@ -180,36 +202,19 @@ export const writeRatersToDatabase = async (
 
 export const assignToAll = async (data: {
   studentCodes: string[];
-  trait: string;
+  writingDay: string;
 }): Promise<string> => {
   try {
+    const apiService = api();
     const response = await apiService.post("/assign-all/", data);
-    return response.data.message
+    return response.data.message;
   } catch (error) {
     console.error(error);
-    const errorMsg = `Error ${error}`
-    return errorMsg
+    const errorMsg = `Error ${error}`;
+    return errorMsg;
   }
 };
 
-export const uploadData = async <T>(
-  url: string,
-  payloadKey: string,
-  data: T[]
-): Promise<string> => {
-  try {
-    const response = await apiService.post(url, {
-      [payloadKey]: data,
-    });
-
-    return response.data.message || "Upload successful";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    const msg =
-      error.response?.data?.message || error.message || "Upload failed";
-    throw new Error(msg);
-  }
-};
 // Put Method
 
 export const updateTasksTable = async (task: {
@@ -220,6 +225,7 @@ export const updateTasksTable = async (task: {
     const { idList, raterName } = task;
     const data = [];
     data.push({ idList, raterName });
+    const apiService = api();
     await apiService.put("/allocated-tasks/", data);
   } catch (error) {
     console.error(error);
@@ -235,6 +241,7 @@ export const updateRatingInTable = async (
   }[]
 ) => {
   try {
+    const apiService = api();
     await apiService.put("/allocated-tasks/", data);
   } catch (error) {
     console.error(error);
@@ -243,6 +250,7 @@ export const updateRatingInTable = async (
 
 export const updateRater = async (data: { taskAccess: number }) => {
   try {
+    const apiService = api();
     await apiService.put("/raters/", data);
   } catch (error) {
     console.log(error);
@@ -252,6 +260,7 @@ export const updateRater = async (data: { taskAccess: number }) => {
 // Delete Method
 export const deleteTaskInTable = async (id: number) => {
   try {
+    const apiService = api();
     await apiService.delete(`/allocated-tasks/${id}/`);
   } catch (error) {
     console.error("Error deleting task: ", error);
@@ -260,6 +269,7 @@ export const deleteTaskInTable = async (id: number) => {
 
 export const deleteRaterInTable = async (rater_digital_id: string) => {
   try {
+    const apiService = api();
     await apiService.delete(`/raters/`, { data: { rater_digital_id } });
   } catch (error) {
     console.error("Error deleting task: ", error);
@@ -268,8 +278,9 @@ export const deleteRaterInTable = async (rater_digital_id: string) => {
 
 export const deleteAllTasks = async () => {
   try {
+    const apiService = api();
     await apiService.get("/clear-tasks");
   } catch (error) {
-    console.error("Error happens deleteing all task: ", error);
+    alert(`Error happens deleteing all task: ${error}`);
   }
 };

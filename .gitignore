@@ -45,4 +45,5 @@ config.sh
 deploy/ECR.sh
 ansible/group_vars/all.yml
 ansible/export.sh
-ansible/export.sh
+cypress/package-lock.json
+

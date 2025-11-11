@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { jwtDecode } from "jwt-decode";
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
-type UserType = "Admin" | "Rater" | "Admin-Rater" | "Teacher" | null
+type UserType = "Admin" | "Rater" | "Admin-Rater" | "Teacher" | "Test-Rater"|null
 
 interface User {
     token: string | null;
@@ -33,6 +33,7 @@ export const authSlice = createSlice({
                         "username"?: string;
                         "cognito:groups"?: UserType[];
                     }
+                    if (action.payload === null) return
                     const decodedToken: DecodedToken = jwtDecode<DecodedToken>(action.payload);
                     state.user = decodedToken["username"]
                         ? decodedToken["username"]

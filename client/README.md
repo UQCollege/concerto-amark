@@ -21,3 +21,4 @@ set `VITE_AUTH_DISABLED=true` -> `.env`
 - Move into the backend directory:`cd backend`
 - Copy the environment file and update its content as needed: `cp .env.example .env`
 - Build and start the services: `docker compose up --build`
+**Note** run `sudo chown -R $(id -u):$(id -g) ./staticfiles` after docker build container

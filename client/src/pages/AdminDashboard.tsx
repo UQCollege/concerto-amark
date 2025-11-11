@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { fetchRaters, createRaters } from "../features/data/ratersUpdateSlice";
-
 import Loading from "../uis/Loading";
 import { Button } from "primereact/button";
 import {
@@ -17,6 +16,7 @@ import {
   getAssessmentData,
   getInitialAssessmentData,
   updateRater,
+  uploadSplittedDataToS3,
   verify,
 } from "../utils/apiService";
 import { sampleApiData } from "../utils/data/sampledata";
@@ -29,6 +29,7 @@ import DialogUi from "../uis/DialogUi";
 import { ImportData } from "../uis/ImportData";
 import { SelectButton, SelectButtonChangeEvent } from "primereact/selectbutton";
 
+
 interface JustifyOption {
   label: string;
   value: string;
@@ -38,13 +39,13 @@ export function AdminDashboard() {
   const [isProcess, setIsProcess] = useState(false);
 
   const options: JustifyOption[] = [
-    { label: "W 1", value: "Writing 1" },
-    { label: "W 2", value: "Writing 2" },
+    { label: "DAY 1", value: "day1" },
+    { label: "DAY 2", value: "day2" },
   ];
   const buttonTemplate = (option: JustifyOption) => {
     return <span>{option.label}</span>;
   };
-  const [traitValue, setValue] = useState(options[0].value);
+  const [dayValue, setDayValue] = useState(options[0].value);
   const dispatch = useAppDispatch();
   const taskData = useAppSelector((state) => state.taskAllocation);
 
@@ -65,7 +66,7 @@ export function AdminDashboard() {
 
     getInitialData();
     dispatch(fetchRaters());
-  }, []);
+  }, [dispatch]);
 
   const handleFetchResult = async () => {
     setIsProcess(true);
@@ -95,7 +96,7 @@ export function AdminDashboard() {
       const records = rows
         .slice(headerIndex, headerIndex + maxRows)
         .map((row) => {
-          const [name, rater_digital_id, first_name, last_name, active, class_name] = row
+          const [name, rater_digital_id, first_name, last_name, user_type, active, class_name] = row
             .split(",")
             .map((col) => col.trim());
           return {
@@ -103,7 +104,8 @@ export function AdminDashboard() {
             raterDigitalId: rater_digital_id,
             firstName: first_name || "",
             lastName: last_name || "",
-            active: active=="true",
+            userType: user_type || "Rater",
+            active: active.toLowerCase()=="true",
             className: Number(class_name) || undefined,
           };
         });
@@ -132,7 +134,7 @@ export function AdminDashboard() {
     toast.current?.show({
       severity: "info",
       summary: "Info",
-      detail: "Set tasks for Day " + day,
+      detail: "Set tasks for " + day,
     });
   };
   const [chips, setChips] = useState<string[]>([]);
@@ -161,19 +163,19 @@ export function AdminDashboard() {
       <div className="w-[90vw] h-[80vh] p-6 rounded-lg shadow-lg flex flex-col gap-4">
         {isAdmin && (
           <div className="flex justify-between">
+           
             <div className="flex items-center  gap-3">
-              <div className="flex flex-row items-center gap-2">
-               
-               
-                <ImportData />
-              </div>
+
+                    <ImportData />
+    
               <div className="pi pi-arrow-right"></div>
 
               <label
                 htmlFor="raterlist"
-                className="cursor-pointer bg-blue-600 text-white px-2 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+                className="cursor-pointer bg-blue-400 text-white px-2 py-2 rounded-lg shadow hover:bg-blue-500 transition"
               >
-                Upload Rater-List
+                 Raters 
+                <i className="pi pi-upload"></i>
                 <input
                   id="raterlist"
                   type="file"
@@ -186,8 +188,8 @@ export function AdminDashboard() {
               <div className="flex items-center gap-2">
                 <ChipInput chips={chips} setChips={setChips} />
                 <SelectButton
-                  value={traitValue}
-                  onChange={(e: SelectButtonChangeEvent) => setValue(e.value)}
+                  value={dayValue}
+                  onChange={(e: SelectButtonChangeEvent) => setDayValue(e.value)}
                   options={options}
                   itemTemplate={buttonTemplate}
                   optionLabel="label"
@@ -196,7 +198,7 @@ export function AdminDashboard() {
                   onClick={async () => {
                     const result = await assignToAll({
                       studentCodes: chips,
-                      trait: traitValue,
+                      writingDay: dayValue,
                     });
                     alert(result)
                   }}
@@ -238,6 +240,16 @@ export function AdminDashboard() {
               >
                 Day 2
               </Button>
+              <Button
+                outlined
+                rounded
+                onClick={async () => {
+                  await updateRater({ taskAccess: 3 });
+                  updateDay(3);
+                }}
+              >
+                PELA 3
+              </Button>
 
               <Button
                 label="Matrix"
@@ -255,6 +267,18 @@ export function AdminDashboard() {
                 aria-setsize={10}
                 onClick={verifyHandler}
               />
+
+              
+            <Button
+              tooltip="upload result dataset"
+              severity="secondary"
+              raised
+              onClick={uploadSplittedDataToS3}
+              rounded
+              icon="pi pi-upload"
+              disabled={true}
+            />
+         
             </div>
           </div>
         )}
@@ -283,7 +307,7 @@ export function AdminDashboard() {
             )}
           </TabPanel>
           <TabPanel header="User List">
-            <RatersTableUI />
+           {isAdmin? <RatersTableUI /> : <></>}
           </TabPanel>
         </TabView>
       </div>
@@ -294,7 +318,9 @@ export function AdminDashboard() {
         onHide={() => setShowDialog(false)}
         onConfirm={() => {
           deleteAllTasks();
-          setShowDialog(false);
+            setShowDialog(false);
+            dispatch(setTasks([]));
+       
         }}
       />
     </div>

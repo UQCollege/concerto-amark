@@ -1,7 +1,10 @@
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+
+import re
+from collections import defaultdict
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import viewsets, status
@@ -10,26 +13,27 @@ from rest_framework.decorators import api_view, permission_classes
 
 from .serializers import RaterSerializer, AssessmentTaskSerializer, WritingTaskSerializer
 from .models import CustomUser, WritingTask, AssessmentTask, Student, BEClass
-from .utils import parse_zip_and_extract_texts, superuser_required
+from .readonly_models import  UtilAppPelaWritingseed # UtilAppPelaUqcUsers
+from .utils import copy_to_test_rater_view, parse_zip_and_extract_texts, superuser_required, get_rater_tasks
 
 class RaterViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     permission_classes = [IsAuthenticated]
-    queryset = CustomUser.objects.filter(usertype='Rater').order_by('username')
+    queryset = CustomUser.objects.filter(usertype__in=['Rater', 'Test-Rater']).order_by('username')
     serializer_class = RaterSerializer
 
     def list (self, request):
         if not request.user.is_superuser:
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
 
-        raters=CustomUser.objects.filter(usertype='Rater').order_by('username')
+        raters=CustomUser.objects.filter(usertype__in=['Rater', 'Test-Rater']).order_by('username')
         data = []
         if raters.exists():
             for rater in raters:
                 tasks_total = AssessmentTask.objects.filter(rater = rater, active=True).count()
-                data.append({"username": rater.username, "rater_digital_id": rater.rater_digital_id, "active": rater.active, "tasks_total": tasks_total})
+                data.append({"username": rater.username, "rater_digital_id": rater.rater_digital_id, "active": rater.active, "tasks_total": tasks_total, "user_type":rater.usertype})
  
         return Response(data)     
             
@@ -38,7 +42,7 @@ class RaterViewSet(viewsets.ModelViewSet):
         if not request.user.is_superuser:
             return Response({"message": "No permission", "Code": 403}) # Ensure permissions are checked
         raters = request.data.get('raters', [])  # raters are object array with [{'name':'rater1', 'rater_digital_id':'rater1', 'password':'test123'}....]
-        existed_raters = CustomUser.objects.filter(usertype='Rater').in_bulk(field_name='username')
+        existed_raters = CustomUser.objects.filter(usertype__in=['Rater', 'Test-Rater']).in_bulk(field_name='username')
 
         for rater in raters:
             rater_name = rater['name']
@@ -53,7 +57,7 @@ class RaterViewSet(viewsets.ModelViewSet):
                     first_name=rater['first_name'],
                     last_name=rater['last_name'],
                     rater_digital_id=rater['rater_digital_id'],
-                    usertype='Rater',
+                    usertype=rater.get('user_type', 'Rater'),
                     active=rater.get('active', True),
                     classes=classes,
                     task_access=rater.get('task_access', 1),
@@ -62,7 +66,7 @@ class RaterViewSet(viewsets.ModelViewSet):
                 # Check if the existing rater is inactive and reactivate it
                 existing_rater = existed_raters[rater_name]
                 if not existing_rater.active:
-                    existing_rater.active = True
+                    existing_rater.active = rater.get('active', True)
                     existing_rater.task_access = rater.get('task_access', 1)
                     existing_rater.rater_digital_id = rater['rater_digital_id']
                     existing_rater.classes=classes
@@ -92,6 +96,7 @@ class RaterViewSet(viewsets.ModelViewSet):
         
         if request.user.is_superuser:
             task_access = request.data.get('taskAccess')
+            print(f"Received task_access: {task_access}")
 
             if task_access:
                 # Update all raters' task_access with the provided data
@@ -126,25 +131,27 @@ class WritingTaskViewSet(viewsets.ModelViewSet):
 
         teacher_name = request.GET.get('teacher_name', None)
         context = []
+        try:
+            if teacher_name:
+                teacher = get_object_or_404(CustomUser, username=teacher_name, classes__gt=0)
+                query_class = teacher.classes
+                students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
+    
+                for student in students:
+                    writings = student.writingtask_set.filter(trait="Weekly Writing").order_by('started_time')    
+                    student_writings = {
+                        "student": student.student_code,
+                        "first_name": student.first_name,
+                        "last_name": student.last_name,
+                        "writings": WritingTaskSerializer(writings, many=True).data
+                    }
+                    context.append(student_writings)
+            else:
+                context = WritingTaskSerializer(self.queryset, many=True).data
 
-        if teacher_name:
-            teacher = get_object_or_404(CustomUser, username=teacher_name, classes__gt=0)
-            query_class = teacher.classes
-            students = Student.objects.filter(classes=query_class).prefetch_related('writingtask_set')
-   
-            for student in students:
-                writings = student.writingtask_set.filter(trait="Weekly Writing").order_by('started_time')    
-                student_writings = {
-                    "student": student.student_code,
-                    "first_name": student.first_name,
-                    "last_name": student.last_name,
-                    "writings": WritingTaskSerializer(writings, many=True).data
-                }
-                context.append(student_writings)
-        else:
-            context = WritingTaskSerializer(self.queryset, many=True).data
-
-        return Response(context)
+            return Response(context)
+        except Exception as e:
+            return Response({"message": f"Error fetching class writings {e}", "Code":404})
                 
 
 
@@ -162,25 +169,37 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         Example: GET /api/review-assignments/?rater_name=Rater1&id=123
         """
         rater_name = request.GET.get('rater_name')
+        print(f"Rater name from request: {rater_name}")
         task_id = request.GET.get('id', None)
 
 
         if rater_name:
-            rater = get_object_or_404(CustomUser, username=rater_name)
-            
-            if rater.usertype != "Rater" or not rater.active:
+            try:
+                rater = get_object_or_404(CustomUser, username=rater_name)
+            except Exception as e:
+
+                return Response({"message": f"Rater '{rater_name}' not found, error: {e}", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
+
+            if not rater.active:
                 return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
             
             try:
-                queryset = AssessmentTask.objects.filter(
-                    rater=rater, 
-                    writing_task__trait__iexact=f"Writing {rater.task_access}",
-                    active=True 
-                )
+                traits_map={
+                    1:["Writing 1", "Writing 3"],
+                    2:["Writing 2", "Writing 4"],
+                    3:["PELA3"],
+                }
+                traits = traits_map.get(rater.task_access, ["Writing 1", "Writing 3"])
+                queryset = get_rater_tasks(rater, traits)
+                # Todo: delete the following line if not needed
+                # if not queryset.exists() and rater.usertype == "Test-Rater":
+                #     copy_to_test_rater_view(rater)
+                #     queryset = get_rater_tasks(rater, traits)
+
             except Exception as e:
                 print(f"Error fetching tasks for rater {rater_name}: {e}")
-                return Response({"message": "No tasks found for this rater", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
-        elif request.user.is_superuser:
+                return Response({"message": f"No tasks found for this rater, error: {e}", "Code": 404}, status=status.HTTP_404_NOT_FOUND)
+        elif request.user.is_superuser or request.user.usertype == "Admin-Rater":
             queryset = AssessmentTask.objects.filter(
                 active=True, 
                 id=task_id
@@ -195,33 +214,47 @@ class AssessmentTaskViewSet(viewsets.ModelViewSet):
         """
         Create a new review assignment.
         """
-        student_code = request.data.get('student_code')
+        student_codes = request.data.get('student_code').split(",")
+        
         trait = request.data.get('trait')
         rater_name = request.data.get('rater_name')
 
-        if student_code and trait and rater_name:
-            try:
-                writing_task = get_object_or_404(WritingTask, trait=trait, student_code=student_code)
-                rater = get_object_or_404(CustomUser, username=rater_name)
+        if not student_codes or not trait or not rater_name:
+            return Response({"message": "Missing required fields: student_code, trait, or rater_name", "Code": 400}, status=status.HTTP_400_BAD_REQUEST)
+        created_tasks = []
+        errors = []
+        for student_code in student_codes:
+            student_code = student_code.strip()
+        
+            if student_code and trait and rater_name:
+                try:
+                    writing_task = get_object_or_404(WritingTask, trait=trait, student_code=student_code)
+                    rater = get_object_or_404(CustomUser, username=rater_name)
 
-                # Check if the assignment already exists
-                AssessmentTask.objects.create(
-                    writing_task=writing_task,
-                    rater=rater,
-                    completed=False,
-                    ta=None,
-                    gra=None,
-                    voc=None,
-                    coco=None,
-                    comments=None,
-                    update_by=request.user)
-                serializer = self.get_serializer(writing_task)
-                print(f"successfully create the Writing task {writing_task.id} assigned to rater {rater.username}")
-                return Response(serializer.data, status=201)
-            except Exception as e:
-                print(f"Error creating review assignment: {e}")
-                return Response({"message": "Error creating review assignment", "Code": 500})        
-        return Response({"message": "Invalid data", "Code": 400})
+                    # Use get_or_create to prevent creating repeated tasks
+                    assessment_task, created = AssessmentTask.objects.get_or_create(
+                        writing_task=writing_task,
+                        rater=rater,
+                        active=True,
+                        defaults={
+                            'completed': False,
+                            'ta': None,
+                            'gra': None,
+                            'voc': None,
+                            'coco': None,
+                            'comments': None,
+                            'update_by': request.user
+                        }
+                    )
+                 
+                    serializer = self.get_serializer(assessment_task)
+                    created_tasks.append(serializer.data)
+                except Exception as e:
+                    errors.append({"student_code": student_code, "error": str(e)})
+        if created_tasks:
+            return Response({"created tasks": created_tasks, "errors": errors, "Code": 201 if not errors else 207})
+        else:
+            return Response({"message": "Invalid data", "errors": errors, "Code": 400})
 
 
     def update(self, request):
@@ -279,7 +312,6 @@ def assign_raters_view(request):
     except Exception as e:
         return JsonResponse({"message": f"Error allocating tasks: {str(e)}", "Code": 500})
 
-from collections import defaultdict
 
 @permission_classes([IsAdminUser])
 def verify_view(request):
@@ -294,7 +326,8 @@ def verify_view(request):
     for student in student_list:
         # All assessment tasks for this student's writings
         assessment_tasks = AssessmentTask.objects.filter(
-            writing_task__student_code=student
+            writing_task__student_code=student,
+            active=True
         ).select_related('rater', 'writing_task')
 
         # Track unique raters
@@ -337,30 +370,34 @@ def assign_to_all(request):
     """
     View to assign certain tasks to all raters.
     """
-    
+    created_tasks=0
     if request.user.is_superuser == False:
         return JsonResponse({"message": "No permission", "Code":403})
     student_codes = request.data.get("studentCodes", [])
-    writing_trait = request.data.get("trait", None)
+    writing_day = request.data.get("writingDay", None)
+    writing_trait_dict={
+        "day1":["Writing 1", "Writing 3"],
+        "day2":["Writing 2", "Writing 4"],
+    }
 
-    if not writing_trait:
+    if not writing_day:
         return JsonResponse({"message": "No Writing Day selected", "Code": 400}) 
  
     if not student_codes:
         return JsonResponse({"message": "No student names provided", "Code": 400})
-    tasks = WritingTask.objects.filter(student_code__in=student_codes, trait=writing_trait)
+    writings = WritingTask.objects.filter(student_code__in=student_codes, trait__in=writing_trait_dict[writing_day])
 
 
-    for task in tasks:
-        task.assign_all = True
-        task.save()
+    for writing in writings:
+        writing.assign_all = True
+        writing.save()
 
         raters = CustomUser.objects.filter(usertype="Rater", active=True)  # Fetch all available raters
         for rater in raters:
             # Check if the assignment already exists
-            if not AssessmentTask.objects.filter(rater=rater, writing_task=task).exists():
+            if not AssessmentTask.objects.filter(rater=rater, writing_task=writing).exists():
                 AssessmentTask.objects.create(
-                    writing_task=task,
+                    writing_task=writing,
                     rater=rater,
                     ta=None,
                     gra=None,
@@ -369,107 +406,67 @@ def assign_to_all(request):
                     completed=False,
                     comments=None,
                 )
-
-
-    return JsonResponse({"message": "Tasks assigned to all raters successfully", "Code": 200})
+                created_tasks += 1
+    return JsonResponse({"message": f"Tasks assigned to all raters successfully, created {created_tasks} extra tasks", "Code": 200})
             
 @permission_classes([IsAdminUser]) 
 def clear_tasks_view(request):
     """
     View to clear all writing tasks.
     """
+    
     AssessmentTask._base_manager.all().delete()
     return JsonResponse({"message": "Tasks cleared successfully", "Code": 200})
 
 
 @api_view(["POST"])
-def create_students(request):
-    print(f"User is superuser: {request.user.is_superuser}") 
+def create_writing_tasks(request):
+     
     if not request.user.is_superuser:
         return Response({"message": "No permission", "Code": 403}, status=status.HTTP_403_FORBIDDEN)
     
-    students = request.data.get("students", [])
     try:
-        existed_students = Student.objects.in_bulk(field_name='student_code')
-        for s in students:
-            student_code = str(s.get("student_code"))
+        test_id = request.data.get("testId", 54)  # Default to 54 if not provided
+        # fetch all records from legacy UtilAppPelaWritingseed table
+        writingseed_records = UtilAppPelaWritingseed.objects.filter(active=True, test_id=test_id)
+        # convert the writingseed records to list of dict with keys: login, user_id
+        writings_students_list = list(writingseed_records.values("user_id", "user_login"))
+        writingseed_list = list(writingseed_records.values("user_id", "started_time", "trait", "response", "words_count", "created_at", "writing_subject"))
 
-            be_class = None
-            if s.get("class_name"):
-    
-                be_class, _ = BEClass.objects.get_or_create(class_name=s["class_name"])
+        # create students if not exist from writings_students_list
+        for ws in writings_students_list:
+            create, _ = Student.objects.get_or_create(
+                student_code=ws["user_id"],
+                defaults={
+                    "student_digital_id": ws["user_login"],
+                }
+            )
+
+        for wrecord in writingseed_list:
+
+            writing_task, created=    WritingTask.objects.get_or_create(
+                student_code=Student.objects.get(student_code=wrecord["user_id"]),
+                started_time = wrecord["created_at"], 
+                # Try parsing DD/MM/YYYY HH:MM
+                # started_time = datetime.strptime(wrecord["created_at"], "%d/%m/%Y %H:%M")
+                trait = wrecord["trait"],
+                defaults={
+                "data_split": wrecord.get("data_split", "raw"),
+                "response": wrecord["response"],
+                "words_count": wrecord["words_count"],
+                "task_description": wrecord.get("writing_subject", "")
+                }
+            )
+                    
+
+        # uqcusers_list = 
             
-            existed_student = existed_students.get(student_code)
-            if existed_student:
-                existed_student.classes = be_class
-                existed_student.save()
-            else:
-                Student.objects.create(
-                    student_code=student_code,
-                    student_digital_id = s["student_digital_id"],
-                    last_name=s["last_name"],
-                    first_name=s["first_name"],
-                    classes= be_class,
-                )
-            
-        return Response({"message": "Students created successfully", "Code": 200})
+        return Response({"message": "Writings created successfully", "Code": 200})
     except Exception as e:
         return Response({"message": f"Error creating students: {str(e)}", "Code": 500})
 
-@api_view(["POST"])
-def create_writing_tasks(request):
-    
-    from datetime import datetime
-    tasks = request.data.get("tasks", [])
-    try:
-        # prefetch all students
-        existed_students = Student.objects.in_bulk(field_name='student_code')
-    
-        writing_tasks_objs = []
 
-        for t in tasks: 
-            student = existed_students.get(str(t["student_code"])) 
 
-            if not student:
-                continue
-            
-            try:
-                # Try parsing DD/MM/YYYY HH:MM
-                started_time = datetime.strptime(t["started_time"], "%d/%m/%Y %H:%M")
-            except ValueError:
-                try:
-                    # Try parsing ISO format fallback (already valid input)
-                    started_time = datetime.fromisoformat(t["started_time"])
-                except ValueError:
-                    return Response({
-                        "message": f"Invalid date format: {t['started_time']}",
-                        "Code": 400
-                    })
-
-            writing_tasks_objs.append(WritingTask(
-                student_code=student,
-                trait=t["trait"],
-                started_time=started_time,
-                response=t["response"],
-                words_count=int(t["words_count"]) if t.get("words_count") else 0,
-            ))
-        existing_keys = set(
-            WritingTask.objects.filter(
-                student_code__in=[w.student_code for w in writing_tasks_objs],
-                trait__in=[w.trait for w in writing_tasks_objs],
-                started_time__in=[w.started_time for w in writing_tasks_objs],
-                ).values_list("student_code_id", "started_time", "trait")
-            )
-        unique_objs = [
-            w for w in writing_tasks_objs
-            if (w.student_code.student_code, w.started_time, w.trait) not in existing_keys
-            ]
-            # Bulk create writing tasks
-        with transaction.atomic():
-            WritingTask.objects.bulk_create(unique_objs, batch_size=400) # Adjust batch size
-        return Response({"message": f"{len(unique_objs)} Writing tasks created successfully", "Code": 200})
-    except Exception as e:
-        return Response({"message": f"Error creating writing tasks: {str(e)}", "Code": 500})
 
 @api_view(["POST"])
 @superuser_required
@@ -477,34 +474,61 @@ def handle_upload_file(request):
     file = request.FILES.get("file")
     if not file:
         return JsonResponse({"message": "No file", "Code": 400})
-
+    
+    students_not_found=[]
     try:
-        parsed_tasks, error = parse_zip_and_extract_texts(file, settings.BASE_DIR)
+        parsed_tasks, non_parseable_files, error = parse_zip_and_extract_texts(file, settings.BASE_DIR)
         if error:
             return JsonResponse({"message": error, "Code": 400})
 
         writing_task_objs = []
+  
         for task in parsed_tasks:
-            # Get or create BEClass
-            class_obj, _ = BEClass.objects.get_or_create(class_name=task["class_name"])
 
-            # Get or create Student
-            student_obj, _ = Student.objects.get_or_create(
-                student_code=task["student_can"],
-                defaults={
-                    'last_name': task["student_fullname"].split(" ")[0],
-                    'first_name': task["student_fullname"].split(" ")[1],
-                    'classes': class_obj
-                }
-            )
+            try:
+                student_first_name = task['student_fullname'].split()[0] if len(task['student_fullname'].split()) > 0 else ""
+                student_last_name = task['student_fullname'].split()[1] if len(task['student_fullname'].split()) > 1 else ""
+            except Exception as e:
+                return JsonResponse({"message": f"studnent full name parse error: {str(e)}", "Code": 500})
 
-            # Skip if writing task already exists
-            if WritingTask.objects.filter(
-                student_code=task["student_can"],
-                trait=task["trait"],
-                started_time=task["date"]
-            ).exists():
+            student_objs = Student.objects.none()
+           
+            # matching only student_can
+            filters_can = {}
+            if task.get("student_can"):
+                filters_can["student_can__iexact"] = task["student_can"]
+            
+            # matching only student_digital_id
+            filters_digital_id = {}
+            if task.get("student_digital_id"):
+                filters_digital_id["student_digital_id__iexact"] = task["student_digital_id"]
+             
+            filters_general = {}
+            if student_first_name:
+                filters_general["first_name__iexact"] = student_first_name
+            if student_last_name:
+                filters_general["last_name__iexact"] = student_last_name
+            if task.get("class_name"):
+                filters_general["classes__class_name"] = task["class_name"]
+
+
+            if task.get("student_can"):
+                student_objs = Student.objects.filter(**filters_can)
+
+            if ( not student_objs.exists() or len(student_objs)>1) and task.get("student_digital_id"):
+                student_objs = Student.objects.filter(**filters_digital_id)
+            
+            if not student_objs.exists() or len(student_objs) >1:
+                student_objs = Student.objects.filter(**filters_general)
+         
+            if not student_objs.exists() or len(student_objs) > 1:
+                students_not_found.append({"can":task["student_can"], "digital_id":task["student_digital_id"], "fullname": task['student_fullname']})
                 continue
+
+            student_obj = student_objs[0]
+
+
+            # No need to check for duplicates here, as (student_code, trait, started_time) is unique in WritingTask
 
             writing_task_objs.append(WritingTask(
                 student_code=student_obj,
@@ -514,8 +538,25 @@ def handle_upload_file(request):
                 words_count=task["words_count"]
             ))
 
-        WritingTask.objects.bulk_create(writing_task_objs, batch_size=400, ignore_conflicts=True)
-        return JsonResponse({"message": "File parsed done!", "Code": 200})
+        duplicate_errors = []
+        created_count = 0
+
+        for writing_task in writing_task_objs:
+            try:
+                writing_task.save()
+                created_count += 1
+            except IntegrityError as e:
+                duplicate_errors.append({
+                    "student_code": writing_task.student_code.student_code,
+                    "trait": writing_task.trait,
+                    "started_time": writing_task.started_time,
+                    "error": str(e)
+                })
+
+        return JsonResponse({
+            "message": f"File parsed done!, created {created_count} writing records. \n!!Duplicates!! : \n{duplicate_errors}. \n!!Not found students!!: \n{students_not_found}. \n!!Non-parseable files!!: \n{non_parseable_files}",    
+            "Code": 200 if not duplicate_errors else 207
+        })
 
     except Exception as e:
-        return JsonResponse({"message": str(e), "Code": 500})
+        return JsonResponse({"message": f"parse get error: {str(e)}", "Code": 500})

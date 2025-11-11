@@ -22,12 +22,15 @@ import {
 } from "../features/data/assessDataSlice";
 import { ApiData } from "../apiTypes";
 import { Divider } from "primereact/divider";
+import {InputTextarea } from 'primereact/inputtextarea'
+import { FloatLabel } from "primereact/floatlabel";
+
 
 const markOptions = [
-  { name: "ta" as const, label: "TA Mark" },
-  { name: "gra" as const, label: "GR&A Mark:" },
-  { name: "voc" as const, label: "Voc Mark:" },
-  { name: "coco" as const, label: "Co&co Mark:" },
+  { name: "ta" as const, label: "Task Achievement (Task Fulfillment)" },
+  { name: "gra" as const, label: "Grammar" },
+  { name: "voc" as const, label: "Vocabulary (Lexis)" },
+  { name: "coco" as const, label: "Coherence and Cohesion (Organization)" },
 ];
 
 export function UserDashboard() {
@@ -42,6 +45,7 @@ export function UserDashboard() {
   }
 
   const assessData: AssessData[] = [...useAppSelector((state) => state.assess)];
+
   const dispatch = useAppDispatch();
 
   const currentTask = assessData.find((task) => task.id === currentTaskId);
@@ -70,9 +74,23 @@ export function UserDashboard() {
           completed: task.completed
         }))
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
-
+      
       dispatch(initialRating(tasks));
-      const currentTaskId = tasks[0]?.id;
+      console.log("Fetched tasks:", tasks);
+      // Set the first uncompleted task as the current task
+      // If all tasks are completed, set the last task as current
+      // If no tasks, currentTaskId remains undefined
+      const uncompletedTask = tasks.find((task) => !task.completed);
+      if (uncompletedTask) {
+        setCurrentTaskId(uncompletedTask.id);
+        return;
+      }
+      if (tasks.length === 0) {
+        setCurrentTaskId(undefined);
+        return;
+      }
+      // all completed
+      const currentTaskId = tasks[tasks.length-1]?.id;
       setCurrentTaskId(currentTaskId);
     };
     if (currentUser === null || currentUser === undefined) return;
@@ -119,7 +137,6 @@ export function UserDashboard() {
     if (index < assessData.length - 1) {
       setCurrentTaskId(assessData[index + 1].id);
     }
-
   };
 
   const handleRevert = () => {
@@ -142,7 +159,7 @@ export function UserDashboard() {
     <div className="">
       <div className="flex items-center h-[100vh]">
         <div
-          className={` h-full p-6 rounded-lg shadow-lg border flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
+          className={` h-full p-6 rounded-lg shadow-lg flex flex-col gap-4 border-spacing-4  ${expanded ? "w-[25vw]" : "w-0 invisible"
             }`}
         >
           <div className="text-2xl">
@@ -152,7 +169,7 @@ export function UserDashboard() {
                 <InfoSidebar
                   infoHead="Review"
                   infoList={assessData}
-                  renderInfo={(info) => <TaskContent info={info as AssessData} />}
+                  renderInfo={(info) => <TaskContent info={info as AssessData} setTaskId={setCurrentTaskId} />}
                 ></InfoSidebar>
               </span>
 
@@ -175,24 +192,24 @@ export function UserDashboard() {
                   key={`${name}-${currentTaskId}`}
                   name={name}
                   value={marks[name] || undefined}
+                  task_access={currentTask.trait === 'PELA3' ? "PELA" : "BE"}
                   handleChange={handleMarkChange}
                 />
                 <hr />
               </React.Fragment>
             ))}
 
-            <div className="flex flex-col justify-center items-center gap-3">
-              <label htmlFor="comment">Notes:</label>
-
-              <textarea
+            <FloatLabel className="flex flex-col justify-center items-center">
+              <InputTextarea
                 className="border"
-                id="comment"
-                value={currentTask.comments}
+                id="comments"
                 onChange={(e) => handleCommentChange(e.target.value)}
-                placeholder="Enter your Notes here"
-                rows={8}
-              />
-            </div>
+                rows={3}
+                cols={30} 
+                />
+              <label htmlFor="comments">Enter your Notes here</label>
+            </FloatLabel>
+         
             <div className="flex gap-2">
               <Button onClick={handleRevert}> <i className="pi pi-arrow-left"></i></Button>
 
@@ -204,8 +221,9 @@ export function UserDashboard() {
                     : ""
                 }
                 disabled={!isAllSelected}
+                tooltip={currentTaskIndex===totalTasks-1 ? 'This is end of task queue, click to save' : ''} tooltipOptions={{ position: 'right' }}
               >
-                {isLastTask ? "Submit Final Assessment" : <span> <i className="pi pi-arrow-right" /> <i className="pi pi-save" /> </span>}
+                {isLastTask ? "Submit Final Assessment" : <span> <i className="pi pi-save" /> {currentTaskIndex!==totalTasks-1 ? <i className="pi pi-arrow-right"/> : null} </span>}
               </Button>
             </div>
           </div>
@@ -232,13 +250,27 @@ export function UserDashboard() {
           </div>
           <h3 className="text-left mb-2">{currentTask.studentCode}</h3>
           <h3 className="text-left mb-2">{currentTask.trait}</h3>
-          <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3>
-          <h3 className="text-left mb-2">{currentTask.startedTime}</h3>
+          {/* <h3 className="text-left mb-2">({currentTask.wordsCount} words)</h3> */}
+            <h3 className="text-left mb-2">
+            {currentTask.startedTime
+              ? new Date(currentTask.startedTime).toLocaleDateString()
+              : ""}
+            </h3>
           <hr />
-          <div
-            className="block w-full text-left whitespace-pre-line leading-7 mt-5 text-lg overflow-y-auto max-h-[70vh]"
+         {/* <div
+            className="block w-full h-[90vh]" >
+             <iframe
+          src={`https://${import.meta.env.VITE_PDF_DOWNLOAD_DOMAIN}/${currentTask.trait}/${currentTask.trait}/${currentTask.studentCode}.pdf`}
+          title="PDF Viewer"
+          width="100%"
+          height="90%" // Adjust height as needed
+        ></iframe>
+        </div> */}
+            <div
+            className="block w-full whitespace-pre-line leading-[2rem] mt-5 text-xl overflow-y-auto max-h-[70vh] break-words"
+            style={{ textAlign: "justify" }}
             dangerouslySetInnerHTML={{ __html: currentTask.response }}
-          ></div>
+            ></div>
         </div>
       </div>
       <Dialog onHide={() => setShowDialog(false)} visible={showDialog} header="Confirm" footer={

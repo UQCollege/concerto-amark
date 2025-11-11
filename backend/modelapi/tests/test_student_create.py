@@ -40,7 +40,8 @@ class CreateStudentsAPITestCase(APITestCase):
                     "student_digital_id": "D001",
                     "first_name": "Alice",
                     "last_name": "Smith",
-                    "class_name": 101
+                    "class_name": 101,
+                    "student_can": "1"
                 }
             ]
         }
@@ -52,6 +53,7 @@ class CreateStudentsAPITestCase(APITestCase):
         student = Student.objects.get(student_code="ST001")
         self.assertEqual(student.first_name, "Alice")
         self.assertEqual(student.classes.class_name, 101)
+        self.assertEqual(student.student_can,"1")
 
     def test_update_existing_student_class(self):
         client = APIClient()
@@ -63,7 +65,8 @@ class CreateStudentsAPITestCase(APITestCase):
             student_digital_id="D002",
             first_name="Bob",
             last_name="Brown",
-            classes=old_class
+            classes=old_class,
+            student_can= "2"
         )
 
         payload = {
@@ -73,7 +76,8 @@ class CreateStudentsAPITestCase(APITestCase):
                     "student_digital_id": "D002",
                     "first_name": "Bob",
                     "last_name": "Brown",
-                    "class_name": 202
+                    "class_name": 202,
+                    "student_can": "2"
                 }
             ]
         }

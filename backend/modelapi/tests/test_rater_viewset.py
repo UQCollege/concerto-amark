@@ -37,7 +37,7 @@ class RaterViewSetTests(TestCase):
         self.writing_task = WritingTask.objects.create(
             student_code=self.dummy_student,
             trait="Coherence",
-            started_time="2025-01-01T00:00:00Z",
+            started_time="2025-01-01",
             response="Dummy response",
             words_count=100
         )
@@ -131,10 +131,10 @@ class RaterViewSetTests(TestCase):
 
     def test_update_task_access(self):
         self.client.force_authenticate(user=self.superuser)
-        response = self.client.put(self.api_url, {"taskAccess": 5}, format="json")
+        response = self.client.put(self.api_url, {"taskAccess": 4}, format="json")
         self.assertEqual(response.status_code, 200)
         self.rater.refresh_from_db()
-        self.assertEqual(self.rater.task_access, 5)
+        self.assertEqual(self.rater.task_access, 4)
 
     def test_update_task_access_missing(self):
         self.client.force_authenticate(user=self.superuser)

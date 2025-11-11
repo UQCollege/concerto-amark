@@ -1,12 +1,17 @@
 from django.test import TestCase
 from collections import Counter
-from .models import WritingTask, CustomUser, AssessmentTask, Student
+from ..models import WritingTask, CustomUser, AssessmentTask, Student
 
 class AssignRatersMultipleTasksTestCase(TestCase):
     def setUp(self):
         # Create 10 active raters
         self.raters = [
             CustomUser.objects.create(username=f"rater{i}", active=True, rater_digital_id=f"RID{i}",task_access=1, usertype="Rater")
+            for i in range(10)
+        ]
+        # Create 10 active test raters
+        self.raters = [
+            CustomUser.objects.create(username=f"test_rater{i}", active=True, rater_digital_id=f"tRID{i}",task_access=1, usertype="Test-Rater")
             for i in range(10)
         ]
 
@@ -16,14 +21,14 @@ class AssignRatersMultipleTasksTestCase(TestCase):
         # Create 2 tasks per student: writing task 1 and 2
         for student in self.students:
             task1 = WritingTask.objects.create(
-                started_time="2024-01-01T10:00:00Z",
+                started_time="2024-01-01",
                 trait="writing task 1",
                 student_code=student,
                 response=f"{student}'s response 1",
                 words_count=100,
             )
             task2 = WritingTask.objects.create(
-                started_time="2024-01-01T11:00:00Z",
+                started_time="2024-01-01",
                 trait="writing task 2",
                 student_code=student,
                 response=f"{student}'s response 2",
@@ -43,12 +48,14 @@ class AssignRatersMultipleTasksTestCase(TestCase):
         for student in self.students:
             task1_raters = AssessmentTask.objects.filter(
                 writing_task__student_code=student,
-                writing_task__trait="writing task 1"
+                writing_task__trait="writing task 1",
+                rater__usertype="Rater"
             ).values_list("rater_id", flat=True)
 
             task2_raters = AssessmentTask.objects.filter(
                 writing_task__student_code=student,
-                writing_task__trait="writing task 2"
+                writing_task__trait="writing task 2",
+                rater__usertype="Rater"
             ).values_list("rater_id", flat=True)
 
             # Ensure task1 and task2 raters are different

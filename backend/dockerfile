@@ -1,25 +1,47 @@
-# Use an official Python runtime as a base image
-FROM python:3.12
+# -------- Stage 1: Builder --------
+FROM python:3.12-slim AS builder
 
-# Set the working directory
+# Set work directory
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
+# Install build dependencies (only what's needed)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies to a temp dir
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install gunicorn
-# Copy the application files
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir gunicorn
+
+# -------- Stage 2: Runtime --------
+FROM python:3.12-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 
+
+# Create non-root user
+RUN useradd -m -d /home/appuser appuser
+
+# Create working directory
+WORKDIR /app
+
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
 COPY . .
 
-# Ensure the SQLite database folder exists and collect static files in a single layer
-RUN mkdir -p /app/db && \
-    python manage.py makemigrations
+# Set permissions so appuser can access everything
+RUN chown -R appuser:appuser /app
 
-# Expose the port Django will run on
+# Switch to non-root user
+USER appuser
+
+# Prepare runtime (no DB init or migration here — handle in entrypoint or CI/CD)
 EXPOSE 8000
 
-# Set Python to be unbuffered (for logging)
-ENV PYTHONUNBUFFERED=1
-
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--timeout", "120", "--workers", "4", "--log-level", "info", "amarkapi.wsgi:application"]
-

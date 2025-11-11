@@ -92,10 +92,19 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, "db", "db.sqlite3"),
-    }
+    },
+
+    'pela_dev': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'pela_dev'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+    },
 }
 
-
+DATABASE_ROUTERS = ['amarkapi.db_router.PelaRouter']
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -119,12 +128,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'Australia/Brisbane'
-
 USE_I18N = True
-
-USE_TZ = True
+USE_TZ = False
 DATE_FORMAT = "d-m-Y"
 USE_L10N = False
 
@@ -144,6 +149,9 @@ USE_FAKE_AUTH = os.environ.get("USE_FAKE_AUTH", "True") == "True"
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+S3BUCKET_NAME = os.environ.get("S3BUCKET_NAME", "pela-training-data")
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 

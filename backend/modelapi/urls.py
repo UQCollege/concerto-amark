@@ -1,6 +1,7 @@
 
-from django.urls import path, include
-from .views import WritingTaskViewSet, RaterViewSet, assign_raters_view, AssessmentTaskViewSet, clear_tasks_view, assign_to_all, verify_view, create_students,create_writing_tasks, handle_upload_file
+from django.urls import path
+from .views import WritingTaskViewSet, RaterViewSet, assign_raters_view, AssessmentTaskViewSet, clear_tasks_view, assign_to_all, verify_view, create_writing_tasks, handle_upload_file
+from .ai_view import upload_rated_writing_data_to_s3
 urlpatterns = [
     path('raters/', RaterViewSet.as_view({'get': 'list', 'post': 'create', 'put': 'update', 'delete': 'destroy'}), name='raters-api'),
     path('tasks/', WritingTaskViewSet.as_view({'get':'list', 'post':'create', 'put':'update', 'delete':'destroy'}), name='students-writing-response'),
@@ -10,7 +11,8 @@ urlpatterns = [
     path('clear-tasks/', clear_tasks_view, name='clear-tasks'),
     path('assign-all/', assign_to_all, name='assign-to-all'  ),
     path('verify/', verify_view, name='verify' ),
-    path('students/', create_students, name='create-students'),
+
     path('writing-tasks/', create_writing_tasks, name='create-writing-tasks'),
-    path('upload-zip/', handle_upload_file, name='upload-file' )
+    path('upload-zip/', handle_upload_file, name='upload-file' ),
+    path('upload-s3/', upload_rated_writing_data_to_s3, name='upload-s3' )
 ]

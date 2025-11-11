@@ -1,0 +1,195 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { AuthContext } from './utils/authContext';
+
+const CLIENT_ID = import.meta.env.VITE_OIDC_CLIENT_ID;
+const COGNITO_DOMAIN = import.meta.env.VITE_COGNITO_DOMAIN;
+const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI;
+const TOKEN_ENDPOINT = `${COGNITO_DOMAIN}/oauth2/token`;
+const AUTHORIZATION_ENDPOINT = `${COGNITO_DOMAIN}/oauth2/authorize`;
+
+const SCOPES = 'openid email profile';
+
+const isValidRedirectUri = (uri: string) => {
+  const allowedRedirectUri = import.meta.env.VITE_REDIRECT_URI;
+  return uri === allowedRedirectUri;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  const [lastActivity, setLastActivity] = useState<number>(Date.now()); // Track last user activity
+  const inactivityTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper to generate a random code_verifier
+  const generateCodeVerifier = (): string => {
+    const array = new Uint8Array(32);
+    window.crypto.getRandomValues(array);
+    return btoa(String.fromCharCode(...array))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  };
+
+  // Create a SHA256 code challenge from the verifier
+  const generateCodeChallenge = async (verifier: string): Promise<string> => {
+    const data = new TextEncoder().encode(verifier);
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode(...new Uint8Array(digest)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  };
+
+  const login = async () => {
+    const verifier = generateCodeVerifier();
+    const challenge = await generateCodeChallenge(verifier);
+    
+    sessionStorage.setItem('pkce_verifier', verifier);
+
+    const loginUrl = `${AUTHORIZATION_ENDPOINT}?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
+      REDIRECT_URI,
+    )}&scope=${encodeURIComponent(SCOPES)}&code_challenge=${challenge}&code_challenge_method=S256`;
+
+    window.location.href = loginUrl;
+  };
+
+  const logout = React.useCallback(() => {
+    sessionStorage.clear();
+    setAccessToken(null);
+    setRefreshToken(null);
+    if (isValidRedirectUri(REDIRECT_URI)) {
+      window.location.href = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
+        REDIRECT_URI,
+      )}`;
+    } else {
+      console.error("Invalid logout redirect URI");
+    }
+  }, []);
+
+  const exchangeCodeForTokens = async (code: string) => {
+    const verifier = sessionStorage.getItem('pkce_verifier');
+    if (!verifier) {
+      console.error('No PKCE verifier found.');
+      return;
+    }
+
+    const params = new URLSearchParams();
+    params.append('grant_type', 'authorization_code');
+    params.append('client_id', CLIENT_ID);
+    params.append('code', code);
+    params.append('redirect_uri', REDIRECT_URI);
+    params.append('code_verifier', verifier);
+
+    const response = await fetch(TOKEN_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
+    });
+
+    const data = await response.json();
+    if (data.access_token) {
+      sessionStorage.setItem('access_token', data.access_token);
+      sessionStorage.setItem('refresh_token', data.refresh_token);
+      setAccessToken(data.access_token);
+      setRefreshToken(data.refresh_token);
+    } else {
+      console.error('Token exchange failed:', data);
+    }
+  };
+
+  const refreshAccessToken = React.useCallback(async () => {
+    const storedRefreshToken = sessionStorage.getItem('refresh_token');
+    if (!storedRefreshToken) return;
+
+    const params = new URLSearchParams();
+    params.append('grant_type', 'refresh_token');
+    params.append('client_id', CLIENT_ID);
+    params.append('refresh_token', storedRefreshToken);
+
+    const response = await fetch(TOKEN_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: params.toString(),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to refresh token:', response.statusText);
+      logout(); // Force re-login
+      return;
+    }
+
+    const data = await response.json();
+    if (data.access_token) {
+      sessionStorage.setItem('access_token', data.access_token);
+      setAccessToken(data.access_token);
+    } else {
+      logout(); // Force re-login if refresh token is invalid
+    }
+  }, [logout]);
+
+  // Handle user activity
+  const resetInactivityTimer = () => {
+    setLastActivity(Date.now());
+    if (inactivityTimeout.current) {
+      clearTimeout(inactivityTimeout.current);
+    }
+
+    // Set a new inactivity timeout (30 minutes)
+    inactivityTimeout.current = setTimeout(() => {
+      console.log('User inactive for 30 minutes. Logging out...');
+      logout();
+    }, 30 * 60 * 1000); // 30 minutes
+  };
+
+  // Check for auth code in URL (on callback)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    if (code) {
+      exchangeCodeForTokens(code).then(() => {
+        window.history.replaceState({}, '', REDIRECT_URI); // Clean up URL
+      });
+    } else {
+      const storedToken = sessionStorage.getItem('access_token');
+      if (storedToken) setAccessToken(storedToken);
+    }
+  }, []);
+
+  // Attach event listeners for user activity
+  useEffect(() => {
+    const events = ['mousemove', 'keydown', 'click', 'scroll'];
+    events.forEach((event) => window.addEventListener(event, resetInactivityTimer));
+
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, resetInactivityTimer));
+      if (inactivityTimeout.current) {
+        clearTimeout(inactivityTimeout.current);
+      }
+    };
+  }, []);
+
+  // Refresh token if user is active
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      if (now - lastActivity < 30 * 60 * 1000) {
+        console.log('User is active. Refreshing token...');
+        refreshAccessToken();
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [lastActivity, refreshAccessToken]);
+
+  return (
+    <AuthContext.Provider value={{ accessToken, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
