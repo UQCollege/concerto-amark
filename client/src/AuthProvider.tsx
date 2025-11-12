@@ -55,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = React.useCallback(() => {
+    localStorage.clear();
     sessionStorage.clear();
     setAccessToken(null);
     setRefreshToken(null);
