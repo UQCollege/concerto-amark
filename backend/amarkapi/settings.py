@@ -90,8 +90,12 @@ WSGI_APPLICATION = 'amarkapi.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, "db", "db.sqlite3"),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('AMARKDB_NAME', 'amark_db'),
+        'USER': os.environ.get('AMARKDB_USER', 'dbadmin'),
+        'PASSWORD': os.environ.get('AMARKDB_PASSWORD', 'databasepassword123!'),
+        'HOST': os.environ.get('AMARKDB_HOST', 'localhost'),
+        'PORT': os.environ.get('AMARKDB_PORT', '5432'),
     },
 
     'pela_dev': {
