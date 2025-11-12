@@ -96,6 +96,9 @@ DATABASES = {
         'PASSWORD': os.environ.get('AMARKDB_PASSWORD', 'databasepassword123!'),
         'HOST': os.environ.get('AMARKDB_HOST', 'localhost'),
         'PORT': os.environ.get('AMARKDB_PORT', '5432'),
+    } if os.environ.get('USE_FAKE_AUTH', 'False') == 'False' else {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, "db", "db.sqlite3"),
     },
 
     'pela_dev': {
