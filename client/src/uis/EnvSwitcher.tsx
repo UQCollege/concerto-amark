@@ -10,9 +10,7 @@ export const EnvSwitcher: React.FC = () => {
   const environment = useAppSelector((state) => state.api.environment);
 
   const handleSwitch = () => {
-    // const newEnv = environment === "PROD" ? "DEV" : "PROD";
     setOpen(!open);
-    // dispatch(switchEnvironment(newEnv));
   };
 
   return (
@@ -22,11 +20,11 @@ export const EnvSwitcher: React.FC = () => {
       onClick={handleSwitch}
       severity={environment === "PROD" ? "success" : "secondary"}
       style={{ fontSize: "0.65rem", padding: "0.25rem 0.25rem" }}
-      tooltip={`Current: ${environment}. Click to switch.`}
+      tooltip={`Current tasks from ${environment}. Click to switch data source.`}
       rounded
       />
     {open && (<Dialog header="Switch Environment" visible={open} style={{ width: '350px' }} modal onHide={() => setOpen(false)}>
-      <p>Switch to {environment === "PROD" ? "Concerto 1 (DEV)" : "Concerto 2 (PROD)"}? This will switch your database immediately, and you won’t be able to access tasks from the current database.</p>
+      <p>Are you sure you want to switch to different data source? you won’t be able to see your current tasks anymore.</p>
       <div className="flex justify-content-end gap-2 mt-4">
         <Button label="Cancel" icon="pi pi-times" className="p-button-text" onClick={() => setOpen(false)} />
         <Button label="Yes, Switch" icon="pi pi-check" onClick={() => {
