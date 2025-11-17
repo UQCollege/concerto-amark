@@ -18,10 +18,11 @@ const ClassDashboard = () => {
         <>
             <Panel header={`${name}'s Class Dashboard`} className="m-5 w-[60vw]">
 
-                <div className="flex gap-2 m-5">
+                <div className="flex flex-col gap-2 m-5 items-center">
 
                     <Button label="Download Class Tasks" onClick={async () => handleClassWritings(name)} />
                 </div>
+                       <p className="text-sky-700"> &#8505; Your class writings will typically be available for download about one hours after the completion of the exam.</p> 
             </Panel>
         </>
     );

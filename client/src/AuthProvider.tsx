@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = React.useCallback(() => {
-    localStorage.clear();
+    localStorage.removeItem('api-environment');
     sessionStorage.clear();
     setAccessToken(null);
     setRefreshToken(null);

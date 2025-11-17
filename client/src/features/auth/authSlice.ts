@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { jwtDecode } from "jwt-decode";
 
 const isAuthDisabled = import.meta.env.VITE_AUTH_DISABLED === "true";
+// todo: define more user types as needed, null is only for not logged in state.
 type UserType = "Admin" | "Rater" | "Admin-Rater" | "Teacher" | "Test-Rater"|null
 
 interface User {
