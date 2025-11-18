@@ -94,18 +94,21 @@ class CognitoJWTAuthentication(BaseAuthentication):
         sub = claims.get("sub")
         if not sub or not username:
             raise AuthenticationFailed("Required claims missing: sub or username")
-
-        user, created = CustomUser.objects.get_or_create(
-            username=username,
-            defaults={
-            "usertype": usertype,
-            "active": usertype not in ["Rater", "Test-Rater"],
-            "is_superuser": usertype == "Admin",
-            "task_access": 1,
-            "rater_digital_id": sub,
-            }
-        )
-
+        try:
+            user, created = CustomUser.objects.get_or_create(
+                username=username,
+                defaults={
+                "usertype": usertype,
+                "active": usertype not in ["Rater", "Test-Rater"],
+                "is_superuser": usertype == "Admin",
+                "task_access": 1,
+                "rater_digital_id": sub,
+                }
+            )
+        except Exception as e:
+            print(f"Error creating or retrieving user: {e}")
+            raise AuthenticationFailed("Failed to get or create user")
+        
         return user, created
     
     def get_user_type(self, cognito_groups):
