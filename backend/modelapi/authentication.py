@@ -76,19 +76,21 @@ class CognitoJWTAuthentication(BaseAuthentication):
         auth_header = request.headers.get("Authorization")
       
         if not auth_header or not auth_header.startswith("Bearer "):
+            print("No valid Authorization header found")
             return None
 
         token = auth_header.split(" ")[1]
         claims =self._decode_jwt(token)
 
         user, _ = self.get_or_create_user(claims)
+        print(f"Authenticated user: {user.username}")
         return (user, None)
 
     def get_or_create_user(self, claims):
         cognito_groups = claims.get("cognito:groups", [])
         usertype = self.get_user_type(cognito_groups)
         username = (claims.get("username") or claims.get("cognito:username"))
-   
+        print(f"Username from claims: {username}")
         sub = claims.get("sub")
         if not sub or not username:
             raise AuthenticationFailed("Required claims missing: sub or username")
@@ -110,5 +112,8 @@ class CognitoJWTAuthentication(BaseAuthentication):
         priority = ["Admin", "Admin-Rater", "Teacher", "Rater", "Test-Rater"]
         for role in priority:
             if role in cognito_groups:
+                print(f"User role determined from groups: {role}")
                 return role
+            
+        print("No matching user role found in groups, defaulting to Test-Rater")
         return "Test-Rater"

@@ -126,7 +126,7 @@ class WritingTaskViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         """
-        List writing tasks, optionally list class tasks for teachers.
+        Weekly Writing List for teachers to download.
         """
 
         teacher_name = request.GET.get('teacher_name', None)
