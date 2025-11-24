@@ -1,11 +1,10 @@
 import "./App.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import Root from "./pages/Root";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { UserDashboard } from "./pages/UserDashboard";
 import Home from "./pages/Home";
 
-import { Navigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "./store/hooks";
 import { setToken } from "./features/auth/authSlice";
 import ClassDashboard from "./pages/ClassDashboard";
@@ -35,9 +34,10 @@ const params = new URLSearchParams(window.location.search);
     }
   }, [dispatch,login]);
   const groups = useAppSelector((state) => state.auth.groups);
+  const user = useAppSelector((state) => state.auth.user);
+ 
   const isAdmin = groups.includes("Admin") || groups.includes("Admin-Rater");
-
-  const router = createBrowserRouter([
+    const router = createBrowserRouter([
     {
       path: "/",
       element: <Root />,
@@ -53,8 +53,12 @@ const params = new URLSearchParams(window.location.search);
             )
           ),
         },
-        { path: "/raters/:name", element: <UserDashboard />  },
-        { path: "/classes/:name", element: <ClassDashboard /> }, //todo: remove to Another App
+        { path: "/raters/:name", element: user!==null?<UserDashboard />: <Navigate to="/" replace /> },
+        { path: "/classes/:name", element: user!==null?<ClassDashboard />:<Navigate to="/" replace /> },//todo: remove to Another App
+        {
+    path: "*", // catch-all for 404
+    element: <Home />, 
+  }, 
       ],
     },
   ]);

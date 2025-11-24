@@ -55,6 +55,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = React.useCallback(() => {
+    if (inactivityTimeout.current) {
+     clearTimeout(inactivityTimeout.current);
+     inactivityTimeout.current = null;
+   }
     localStorage.removeItem('api-environment');
     sessionStorage.clear();
     setAccessToken(null);
@@ -133,20 +137,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [logout]);
 
-  // Handle user activity
-  const resetInactivityTimer = () => {
-    setLastActivity(Date.now());
-    if (inactivityTimeout.current) {
-      clearTimeout(inactivityTimeout.current);
-    }
-
-    // Set a new inactivity timeout (30 minutes)
-    inactivityTimeout.current = setTimeout(() => {
-      console.log('User inactive for 30 minutes. Logging out...');
-      logout();
-    }, 30 * 60 * 1000); // 30 minutes
-  };
-
   // Check for auth code in URL (on callback)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -161,6 +151,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedToken) setAccessToken(storedToken);
     }
   }, []);
+
+// Handle user activity
+  const resetInactivityTimer = () => {
+    
+    const now = Date.now();
+    if (now - lastActivity > 10_000) {
+      // only update every 10s
+      setLastActivity(now);
+    }
+
+    if (inactivityTimeout.current) {
+      clearTimeout(inactivityTimeout.current);
+    }
+
+    // Set a new inactivity timeout (30 minutes)
+    inactivityTimeout.current = setTimeout(() => {
+      console.log("User inactive for 30 minutes. Logging out...");
+      logout();
+    }, 30 * 60 * 1000); // 30 minutes
+  };
 
   // Attach event listeners for user activity
   useEffect(() => {
@@ -177,6 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Refresh token if user is active
   useEffect(() => {
+    if (!accessToken) return;
     const interval = setInterval(() => {
       const now = Date.now();
       if (now - lastActivity < 30 * 60 * 1000) {
@@ -186,7 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 5 * 60 * 1000); // Check every 5 minutes
 
     return () => clearInterval(interval);
-  }, [lastActivity, refreshAccessToken]);
+  }, [accessToken, lastActivity, refreshAccessToken]);
 
   return (
     <AuthContext.Provider value={{ accessToken, login, logout }}>
