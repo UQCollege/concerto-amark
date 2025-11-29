@@ -7,6 +7,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from django.conf import settings
 from django.contrib.auth.models import Group
 from .models import CustomUser
+from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
 
 COGNITO_REGION = os.environ.get("COGNITO_REGION", "ap-southeast-2")
 USERPOOL_ID = os.environ.get("USERPOOL_ID")
@@ -42,14 +43,26 @@ class CognitoJWTAuthentication(BaseAuthentication):
 
     def _decode_jwt(self, token):
         try:
-            return jwt.decode(
+            # 1. Decode without verifying audience (since Access Tokens don't have 'aud')
+            # We still verify the signature and expiration
+            payload = jwt.decode(
                 token,
                 self.get_signing_key(token),
                 algorithms=["RS256"],
-                audience=APP_CLIENT_ID,
                 issuer=COGNITO_ISSUER,
-                options={"verify_at_hash": False}
+                options={
+                    "verify_at_hash": False,
+                    "verify_aud": False  # Disable audience check for Access Tokens
+                }
             )
+
+            # 2. Manually verify that the token is for our App Client
+            # Access Tokens use 'client_id', ID Tokens use 'aud'
+            token_client_id = payload.get("client_id") or payload.get("aud")
+            if token_client_id != APP_CLIENT_ID:
+                raise AuthenticationFailed("Token was not issued for this client")
+
+            return payload
         except ExpiredSignatureError:
             raise AuthenticationFailed("Token has expired")
         except JWTClaimsError as e:
