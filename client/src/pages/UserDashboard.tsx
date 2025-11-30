@@ -211,9 +211,10 @@ export function UserDashboard() {
             </FloatLabel>
          
             <div className="flex gap-2">
-              <Button onClick={handleRevert}> <i className="pi pi-arrow-left"></i></Button>
+              <Button id="previous-task-btn" onClick={handleRevert}> <i className="pi pi-arrow-left"></i></Button>
 
               <Button
+                id="next-save-task-btn"
                 onClick={isLastTask ? dialogLastSubmit : handleSubmit}
                 className={
                   !isAllSelected

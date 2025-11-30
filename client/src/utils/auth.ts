@@ -13,5 +13,6 @@ export const getAccessToken = () => {
 const LOGOUT_URL = `${import.meta.env.VITE_COGNITO_DOMAIN}/logout?client_id=${import.meta.env.VITE_OIDC_CLIENT_ID}&logout_uri=${encodeURIComponent(import.meta.env.VITE_LOGOUT_REDIRECT_URI)}`;  
 export const handleLogout = ()=>{
     sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("refresh_token");
     window.location.href = LOGOUT_URL
 }

@@ -26,6 +26,9 @@ export const attachAuthHeaders = (api: AxiosInstance) => {
         const detail = error.response.data || "Server Error";
         alert(detail);
         sessionStorage.removeItem("access_token");
+        sessionStorage.removeItem("refresh_token");
+        sessionStorage.removeItem("id_token");
+        window.location.reload();
       }
       return Promise.reject(error);
     }

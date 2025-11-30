@@ -42,6 +42,7 @@ const Root = () => {
               text={`${name}'s Admin Board`}
               active
               link="/admin"
+              linkLabel="AdminBoard"
             />
           )}
             
@@ -49,12 +50,14 @@ const Root = () => {
             icon={<BookOpenCheck size={20} />}
             text={`${name}'s Writing Assessments`}
             link={`/raters/${name}`} //
+            linkLabel="WritingAssessments"
           />
 
           <SidebarItem
             icon={<Layers size={20} />}
             text={`${name}'s Classes`}
             link={`/classes/${name}`} //
+            linkLabel="ClassesTasks"
           />
 
          

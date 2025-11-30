@@ -18,6 +18,7 @@ interface SidebarItemProps {
   active?: boolean;
   alert?: boolean;
   link: string;
+  linkLabel?: string;
 }
 
 const Sidebar = ({ children }: SidebarProps) => {
@@ -57,6 +58,7 @@ export const SidebarItem = ({
   active,
   alert,
   link,
+  linkLabel,
 }: SidebarItemProps) => {
   const context = useContext(SidebarContext);
   if (!context) {
@@ -64,7 +66,7 @@ export const SidebarItem = ({
   }
   const { expanded } = context;
   return (
-    <Link to={link} className="hover: bg-indigo-50 text-gray-600">
+    <Link to={link} className="hover: bg-indigo-50 text-gray-600" aria-label={linkLabel}>
       <li
         className={`relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${active
           ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
