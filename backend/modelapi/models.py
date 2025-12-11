@@ -154,9 +154,20 @@ class WritingTask(Audit):
         selected = sorted_raters[:needed]
 
         for rater in selected:
-            AssessmentTask.objects.create(writing_task=self, rater=rater)
-            if self.assign_all:
-                print(f"Assigned rater {rater.username} to writing task {self.id} for trait {self.trait}.")
+            obj, created = AssessmentTask.objects.get_or_create(
+                writing_task=self, 
+                rater=rater,
+                defaults={'active': True} # Ensure new record is active
+            )
+            
+            if created:
+                if self.assign_all:
+                    print(f"Assigned rater {rater.username} to writing task {self.id} for trait {self.trait}.")
+            else:
+                if not obj.active:
+                    obj.active = True
+                    obj.save()
+
 
         return {
             "trait": self.trait,
@@ -173,6 +184,9 @@ class AssessmentTask(Audit):
     coco = models.IntegerField(null=True)
     completed = models.BooleanField(default=False)
     comments = models.CharField(max_length=250, null=True)
+
+    class Meta:
+        unique_together = ('writing_task', 'rater')
     
     def delete(self, *args, **kwargs):
         # Perform a real delete instead of setting active to False
