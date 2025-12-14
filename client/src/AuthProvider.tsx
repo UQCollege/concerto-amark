@@ -18,8 +18,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [accessToken, setAccessToken] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
+    // eslint-disable-next-line
    const lastActivity = useRef<number>(Date.now());  // Track last user activity
   const inactivityTimeout = useRef<NodeJS.Timeout | null>(null);
+    // eslint-disable-next-line
   const lastThrottleTime = useRef<number>(Date.now());
 
   // Helper to generate a random code_verifier

@@ -76,7 +76,7 @@ export function UserDashboard() {
         .sort((a: AssessData, b: AssessData) => a.id - b.id);
       
       dispatch(initialRating(tasks));
-      console.log("Fetched tasks:", tasks);
+  
       // Set the first uncompleted task as the current task
       // If all tasks are completed, set the last task as current
       // If no tasks, currentTaskId remains undefined

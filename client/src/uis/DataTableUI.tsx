@@ -14,10 +14,11 @@ import "primereact/resources/themes/saga-blue/theme.css";
 import "primeicons/primeicons.css";
 import {
   updateTasks,
-  removeTasks,
+  // removeTasks,
   selectedTasks,
   cancelSelectedTasks,
   createNewTask,
+  deleteTask,
 } from "../features/data/taskAllocationSlice";
 import { FilterMatchMode } from "primereact/api";
 import DialogUi from "./DialogUi";
@@ -185,15 +186,50 @@ export default function DataTableUI({
   const dt = useRef<DataTable<any>>(null);
 
   // Edit Row and Bulk edit rows
-  const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
+ const onRowEditComplete = (e: DataTableRowEditCompleteEvent) => {
+    // 1. Update the local data copy (This is fine)
     const _data = [...taskData];
     const { newData, index } = e;
-    _data[index] = newData as TD;
+    const singleEditedTask: TD = newData as TD;
+    _data[index] = singleEditedTask; // Update the local copy
 
+    // 2. Check for Bulk Edit condition (same logic as your old reducer)
+    const isBulkEdit = _data.some((item) => item.selected === true);
+
+    let idList: number[];
+    let raterName: string;
+
+    if (isBulkEdit) {
+        // --- BULK EDIT SCENARIO ---
+        // Get all selected IDs from the updated local data
+        idList = _data.filter((item) => item.selected === true).map((item) => item.id);
+        
+        // Get the rater name from the single task that was just edited/submitted
+        raterName = singleEditedTask.raterName;
+        
+    } else {
+        // --- SINGLE ROW EDIT SCENARIO ---
+        // The ID list is just the single ID of the task that was edited
+        idList = [singleEditedTask.id];
+        
+        // Get the rater name from the single task
+        raterName = singleEditedTask.raterName;
+    }
+    
+    // 3. Construct the Thunk Payload
+    const payloadForThunk = {
+        idList: idList,
+        raterName: raterName,
+        isMulti: isBulkEdit,
+    };
+
+    // 4. Dispatch the ASYNC THUNK
+    dispatch(updateTasks(payloadForThunk));
+    
+    // 5. Clean up local state (This is fine)
     setSelected(null);
     setDisplaySelected(false);
-    dispatch(updateTasks(_data[index] as TD));
-  };
+};
 
   const confirmDelete = (rowData: TD) => {
     setSelectedRow(rowData);
@@ -202,7 +238,7 @@ export default function DataTableUI({
 
   const onDeleteConfirmed = () => {
     if (selectedRow) {
-      dispatch(removeTasks({ id: selectedRow.id }));
+      dispatch(deleteTask(selectedRow.id));
     }
     setisDelDialogVisible(false);
     setSelectedRow(null);
